@@ -52,9 +52,6 @@ const(
 )
 
 func WriteImageManifest(im *schema.ImageManifest, targetFile string, projectName types.ProjectName, version string) {
-    if version == "" {
-        version = GenerateVersion()
-    }
 	buff, err := im.MarshalJSON()
     res := strings.Replace(string(buff), "0.0.0", version, 1)
     res = strings.Replace(res, "xxx/xxx", string(projectName), 1)

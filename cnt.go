@@ -67,16 +67,29 @@ type CntManifest struct {
 				}                        `yaml:"portage,omitempty"`
 }
 
-func (cnt *Cnt) push() {
-	//echo_green "Deploying ${project_fullname}"
-	
+func (cnt *Cnt) Push() {
+	cnt.readManifest("/target/cnt-manifest.yml")
+	fmt.Printf("%#v\n\n", cnt)
+	ExecCmd("curl", "-i",
+		"-F","r=releases",
+		"-F", "hasPom=false",
+		"-F", "e=aci",
+		"-F", "g=com.blablacar.aci.linux.amd64",
+		"-F", "p=aci",
+		"-F", "v=" + cnt.manifest.Version,
+		"-F", "a=" + cnt.manifest.ProjectName.ShortName(),
+		"-F", "file=@" + cnt.path + "/target/image.aci",
+		"-u", cntConfig.Push.Username + ":" + cntConfig.Push.Password,
+		cntConfig.Push.Url + "/service/local/artifact/maven/content")
 }
 
-func (cnt *Cnt) Build() {
+func (cnt *Cnt) writeCntManifest() {
+	d, _ := yaml.Marshal(&cnt.manifest)
+	ioutil.WriteFile(cnt.path + "/target/cnt-manifest.yml", []byte(d), 0777)
+}
 
-	println("Building cnt")
-
-	source, err := ioutil.ReadFile(cnt.path + "/cnt-manifest.yml")
+func (cnt *Cnt) readManifest(path string) {
+	source, err := ioutil.ReadFile(cnt.path + path)
 	if err != nil {
 		panic(err)
 	}
@@ -84,6 +97,12 @@ func (cnt *Cnt) Build() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (cnt *Cnt) Build() {
+
+	println("Building cnt")
+	cnt.readManifest("/cnt-manifest.yml")
 
 	log.Println("building ACI")
 
@@ -94,7 +113,8 @@ func (cnt *Cnt) Build() {
 	cnt.copyInstallAndCreatePacker()
 
 	cnt.writePortage()
-	cnt.writeManifest()
+	cnt.writeRktManifest()
+	cnt.writeCntManifest() // TODO move that, here because we update the version number to generated version
 
 	cnt.runPacker()
 	cnt.runPortage()
@@ -192,9 +212,13 @@ func (cnt *Cnt) writePortage() {
 	ioutil.WriteFile(targetFull + "/etc/portage/make.conf", []byte(res), 0777)
 }
 
-func (cnt *Cnt) writeManifest() {
+func (cnt *Cnt) writeRktManifest() {
 	im := new(schema.ImageManifest)
 	im.UnmarshalJSON([]byte(imageManifest))
+
+	if cnt.manifest.Version == "" {
+		cnt.manifest.Version = GenerateVersion()
+	}
 	WriteImageManifest(im, cnt.path + targetManifest, cnt.manifest.ProjectName, cnt.manifest.Version)
 }
 

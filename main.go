@@ -20,7 +20,17 @@ func discoverAndRunBuildType(path string, args BuildArgs) {
 	} else if pod, err := OpenPod(path, args); err == nil {
 		pod.Build()
 	} else {
-		log.Fatal("Cannot Fount image-manifest.json or pod-manifest.json or cnt-manifest.yml")
+		log.Fatal("Cannot found cnt-manifest.yml")
+	}
+}
+
+func discoverAndRunPushType(path string, args BuildArgs) {
+	if cnt, err := OpenCnt(path, args); err == nil {
+		cnt.Push()
+	} else if _, err := OpenPod(path, args); err == nil {
+//		pod.Build()
+	} else {
+		log.Fatal("Cannot found cnt-manifest.yml")
 	}
 }
 
@@ -39,7 +49,6 @@ func processArgs() {
 			discoverAndRunBuildType(".", buildArgs)
 		},
 	}
-
 	cmdBuild.Flags().BoolVarP(&buildArgs.Zip, "nozip", "z", true, "zip final image or not")
 
 	var cmdClean = &cobra.Command{
@@ -51,8 +60,19 @@ func processArgs() {
 		},
 	}
 
+	var push = &cobra.Command{
+		Use:   "push",
+		Short: "push image(s)",
+		Long:  `push images to repository`,
+		Run: func(cmd *cobra.Command, args []string) {
+			discoverAndRunPushType(".", buildArgs)
+		},
+	}
+
 	var rootCmd = &cobra.Command{Use: "cnt"}
-	rootCmd.AddCommand(cmdBuild, cmdClean)
+	rootCmd.AddCommand(cmdBuild, cmdClean, push)
+
+	cntConfig.Load()
 	rootCmd.Execute()
 
 	println("Victory !")
