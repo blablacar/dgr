@@ -32,14 +32,6 @@ const(
         ],
         "user": "0",
         "group": "0",
-        "eventHandlers": [
-            {
-                "exec": [
-                    "/usr/local/bin/prestart"
-                ],
-                "name": "pre-start"
-            }
-        ],
         "environment": [
             {
                 "name": "PATH",
@@ -50,6 +42,16 @@ const(
 }
 `
 )
+
+//"eventHandlers": [
+//{
+//"exec": [
+//"/usr/local/bin/prestart"
+//],
+//"name": "pre-start"
+//}
+//],
+
 
 func WriteImageManifest(im *schema.ImageManifest, targetFile string, projectName types.ProjectName, version string) {
 	buff, err := im.MarshalJSON()

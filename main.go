@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"github.com/spf13/cobra"
+	"github.com/blablacar/cnt/runner"
 )
 
 func main() {
@@ -15,8 +16,9 @@ func main() {
 }
 
 func discoverAndRunBuildType(path string, args BuildArgs) {
+	runner := runner.DockerRunner{}
  	if cnt, err := OpenCnt(path, args); err == nil {
-		cnt.Build()
+		cnt.Build(runner)
 	} else if pod, err := OpenPod(path, args); err == nil {
 		pod.Build()
 	} else {
@@ -37,6 +39,7 @@ func discoverAndRunPushType(path string, args BuildArgs) {
 type BuildArgs struct {
 	Zip bool
 }
+
 
 func processArgs() {
 	buildArgs := BuildArgs{}

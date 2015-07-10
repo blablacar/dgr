@@ -9,6 +9,7 @@ import (
 	"strings"
 	"fmt"
 	"path/filepath"
+	"github.com/blablacar/cnt/runner"
 )
 
 const (
@@ -99,13 +100,17 @@ func (cnt *Cnt) readManifest(path string) {
 	}
 }
 
-func (cnt *Cnt) Build() {
+func (cnt *Cnt) Build(runner runner.Runner) {
+	runner.Run()
 
 	println("Building cnt")
 	cnt.readManifest("/cnt-manifest.yml")
 
 	log.Println("building ACI")
 
+	os.Mkdir(cnt.path + target, 0777)
+
+	cnt.runSetup()
 	cnt.copyPrestart()
 	cnt.copyAttributes()
 	cnt.copyRootfs()
@@ -120,6 +125,15 @@ func (cnt *Cnt) Build() {
 	cnt.runPortage()
 
 	cnt.tarAci()
+}
+
+func (cnt *Cnt) runSetup() {
+	if _, err := os.Stat(cnt.path + "/setup"); os.IsNotExist(err) {
+		return
+	}
+	if err := ExecCmd(cnt.path + "/setup"); err != nil {
+		panic(err)
+	}
 }
 
 func (cnt *Cnt) tarAci() {
@@ -188,15 +202,13 @@ func (cnt *Cnt) copyAttributes() {
 	if err := os.MkdirAll(cnt.path + targetRootfs + "/etc/prestart/attributes/" + cnt.manifest.ProjectName.ShortName(), 0755); err != nil {
 		panic(err)
 	}
-	if err := CopyDir(cnt.path + "/attributes", cnt.path + targetRootfs + "/etc/prestart/attributes/" + cnt.manifest.ProjectName.ShortName()); err != nil {
-		panic(err)
-	}
+	CopyDir(cnt.path + "/attributes", cnt.path + targetRootfs + "/etc/prestart/attributes/" + cnt.manifest.ProjectName.ShortName())
 }
 
 func (cnt *Cnt) writePortage() {
-	if _, err := os.Stat(cnt.path + "/install-portage.sh"); os.IsNotExist(err) {
-		return
-	}
+//	if _, err := os.Stat(cnt.path + "/install-portage.sh"); os.IsNotExist(err) {
+//		return
+//	}
 	targetFull := cnt.path + target
 
 	fmt.Printf("---- %#v\n\n", cnt.manifest)
