@@ -1,7 +1,8 @@
-package main
+package config
 import (
 	"io/ioutil"
 	"gopkg.in/yaml.v2"
+	"github.com/blablacar/cnt/utils"
 )
 
 var cntConfig = new(CntConfig)
@@ -15,8 +16,12 @@ type CntConfig struct {
 				}  							`yaml:"push,omitempty"`
 }
 
+func GetConfig() *CntConfig {
+	return cntConfig
+}
+
 func (c *CntConfig) Load() {
-	if source, err := ioutil.ReadFile(UserHomeOrFatal() + "/.config/cnt/config.yml"); err == nil {
+	if source, err := ioutil.ReadFile(utils.UserHomeOrFatal() + "/.config/cnt/config.yml"); err == nil {
 		err = yaml.Unmarshal([]byte(source), &c)
 		if err != nil {
 			panic(err)

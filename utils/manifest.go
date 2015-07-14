@@ -1,4 +1,4 @@
-package main
+package utils
 import (
 	"github.com/appc/spec/schema"
 	"log"
@@ -52,6 +52,12 @@ const(
 //}
 //],
 
+
+func BasicManifest() *schema.ImageManifest {
+    im := new(schema.ImageManifest)
+    im.UnmarshalJSON([]byte(imageManifest))
+    return im
+}
 
 func WriteImageManifest(im *schema.ImageManifest, targetFile string, projectName types.ProjectName, version string) {
 	buff, err := im.MarshalJSON()

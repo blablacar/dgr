@@ -1,9 +1,9 @@
 package runner
 
 type Runner interface {
-	Prepare()
+	Prepare(target string)
 
-	Run()
+	Run(target string, command ...string)
 
 	Release()
 }

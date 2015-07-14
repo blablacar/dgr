@@ -1,4 +1,4 @@
-package main
+package utils
 
 func Tar(zip bool, destination string, source ...string) error {
 	zipFlag := ""

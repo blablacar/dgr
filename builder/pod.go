@@ -1,4 +1,4 @@
-package main
+package builder
 
 type Pod struct {
 	path string

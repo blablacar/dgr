@@ -5,6 +5,8 @@ import (
 	"os"
 	"github.com/spf13/cobra"
 	"github.com/blablacar/cnt/runner"
+	"github.com/blablacar/cnt/builder"
+	"github.com/blablacar/cnt/config"
 )
 
 func main() {
@@ -15,34 +17,30 @@ func main() {
 	processArgs();
 }
 
-func discoverAndRunBuildType(path string, args BuildArgs) {
+func discoverAndRunBuildType(path string, args builder.BuildArgs) {
 	runner := runner.DockerRunner{}
- 	if cnt, err := OpenCnt(path, args); err == nil {
-		cnt.Build(runner)
-	} else if pod, err := OpenPod(path, args); err == nil {
+ 	if cnt, err := builder.OpenCnt(path, args); err == nil {
+		cnt.Build(&runner)
+	} else if pod, err := builder.OpenPod(path, args); err == nil {
 		pod.Build()
 	} else {
 		log.Fatal("Cannot found cnt-manifest.yml")
 	}
 }
 
-func discoverAndRunPushType(path string, args BuildArgs) {
-	if cnt, err := OpenCnt(path, args); err == nil {
+func discoverAndRunPushType(path string, args builder.BuildArgs) {
+	if cnt, err := builder.OpenCnt(path, args); err == nil {
 		cnt.Push()
-	} else if _, err := OpenPod(path, args); err == nil {
+	} else if _, err := builder.OpenPod(path, args); err == nil {
 //		pod.Build()
 	} else {
 		log.Fatal("Cannot found cnt-manifest.yml")
 	}
 }
 
-type BuildArgs struct {
-	Zip bool
-}
-
 
 func processArgs() {
-	buildArgs := BuildArgs{}
+	buildArgs := builder.BuildArgs{}
 
 	var cmdBuild = &cobra.Command{
 		Use:   "build",
@@ -74,6 +72,8 @@ func processArgs() {
 
 	var rootCmd = &cobra.Command{Use: "cnt"}
 	rootCmd.AddCommand(cmdBuild, cmdClean, push)
+
+	var cntConfig = config.CntConfig{}
 
 	cntConfig.Load()
 	rootCmd.Execute()

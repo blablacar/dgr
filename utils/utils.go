@@ -1,4 +1,4 @@
-package main
+package utils
 import (
 	"os"
 	"fmt"
@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"math/rand"
 	"time"
+	"bytes"
 )
 
 func UserHomeOrFatal() string {
@@ -24,6 +25,16 @@ func checkFatal(err error) {
 		log.Fatal(err)
 		os.Exit(1) // just in case
 	}
+}
+
+func ExecCmdGetOutput(head string, parts ...string) (string, error) {
+	var stdout bytes.Buffer
+
+	log.Println("Exec > ", head, strings.Join(parts, " "))
+	cmd := exec.Command(head, parts...)
+	cmd.Stdout = &stdout
+	cmd.Stderr = os.Stderr
+	return strings.TrimSpace(stdout.String()), cmd.Run()
 }
 
 
