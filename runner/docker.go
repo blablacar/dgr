@@ -12,13 +12,13 @@ import (
 
 
 type DockerRunner struct {
-	prepared string
+	imageId string
 }
 
 func (r *DockerRunner) Prepare(target string) {
-	fmt.Printf("Prepare Docker");
+	fmt.Printf("Prepare Docker\n");
  	first := exec.Command("bash", "-c", "cd " + target + "/rootfs" + " && tar cf - .")
-	second := exec.Command("docker", "import", "-", "test4242")
+	second := exec.Command("docker", "import", "-", "")
 
 	reader, writer := io.Pipe()
 	first.Stdout = writer
@@ -33,7 +33,7 @@ func (r *DockerRunner) Prepare(target string) {
 	writer.Close()
 	second.Wait()
 
-	r.prepared = strings.TrimSpace(buff.String())
+	r.imageId = strings.TrimSpace(buff.String())
 }
 
 //	id, err := utils.ExecCmdGetOutput("bash", "-c", "cd " + target + "/rootfs" + " && tar cf - . | docker import - 'test4242'")
@@ -43,38 +43,6 @@ func (r *DockerRunner) Prepare(target string) {
 //		panic(err)
 //	}
 
-func (d *DockerRunner) Import(path string, repo string) (string, error) {
-	var stdout bytes.Buffer
-	cmd := exec.Command("docker", "import", "-", repo)
-	cmd.Stdout = &stdout
-	stdin, err := cmd.StdinPipe()
-	if err != nil {
-		return "", err
-	}
-
-	// There should be only one artifact of the Docker builder
-	file, err := os.Open(path)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	if err := cmd.Start(); err != nil {
-		return "", err
-	}
-
-	go func() {
-		defer stdin.Close()
-		io.Copy(stdin, file)
-	}()
-
-	if err := cmd.Wait(); err != nil {
-		err = fmt.Errorf("Error importing container: %s", err)
-		return "", err
-	}
-
-	return strings.TrimSpace(stdout.String()), nil
-}
 
 //#blablabaseExists=$(docker images | grep blablabase | wc -l)
 //#if [ ${blablabaseExists} -ne 1 ]; then
@@ -84,14 +52,31 @@ func (d *DockerRunner) Import(path string, repo string) (string, error) {
 //#docker build -t blablabuild .
 
 
-func (r *DockerRunner) Run(target string, command ...string) {
-	cmd := []string {"run", "-i", "--rm", "-v", target + ":/target", r.prepared}
+func (r *DockerRunner) Run(target string, imageName string, command ...string) {
+	fmt.Printf("Run Docker\n");
+	cmd := []string {"run", "--name=" + imageName, "-v", target + ":/target", r.imageId}
 	cmd = append(cmd, command...)
 	if err := utils.ExecCmd("docker", cmd...); err != nil {
 		panic(err)
 	}
 }
 
-func (r *DockerRunner) Release() {
+func (r *DockerRunner) Release(target string, imageName string, noBuildImage bool) {
 	fmt.Printf("Release Docker");
+	if noBuildImage {
+		os.RemoveAll(target + "/rootfs")
+		os.Mkdir(target + "/rootfs", 0777)
+
+		if err := utils.ExecCmd("docker", "export", "-o", target + "/dockerfs.tar", imageName); err != nil {
+			panic(err)
+		}
+
+		utils.ExecCmd("tar", "xpf", target + "/dockerfs.tar", "-C", target + "/rootfs")
+	}
+	if err := utils.ExecCmd("docker", "rm", imageName); err != nil {
+		panic(err)
+	}
+	if err := utils.ExecCmd("docker", "rmi", r.imageId); err != nil {
+		panic(err)
+	}
 }

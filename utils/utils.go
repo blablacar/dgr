@@ -34,7 +34,9 @@ func ExecCmdGetOutput(head string, parts ...string) (string, error) {
 	cmd := exec.Command(head, parts...)
 	cmd.Stdout = &stdout
 	cmd.Stderr = os.Stderr
-	return strings.TrimSpace(stdout.String()), cmd.Run()
+	cmd.Start()
+	err := cmd.Wait()
+	return strings.TrimSpace(stdout.String()), err
 }
 
 
@@ -48,7 +50,7 @@ func ExecCmd(head string, parts ...string) error {
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
-func randSeq(n int) string {
+func RandSeq(n int) string {
 	rand.Seed(time.Now().UnixNano())
 	b := make([]rune, n)
 	for i := range b {

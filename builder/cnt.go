@@ -20,22 +20,48 @@ const (
 
 	buildScript = `#!/bin/bash
 set -x
-echo $1
+set -e
 export TARGET=/target
+export ROOTFS=%%ROOTFS%%
 
-#export TERM=vt100
+execute_files() {
+  fdir=$1
+  [ -d "$fdir" ] || return
+
+  find "$fdir" -mindepth 1 -maxdepth 1 -type f -print0 |
+  while read -r -d $'\0' file; do
+      echo "$file"
+      [ -x "$file" ] && "$file"
+  done
+}
+
+
+export TERM=xterm
 source /etc/profile && env-update
-ln -sf /usr/portage/profiles/default/linux/amd64/13.0 ${TARGET}/etc/portage/make.profile
 
-emerge --sync
-
-if [ -f "$BUILD_PATH/install.sh" ]; then
-	$BUILD_PATH/install.sh
+if [ -d "$TARGET/runlevels/build-early" ]; then
+	execute_files "$TARGET/runlevels/build-early"
 fi
 
-ROOT=${TARGET}/rootfs emerge -v --config-root=${TARGET}/ %%INSTALL%%
-`
 
+if [ -f "$BUILD_PATH/portage.sh" ]; then
+	$BUILD_PATH/portage.sh
+fi
+
+if [ -d "$TARGET/runlevels/build-late" ]; then
+	execute_files "$TARGET/runlevels/build-late"
+fi
+
+`
+portageInstall = `#!/bin/bash
+set -x
+set -e
+
+ln -sf /usr/portage/profiles/default/linux/amd64/13.0 ${TARGET}/etc/portage/make.profile
+#emerge --sync
+ROOT=${ROOTFS} emerge -v --config-root=${TARGET}/ %%INSTALL%%
+
+`
 
 //	buildScript = `#!/bin/bash -x
 //	echo $1
@@ -64,6 +90,27 @@ type Cnt struct {
 	manifest CntManifest
 	args     BuildArgs
 }
+type CntBuild struct {
+	image string                `yaml:"image,omitempty"`
+}
+
+func (b *CntBuild) NoBuildImage() bool {
+	return b.image == ""
+}
+
+type CntManifest struct {
+	ProjectName types.ProjectName       `yaml:"projectName,omitempty"`
+	Version     string                  `yaml:"version,omitempty"`
+	Build       CntBuild                `yaml:"build,omitempty"`
+	Portage     struct {
+					Use      string                `yaml:"use,omitempty"`
+					Mask     string                `yaml:"mask,omitempty"`
+					Install  string                `yaml:"install"`
+					Features string                `yaml:"features,omitempty"`
+					Target   string          	   `yaml:"target,omitempty"`
+				}                       `yaml:"portage,omitempty"`
+}
+
 
 ////////////////////////////////////////////
 
@@ -78,28 +125,12 @@ func OpenCnt(path string, args BuildArgs) (*Cnt, error) {
 	return cnt, nil
 }
 
-type PortageTarget int
-
-type CntManifest struct {
-	ProjectName types.ProjectName       `yaml:"projectName,omitempty"`
-	Version     string                  `yaml:"version,omitempty"`
-	Build		struct {
-					BaseImage	string                `yaml:"baseImage,omitempty"`
-				 }						`yaml:"build,omitempty"`
-	Portage     struct {
-					Use      	string                `yaml:"use,omitempty"`
-					Mask     	string                `yaml:"mask,omitempty"`
-					Install  	string                `yaml:"install"`
-					Features 	string                `yaml:"features,omitempty"`
-					Target		string		  `yaml:"target,omitempty"`
-				}                       `yaml:"portage,omitempty"`
-}
 
 func (cnt *Cnt) Push() {
 	cnt.readManifest("/target/cnt-manifest.yml")
 	fmt.Printf("%#v\n\n", cnt)
 	utils.ExecCmd("curl", "-i",
-		"-F","r=releases",
+		"-F", "r=releases",
 		"-F", "hasPom=false",
 		"-F", "e=aci",
 		"-F", "g=com.blablacar.aci.linux.amd64",
@@ -135,13 +166,15 @@ func (cnt *Cnt) Build(runner runner.Runner) {
 
 	os.Mkdir(cnt.path + target, 0777)
 
-	cnt.runBuildSetup()
-	cnt.copyPrestart()
+	cnt.runlevelBuildSetup()
+	cnt.copyRunlevelsBuild()
+	cnt.copyRunlevelsPrestart()
 	cnt.copyAttributes()
 	cnt.copyRootfs()
 	cnt.copyConfd()
 	cnt.copyInstallAndCreatePacker()
 
+	cnt.writeBuildScript()
 	cnt.writePortage()
 	cnt.writeRktManifest()
 	cnt.writeCntManifest() // TODO move that, here because we update the version number to generated version
@@ -150,15 +183,30 @@ func (cnt *Cnt) Build(runner runner.Runner) {
 	cnt.runPortage(runner)
 
 	cnt.tarAci()
+	//	ExecCmd("chown " + os.Getenv("SUDO_USER") + ": " + target + "/*") //TODO chown
 }
 
-func (cnt *Cnt) runBuildSetup() {
-//	files, err := utils.ExecCmdGetOutput("find", "~", "-mindepth", "1", "-maxdepth", "1", "-type", "f")
-		if _, err := os.Stat(cnt.path + "/setup"); os.IsNotExist(err) {
+func (cnt *Cnt) copyRunlevelsBuild() {
+	if err := os.MkdirAll(cnt.path + target + "/runlevels", 0755); err != nil {
+		panic(err)
+	}
+	utils.CopyDir(cnt.path + "/runlevels/build-early", cnt.path + target + "/runlevels/build-early")
+	utils.CopyDir(cnt.path + "/runlevels/build-late", cnt.path + target + "/runlevels/build-late")
+}
+
+func (cnt *Cnt) runlevelBuildSetup() {
+	files, err := ioutil.ReadDir(cnt.path + "/runlevels/build-setup") // already sorted
+	if err != nil {
 		return
 	}
-	if err := utils.ExecCmd(cnt.path + "/setup"); err != nil {
-		panic(err)
+
+	os.Setenv("TARGET", cnt.path + target)
+	for _, f := range files {
+		if !f.IsDir() {
+			if err := utils.ExecCmd(cnt.path + "/runlevels/build-setup/" + f.Name()); err != nil {
+				panic(err)
+			}
+		}
 	}
 }
 
@@ -196,15 +244,15 @@ func (cnt *Cnt) copyInstallAndCreatePacker() {
 	}
 }
 
-func (cnt *Cnt) copyPrestart() {
+func (cnt *Cnt) copyRunlevelsPrestart() {
 	if err := os.MkdirAll(cnt.path + targetRootfs + "/etc/prestart/late-prestart.d", 0755); err != nil {
 		panic(err)
 	}
 	if err := os.MkdirAll(cnt.path + targetRootfs + "/etc/prestart/early-prestart.d", 0755); err != nil {
 		panic(err)
 	}
-	utils.CopyDir(cnt.path + "/prestart/early", cnt.path + targetRootfs + "/etc/prestart/early-prestart.d")
-	utils.CopyDir(cnt.path + "/prestart/late", cnt.path + targetRootfs + "/etc/prestart/late-prestart.d")
+	utils.CopyDir(cnt.path + "/runlevels/prestart-early", cnt.path + targetRootfs + "/etc/prestart/early-prestart.d")
+	utils.CopyDir(cnt.path + "/runlevels/prestart-late", cnt.path + targetRootfs + "/etc/prestart/late-prestart.d")
 }
 
 func (cnt *Cnt) copyConfd() {
@@ -226,17 +274,24 @@ func (cnt *Cnt) copyAttributes() {
 	utils.CopyDir(cnt.path + "/attributes", cnt.path + targetRootfs + "/etc/prestart/attributes/" + cnt.manifest.ProjectName.ShortName())
 }
 
+func (cnt *Cnt) writeBuildScript() {
+	targetFull := cnt.path + target
+	rootfs := "/target/rootfs"
+	if cnt.manifest.Build.NoBuildImage() {
+		rootfs = ""
+	}
+	build := strings.Replace(buildScript, "%%ROOTFS%%", rootfs, 1)
+	ioutil.WriteFile(targetFull + "/build.sh", []byte(build), 0777)
+}
+
 func (cnt *Cnt) writePortage() {
-	if _, err := os.Stat(cnt.path + "/install-portage.sh"); os.IsNotExist(err) {
+	if cnt.manifest.Portage.Install == "" {
 		return
 	}
 	targetFull := cnt.path + target
 
-	fmt.Printf("---- %#v\n\n", cnt.manifest)
-
-	build := strings.Replace(buildScript, "%%INSTALL%%", cnt.manifest.Portage.Install, 1)
-	ioutil.WriteFile(targetFull + "/build.sh", []byte(build), 0777)
-	utils.CopyFile(cnt.path + "/install-portage.sh", targetFull + "/install-portage.sh")
+	portage := strings.Replace(portageInstall, "%%INSTALL%%", cnt.manifest.Portage.Install, 1)
+	ioutil.WriteFile(targetFull + "/portage.sh", []byte(portage), 0777)
 
 	os.MkdirAll(targetFull + "/etc/portage", 0755)
 	res := strings.Replace(makeConf, "%%USE%%", cnt.manifest.Portage.Use, 1)
@@ -259,6 +314,6 @@ func (cnt *Cnt) runPortage(runner runner.Runner) {
 	}
 
 	runner.Prepare(cnt.path + target)
-	runner.Run(cnt.path + target, "/target/build.sh")
-	runner.Release()
+	runner.Run(cnt.path + target, cnt.manifest.ProjectName.ShortName(), "/target/build.sh")
+	runner.Release(cnt.path + target, cnt.manifest.ProjectName.ShortName(), cnt.manifest.Build.NoBuildImage())
 }

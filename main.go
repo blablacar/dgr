@@ -70,12 +70,19 @@ func processArgs() {
 		},
 	}
 
+	var enter = &cobra.Command{
+		Use:   "enter",
+		Short: "enter the build image",
+		Long:  `enter the build image`,
+		Run: func(cmd *cobra.Command, args []string) {
+//	TODO
+		},
+	}
+
 	var rootCmd = &cobra.Command{Use: "cnt"}
-	rootCmd.AddCommand(cmdBuild, cmdClean, push)
+	rootCmd.AddCommand(cmdBuild, cmdClean, push, enter)
 
-	var cntConfig = config.CntConfig{}
-
-	cntConfig.Load()
+	config.GetConfig().Load()
 	rootCmd.Execute()
 
 	println("Victory !")
