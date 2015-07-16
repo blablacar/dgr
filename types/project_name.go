@@ -13,18 +13,18 @@ var (
 // ACKind wraps a string to define a field which must be set with one of
 // several ACKind values. If it is unset, or has an invalid value, the field
 // will refuse to marshal/unmarshal.
-type ProjectName string
+type AciName string
 
-func (a ProjectName) String() string {
+func (a AciName) String() string {
 	return string(a)
 }
 
-func (a ProjectName) ShortName() string {
+func (a AciName) ShortName() string {
 	split := strings.Split(string(a), "/")
 	return split[1]
 }
 
-func (a ProjectName) assertValid() error {
+func (a AciName) assertValid() error {
 	s := a.String()
 	switch s {
 	case "ImageManifest", "PodManifest":
@@ -37,20 +37,20 @@ func (a ProjectName) assertValid() error {
 	}
 }
 
-func (a ProjectName) MarshalJSON() ([]byte, error) {
+func (a AciName) MarshalJSON() ([]byte, error) {
 	if err := a.assertValid(); err != nil {
 		return nil, err
 	}
 	return json.Marshal(a.String())
 }
 
-func (a *ProjectName) UnmarshalJSON(data []byte) error {
+func (a *AciName) UnmarshalJSON(data []byte) error {
 	var s string
 	err := json.Unmarshal(data, &s)
 	if err != nil {
 		return err
 	}
-	na := ProjectName(s)
+	na := AciName(s)
 	if err := na.assertValid(); err != nil {
 		return err
 	}

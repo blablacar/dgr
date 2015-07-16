@@ -59,7 +59,7 @@ func BasicManifest() *schema.ImageManifest {
     return im
 }
 
-func WriteImageManifest(im *schema.ImageManifest, targetFile string, projectName types.ProjectName, version string) {
+func WriteImageManifest(im *schema.ImageManifest, targetFile string, projectName types.AciName, version string) {
 	buff, err := im.MarshalJSON()
     res := strings.Replace(string(buff), "0.0.0", version, 1)
     res = strings.Replace(res, "xxx/xxx", string(projectName), 1)

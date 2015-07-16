@@ -8,6 +8,6 @@ func (e ProjectNameError) Error() string {
 	return string(e)
 }
 
-func InvalidProjectNameError(projectName ProjectName) ProjectNameError {
+func InvalidProjectNameError(projectName AciName) ProjectNameError {
 	return ProjectNameError(fmt.Sprintf("missing or bad ACKind (must be %#v)", projectName))
 }

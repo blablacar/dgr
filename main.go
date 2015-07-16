@@ -18,7 +18,7 @@ func main() {
 }
 
 func discoverAndRunBuildType(path string, args builder.BuildArgs) {
-	runner := runner.DockerRunner{}
+	runner := runner.ChrootRunner{}
  	if cnt, err := builder.OpenCnt(path, args); err == nil {
 		cnt.Build(&runner)
 	} else if pod, err := builder.OpenPod(path, args); err == nil {

@@ -1,9 +1,10 @@
 package runner
+import "github.com/blablacar/cnt/types"
 
 type Runner interface {
-	Prepare(target string)
+	Prepare(targetFullPath string, buildImage types.AciName)
 
-	Run(target string, imageName string, command ...string)
+	Run(targetFullPath string, imageName string, command ...string)
 
-	Release(target string, imageName string, noBuildImage bool)
+	Release(targetFullPath string, imageName string, noBuildImage bool)
 }

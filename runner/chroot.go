@@ -1,47 +1,106 @@
 package runner
+import (
+	"github.com/blablacar/cnt/utils"
+	"os"
+	"log"
+	"github.com/appc/spec/discovery"
+	"os/exec"
+	"runtime"
+	"github.com/blablacar/cnt/types"
+)
 
 type ChrootRunner struct {
+	tmpBuildPath string
+	newRoot      string
 }
 
+func (r *ChrootRunner) Prepare(target string, buildImage types.AciName) {
+	homeAci := utils.UserHomeOrFatal() + "/.config/cnt/aci"
+	os.MkdirAll(homeAci, 0777)
 
-//func (r *ChrootRunner) Prepare(target string) {
-//	log.Println("Mounting elements in rootfs ", newRoot)
-//	utils.ExecCmd("mount", "-t", "proc", "proc", newRoot + "/proc/")
-//	utils.ExecCmd("mount", "-t", "sysfs", "sys", newRoot + "/sys/")
-//	utils.ExecCmd("mount", "-o", "bind", "/dev", newRoot + "/dev/")
-//	utils.ExecCmd("mount", "-o", "bind", "/dev/shm", newRoot + "/dev/shm")
-//
-//	utils.ExecCmd("mount", "-o", "bind", "/etc/resolv.conf", newRoot + "/etc/resolv.conf")
-//	//	ExecCmd("ln", "-sf", "/etc/resolv.conf", newRoot + "/etc/resolv.conf") //TODO replace with mount since network can change and also ln is not accessible from chroot
-//}
-//
-//func (r *ChrootRunner) Run(target string, command ...string) {
-//		// PREPARE blablabuild
-//		// wget de blbablabuild sur nexus
-//		// extraire dans /root/.cnt
-//		buildChroot := UserHomeOrFatal() + "/.cnt/build-rootfs"
-//		//	err := os.MkdirAll(target, 0755)
-//		//	checkFatal(err)
-//		// TODO extract files to rootfs
-//
-//
-//		randomPath := utils.RandSeq(10)
-//		tmpBuildPath := buildChroot + "/builds/" + randomPath
-//		os.Mkdir(tmpBuildPath, 0755)
-//		defer os.Remove(tmpBuildPath)
-//
-//		setupChroot(buildChroot)
-//		ExecCmd("mount", "-o", "bind", cnt.path + target, tmpBuildPath)
-//		defer ExecCmd("umount", tmpBuildPath)
-//
-//		ExecCmd("chroot", buildChroot, "/builds/" + randomPath + "/build.sh", randomPath)
-//		defer releaseChrootIfNotUsed(buildChroot) //TODO use signal capture to cleanup in case of CTRL + C
-//}
-//
-//func (r *ChrootRunner) Release(/*target string, noBuildImage bool*/) {
-//	log.Println("Unmounting elements in rootfs ", newRoot)
-//	utils.ExecCmd("umount", newRoot + "/dev/shm")
-//	utils.ExecCmd("umount", newRoot + "/dev/")
-//	utils.ExecCmd("umount", newRoot + "/sys/")
-//	utils.ExecCmd("umount", newRoot + "/proc/")
-//}
+	r.newRoot = homeAci + "/" + buildImage.String() + "/rootfs"
+
+	if buildImage != "" {
+		url := r.findBuildAciUrl(buildImage.String())
+		aciPath := homeAci + "/" + buildImage.ShortName() + ".aci"
+		utils.ExecCmd("wget", "-O", aciPath, url)
+		os.MkdirAll(homeAci + "/" + buildImage.String(), 0777)
+		r.umount(r.newRoot)
+		utils.ExecCmd("tar", "xpf", aciPath, "-C", homeAci + "/" + buildImage.String())
+		os.Remove(aciPath)
+	}
+
+	r.mountChroot(r.newRoot)
+	utils.CopyFile("/etc/resolv.conf", r.newRoot + "/etc/resolv.conf")
+
+}
+
+func (r *ChrootRunner) Run(targetFullPath string, imageName string, command ...string) {
+	r.tmpBuildPath = "/builds/" + utils.RandSeq(10)
+	os.MkdirAll(r.newRoot + r.tmpBuildPath, 0755)
+	defer os.Remove(r.tmpBuildPath)
+	utils.ExecCmd("mount", "-o", "bind", targetFullPath, r.newRoot + r.tmpBuildPath)
+	defer utils.ExecCmd("umount", r.newRoot + r.tmpBuildPath)    //TODO use signal capture to cleanup in case of CTRL + C
+
+	utils.ExecCmd("chroot", r.newRoot, r.tmpBuildPath + "/build.sh")
+}
+
+func (r *ChrootRunner) Release(target string, imageName string, noBuildImage bool) {
+	//		log.Println("Unmounting elements in rootfs ", newRoot)
+
+}
+
+//////////////////////////////////////////////
+
+func (r *ChrootRunner) umount(newRoot string) {
+	utils.ExecCmd("umount", newRoot + "/dev/shm")
+	utils.ExecCmd("umount", newRoot + "/dev/")
+	utils.ExecCmd("umount", newRoot + "/sys/")
+	utils.ExecCmd("umount", newRoot + "/proc/")
+}
+
+func (r *ChrootRunner) findBuildAciUrl(buildImage string) string {
+	app, err := discovery.NewAppFromString(buildImage)
+	if app.Labels["os"] == "" {
+		app.Labels["os"] = runtime.GOOS
+	}
+	if app.Labels["arch"] == "" {
+		app.Labels["arch"] = runtime.GOARCH
+	}
+
+	endpoint, _, err := discovery.DiscoverEndpoints(*app, false)
+	if err != nil {
+		panic(err)
+	}
+
+	return endpoint.ACIEndpoints[0].ACI
+}
+
+func (r *ChrootRunner) isMounted(path string) bool {
+	err := utils.ExecCmd("bash", "-c", "grep '" + path + "' /proc/mounts")
+	if _, ok := err.(*exec.ExitError); ok {
+		return false;
+		//		if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
+		//			log.Printf("Exit Status: %d", status.ExitStatus())
+		//		}
+	} else {
+		log.Fatalf("cmd.Wait: %v", err)
+	}
+	return true
+}
+
+func (r *ChrootRunner) mountChroot(newRoot string) {
+	log.Println("Mounting elements in rootfs ", newRoot)
+	if !r.isMounted(newRoot + "/proc") {
+		utils.ExecCmd("mount", "-t", "proc", "proc", newRoot + "/proc")
+	}
+	if !r.isMounted(newRoot + "/sys") {
+		utils.ExecCmd("mount", "-t", "sysfs", "sys", newRoot + "/sys")
+	}
+	if !r.isMounted(newRoot + "/dev") {
+		utils.ExecCmd("mount", "-o", "bind", "/dev", newRoot + "/dev")
+	}
+	if !r.isMounted(newRoot + "/dev/shm") {
+		utils.ExecCmd("mount", "-o", "bind", "/dev/shm", newRoot + "/dev/shm")
+	}
+}

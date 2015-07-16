@@ -21,7 +21,7 @@ const (
 	buildScript = `#!/bin/bash
 set -x
 set -e
-export TARGET=/target
+export TARGET=$( dirname $0 )
 export ROOTFS=%%ROOTFS%%
 
 execute_files() {
@@ -44,8 +44,8 @@ if [ -d "$TARGET/runlevels/build-early" ]; then
 fi
 
 
-if [ -f "$BUILD_PATH/portage.sh" ]; then
-	$BUILD_PATH/portage.sh
+if [ -f "$TARGET/portage.sh" ]; then
+	$TARGET/portage.sh
 fi
 
 if [ -d "$TARGET/runlevels/build-late" ]; then
@@ -58,7 +58,7 @@ set -x
 set -e
 
 ln -sf /usr/portage/profiles/default/linux/amd64/13.0 ${TARGET}/etc/portage/make.profile
-#emerge --sync
+emerge --sync
 ROOT=${ROOTFS} emerge -v --config-root=${TARGET}/ %%INSTALL%%
 
 `
@@ -91,15 +91,15 @@ type Cnt struct {
 	args     BuildArgs
 }
 type CntBuild struct {
-	image string                `yaml:"image,omitempty"`
+	Image types.AciName                `yaml:"image,omitempty"`
 }
 
 func (b *CntBuild) NoBuildImage() bool {
-	return b.image == ""
+	return b.Image == ""
 }
 
 type CntManifest struct {
-	ProjectName types.ProjectName       `yaml:"projectName,omitempty"`
+	ProjectName types.AciName       `yaml:"projectName,omitempty"`
 	Version     string                  `yaml:"version,omitempty"`
 	Build       CntBuild                `yaml:"build,omitempty"`
 	Portage     struct {
@@ -110,7 +110,6 @@ type CntManifest struct {
 					Target   string          	   `yaml:"target,omitempty"`
 				}                       `yaml:"portage,omitempty"`
 }
-
 
 ////////////////////////////////////////////
 
@@ -124,7 +123,6 @@ func OpenCnt(path string, args BuildArgs) (*Cnt, error) {
 	cnt.args = args
 	return cnt, nil
 }
-
 
 func (cnt *Cnt) Push() {
 	cnt.readManifest("/target/cnt-manifest.yml")
@@ -276,7 +274,7 @@ func (cnt *Cnt) copyAttributes() {
 
 func (cnt *Cnt) writeBuildScript() {
 	targetFull := cnt.path + target
-	rootfs := "/target/rootfs"
+	rootfs := "${TARGET}/rootfs"
 	if cnt.manifest.Build.NoBuildImage() {
 		rootfs = ""
 	}
@@ -313,7 +311,7 @@ func (cnt *Cnt) runPortage(runner runner.Runner) {
 		return
 	}
 
-	runner.Prepare(cnt.path + target)
+	runner.Prepare(cnt.path + target, cnt.manifest.Build.Image)
 	runner.Run(cnt.path + target, cnt.manifest.ProjectName.ShortName(), "/target/build.sh")
 	runner.Release(cnt.path + target, cnt.manifest.ProjectName.ShortName(), cnt.manifest.Build.NoBuildImage())
 }
