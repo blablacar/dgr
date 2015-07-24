@@ -57,10 +57,34 @@ portageInstall = `#!/bin/bash
 set -x
 set -e
 
-ln -sf /usr/portage/profiles/default/linux/amd64/13.0 ${TARGET}/etc/portage/make.profile
-emerge --sync
-ROOT=${ROOTFS} emerge -v --config-root=${TARGET}/ %%INSTALL%%
+ROOTFS=/build/root
 
+mkdir -p /build/{root,db-pkg/.cache/{names,provides}}
+mkdir ${ROOTFS}/{dev,etc}
+mknod -m 622 ${ROOTFS}/dev/console c 5 1
+mknod -m 666 ${ROOTFS}/dev/null c 1 3
+mknod -m 666 ${ROOTFS}/dev/zero c 1 5
+mknod -m 444 ${ROOTFS}/dev/random c 1 8
+mknod -m 444 ${ROOTFS}/dev/urandom c 1 9
+touch ${ROOTFS}/etc/ld.so.cache
+mkdir ${ROOTFS}/lib64
+cd ${ROOTFS}
+ln -s lib64 lib
+
+echo "alias cave-i='cave resume --resume-file ~/.cave-resume'" >> /etc/bash/bashrc
+echo "alias cave-p='cave resolve --resume-file ~/.cave-resume'" >> /etc/bash/bashrc
+echo "alias cave-chroot=\"cave resolve --resume-file ~/.cave-resume -mc -/b --chroot-path /build/root/ -0 '*/*::installed'\"" >> /etc/bash/bashrc
+
+
+
+ln -sf /usr/portage/profiles/default/linux/amd64/13.0 ${TARGET}/etc/portage/make.profile
+#emerge-webrsync
+if [ %%ENTER%% -eq 1 ]; then
+	ROOT=${ROOTFS} emerge -vp --config-root=${TARGET}/ %%INSTALL%%
+	bash
+else
+	ROOT=${ROOTFS} emerge -v --config-root=${TARGET}/ %%INSTALL%%
+fi
 `
 
 //	buildScript = `#!/bin/bash -x
@@ -80,7 +104,7 @@ ROOT=${ROOTFS} emerge -v --config-root=${TARGET}/ %%INSTALL%%
 //`
 
 	makeConf = `
-USE="-doc static static-libs %%USE%%"
+USE="-doc %%USE%%"
 FEATURES="nodoc noinfo noman %%FEATURES%%"
 `
 )
@@ -107,7 +131,7 @@ type CntManifest struct {
 					Mask     string                `yaml:"mask,omitempty"`
 					Install  string                `yaml:"install"`
 					Features string                `yaml:"features,omitempty"`
-					Target   string          	   `yaml:"target,omitempty"`
+					Keywords string				   `yaml:"keywords,omitempty"`
 				}                       `yaml:"portage,omitempty"`
 }
 
@@ -177,7 +201,9 @@ func (cnt *Cnt) Build(runner runner.Runner) {
 	cnt.writeRktManifest()
 	cnt.writeCntManifest() // TODO move that, here because we update the version number to generated version
 
-	cnt.runPacker()
+	if !cnt.args.Enter {
+		cnt.runPacker()
+	}
 	cnt.runPortage(runner)
 
 	cnt.tarAci()
@@ -288,14 +314,24 @@ func (cnt *Cnt) writePortage() {
 	}
 	targetFull := cnt.path + target
 
-	portage := strings.Replace(portageInstall, "%%INSTALL%%", cnt.manifest.Portage.Install, 1)
+
+	enter := "0"
+	if cnt.args.Enter {
+		enter = "1"
+	}
+
+	portage := strings.Replace(portageInstall, "%%INSTALL%%", cnt.manifest.Portage.Install, -1)
+	portage = strings.Replace(portage, "%%ENTER%%", enter, -1)
 	ioutil.WriteFile(targetFull + "/portage.sh", []byte(portage), 0777)
 
 	os.MkdirAll(targetFull + "/etc/portage", 0755)
+	os.MkdirAll(targetFull + "/etc/portage", 0755)
 	res := strings.Replace(makeConf, "%%USE%%", cnt.manifest.Portage.Use, 1)
 	res = strings.Replace(res, "%%FEATURES%%", cnt.manifest.Portage.Features, 1)
-
 	ioutil.WriteFile(targetFull + "/etc/portage/make.conf", []byte(res), 0777)
+
+	ioutil.WriteFile(targetFull + "/etc/portage/package.accept_keywords", []byte(cnt.manifest.Portage.Keywords), 0777)
+	ioutil.WriteFile(targetFull + "/etc/portage/package.mask", []byte(cnt.manifest.Portage.Mask), 0777)
 }
 
 func (cnt *Cnt) writeRktManifest() {

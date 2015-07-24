@@ -75,7 +75,8 @@ func processArgs() {
 		Short: "enter the build image",
 		Long:  `enter the build image`,
 		Run: func(cmd *cobra.Command, args []string) {
-//	TODO
+			buildArgs.Enter = true
+			discoverAndRunBuildType(".", buildArgs)
 		},
 	}
 
