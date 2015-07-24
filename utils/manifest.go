@@ -1,10 +1,10 @@
 package utils
 import (
 	"github.com/appc/spec/schema"
-	"log"
 	"io/ioutil"
     "strings"
     "github.com/blablacar/cnt/types"
+    "log"
 )
 
 const(
@@ -59,9 +59,32 @@ func BasicManifest() *schema.ImageManifest {
     return im
 }
 
+func ReadPodManifest(path string) *schema.PodManifest {
+    im := new(schema.PodManifest)
+    content, err := ioutil.ReadFile(path)
+    if  err != nil {
+        panic(err)
+        //        config.GetConfig().Log.Panic("Cannot read manifest file", err)
+    }
+    im.UnmarshalJSON(content)
+    return im
+}
+
+func ReadManifest(path string) *schema.ImageManifest {
+    im := new(schema.ImageManifest)
+    content, err := ioutil.ReadFile(path)
+    if  err != nil {
+        panic(err)
+//        config.GetConfig().Log.Panic("Cannot read manifest file", err)
+    }
+    im.UnmarshalJSON(content)
+    return im
+}
+
 func WriteImageManifest(im *schema.ImageManifest, targetFile string, projectName types.AciName, version string) {
 	buff, err := im.MarshalJSON()
     res := strings.Replace(string(buff), "0.0.0", version, 1)
+    res = strings.Replace(res, "__VERSION__", version, 1)
     res = strings.Replace(res, "xxx/xxx", string(projectName), 1)
 	if err != nil {
 		log.Fatal(err)

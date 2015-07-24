@@ -1,17 +1,18 @@
 package main
 
 import (
-	"log"
 	"os"
 	"github.com/spf13/cobra"
 	"github.com/blablacar/cnt/runner"
 	"github.com/blablacar/cnt/builder"
 	"github.com/blablacar/cnt/config"
+	"github.com/blablacar/cnt/log"
+	"github.com/blablacar/cnt/logger"
 )
 
 func main() {
 	if os.Getuid() != 0 {
-		log.Fatal("Please run this command as root")
+		log.Get().Panic("Please run this command as root")
 	}
 
 	processArgs();
@@ -24,22 +25,24 @@ func discoverAndRunBuildType(path string, args builder.BuildArgs) {
 	} else if pod, err := builder.OpenPod(path, args); err == nil {
 		pod.Build()
 	} else {
-		log.Fatal("Cannot found cnt-manifest.yml")
+		log.Get().Panic("Cannot found cnt-manifest.yml")
 	}
 }
 
 func discoverAndRunPushType(path string, args builder.BuildArgs) {
 	if cnt, err := builder.OpenCnt(path, args); err == nil {
 		cnt.Push()
-	} else if _, err := builder.OpenPod(path, args); err == nil {
-//		pod.Build()
+	} else if pod, err := builder.OpenPod(path, args); err == nil {
+		pod.Push()
 	} else {
-		log.Fatal("Cannot found cnt-manifest.yml")
+		log.Get().Panic("Victory Cannot found cnt-manifest.yml")
 	}
 }
 
 
 func processArgs() {
+	log.Set(logger.NewLogger())
+
 	buildArgs := builder.BuildArgs{}
 
 	var cmdBuild = &cobra.Command{
@@ -70,22 +73,12 @@ func processArgs() {
 		},
 	}
 
-	var enter = &cobra.Command{
-		Use:   "enter",
-		Short: "enter the build image",
-		Long:  `enter the build image`,
-		Run: func(cmd *cobra.Command, args []string) {
-			buildArgs.Enter = true
-			discoverAndRunBuildType(".", buildArgs)
-		},
-	}
-
 	var rootCmd = &cobra.Command{Use: "cnt"}
-	rootCmd.AddCommand(cmdBuild, cmdClean, push, enter)
+	rootCmd.AddCommand(cmdBuild, cmdClean, push)
 
 	config.GetConfig().Load()
 	rootCmd.Execute()
 
-	println("Victory !")
+	log.Get().Info("Victory !")
 }
 

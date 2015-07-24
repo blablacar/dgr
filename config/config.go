@@ -8,12 +8,12 @@ import (
 var cntConfig = new(CntConfig)
 
 type CntConfig struct {
-	Push     struct {
-					Type      	string                `yaml:"type,omitempty"`
-					Url 		string                `yaml:"url,omitempty"`
-					Username    string                `yaml:"username,omitempty"`
-					Password	string                `yaml:"password,omitempty"`
-				}  							`yaml:"push,omitempty"`
+	Push struct {
+			 Type     string                `yaml:"type,omitempty"`
+			 Url      string                `yaml:"url,omitempty"`
+			 Username string                `yaml:"username,omitempty"`
+			 Password string                `yaml:"password,omitempty"`
+		 }                            `yaml:"push,omitempty"`
 }
 
 func GetConfig() *CntConfig {

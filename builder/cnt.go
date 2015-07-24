@@ -2,7 +2,6 @@ package builder
 import (
 	"os"
 	"io/ioutil"
-	"log"
 	"gopkg.in/yaml.v2"
 	"strings"
 	"fmt"
@@ -11,6 +10,8 @@ import (
 	"github.com/blablacar/cnt/runner"
 	"github.com/blablacar/cnt/utils"
 	"github.com/blablacar/cnt/config"
+	"github.com/blablacar/cnt/log"
+	"github.com/appc/spec/schema"
 )
 
 const (
@@ -87,22 +88,6 @@ else
 fi
 `
 
-//	buildScript = `#!/bin/bash -x
-//	echo $1
-//	BUILD_PATH=/builds/${1}
-//#export TERM=vt100
-//source /etc/profile && env-update
-//ln -sf /usr/portage/profiles/default/linux/amd64/13.0 ${BUILD_PATH}/etc/portage/make.profile
-//emerge-webrsync
-//
-//	if [ -f "$BUILD_PATH/install.sh" ]; then
-//		$BUILD_PATH/install.sh
-//	fi
-//
-//ROOT=/builds/${1}/rootfs emerge -v --config-root=${BUILD_PATH}/ %%INSTALL%%
-///builds/${1}/install-portage.sh
-//`
-
 	makeConf = `
 USE="-doc %%USE%%"
 FEATURES="nodoc noinfo noman %%FEATURES%%"
@@ -112,6 +97,7 @@ FEATURES="nodoc noinfo noman %%FEATURES%%"
 type Cnt struct {
 	path     string
 	manifest CntManifest
+	rkt		 *schema.ImageManifest
 	args     BuildArgs
 }
 type CntBuild struct {
@@ -139,12 +125,22 @@ type CntManifest struct {
 
 func OpenCnt(path string, args BuildArgs) (*Cnt, error) {
 	cnt := new(Cnt)
-	path, err := filepath.Abs(path)
-	if err != nil {
-		panic(err)
-	}
-	cnt.path = path
 	cnt.args = args
+
+	if fullPath, err := filepath.Abs(path); err != nil {
+		log.Get().Panic("Cannot get fullpath of project", err)
+	} else {
+		cnt.path = fullPath
+	}
+
+	if _, err := os.Stat(cnt.path + "/image-manifest.json"); os.IsNotExist(err) {
+		log.Get().Debug(cnt.path, "/image-manifest.json does not exists")
+		if _, err := os.Stat(cnt.path + "/cnt-config.yml"); os.IsNotExist(err) {
+			log.Get().Debug(cnt.path, "/cnt-config.yml does not exists")
+			return nil, &BuildError{"file not found : " + cnt.path + "/cnt-config.yml", err}
+		}
+	}
+
 	return cnt, nil
 }
 
@@ -172,19 +168,20 @@ func (cnt *Cnt) writeCntManifest() {
 func (cnt *Cnt) readManifest(path string) {
 	source, err := ioutil.ReadFile(cnt.path + path)
 	if err != nil {
-		panic(err)
+		log.Get().Panic(err)
 	}
 	err = yaml.Unmarshal([]byte(source), &cnt.manifest)
 	if err != nil {
-		panic(err)
+		log.Get().Panic(err)
 	}
 }
 
 func (cnt *Cnt) Build(runner runner.Runner) {
-	println("Building cnt")
-	cnt.readManifest("/cnt-manifest.yml")
+	log.Get().Info("Building Image : ", cnt.manifest.ProjectName)
+//	cnt.readManifest("/cnt-manifest.yml")
 
-	log.Println("building ACI")
+	cnt.rkt = utils.ReadManifest(cnt.path + "/image-manifest.json")
+	cnt.manifest.ProjectName = types.AciName(string(cnt.rkt.Name))
 
 	os.Mkdir(cnt.path + target, 0777)
 
@@ -197,29 +194,27 @@ func (cnt *Cnt) Build(runner runner.Runner) {
 	cnt.copyInstallAndCreatePacker()
 
 	cnt.writeBuildScript()
-	cnt.writePortage()
 	cnt.writeRktManifest()
 	cnt.writeCntManifest() // TODO move that, here because we update the version number to generated version
 
-	if !cnt.args.Enter {
-		cnt.runPacker()
-	}
-	cnt.runPortage(runner)
+	cnt.runPacker()
 
 	cnt.tarAci()
 	//	ExecCmd("chown " + os.Getenv("SUDO_USER") + ": " + target + "/*") //TODO chown
 }
 
+
+
 func (cnt *Cnt) copyRunlevelsBuild() {
 	if err := os.MkdirAll(cnt.path + target + "/runlevels", 0755); err != nil {
-		panic(err)
+		log.Get().Panic(err)
 	}
 	utils.CopyDir(cnt.path + "/runlevels/build-early", cnt.path + target + "/runlevels/build-early")
 	utils.CopyDir(cnt.path + "/runlevels/build-late", cnt.path + target + "/runlevels/build-late")
 }
 
 func (cnt *Cnt) runlevelBuildSetup() {
-	files, err := ioutil.ReadDir(cnt.path + "/runlevels/build-setup") // already sorted
+	files, err := ioutil.ReadDir(cnt.path + "/runlevels/build-setup") // already sorted by name
 	if err != nil {
 		return
 	}
@@ -227,8 +222,9 @@ func (cnt *Cnt) runlevelBuildSetup() {
 	os.Setenv("TARGET", cnt.path + target)
 	for _, f := range files {
 		if !f.IsDir() {
+			log.Get().Info("Running Build setup level : ", f.Name())
 			if err := utils.ExecCmd(cnt.path + "/runlevels/build-setup/" + f.Name()); err != nil {
-				panic(err)
+				log.Get().Panic(err)
 			}
 		}
 	}
@@ -236,12 +232,11 @@ func (cnt *Cnt) runlevelBuildSetup() {
 
 func (cnt *Cnt) tarAci() {
 	dir, _ := os.Getwd();
-	log.Println("chdir to", cnt.path, target)
+	log.Get().Debug("chdir to", cnt.path, target)
 	os.Chdir(cnt.path + target);
 
 	utils.Tar(cnt.args.Zip, "image.aci", "manifest", "rootfs/")
-
-	log.Println("chdir to", dir)
+	log.Get().Debug("chdir to", dir)
 	os.Chdir(dir);
 }
 
@@ -256,7 +251,7 @@ func (cnt *Cnt) runPacker() {
 	utils.ExecCmd("packer", "build", "packer.json");
 
 	if err := os.Chdir(cnt.path + target + "/rootfs"); err != nil {
-		panic(err)
+		log.Get().Panic(err)
 	}
 	utils.ExecCmd("tar", "xf", "../rootfs.tar")
 }
@@ -270,10 +265,10 @@ func (cnt *Cnt) copyInstallAndCreatePacker() {
 
 func (cnt *Cnt) copyRunlevelsPrestart() {
 	if err := os.MkdirAll(cnt.path + targetRootfs + "/etc/prestart/late-prestart.d", 0755); err != nil {
-		panic(err)
+		log.Get().Panic(err)
 	}
 	if err := os.MkdirAll(cnt.path + targetRootfs + "/etc/prestart/early-prestart.d", 0755); err != nil {
-		panic(err)
+		log.Get().Panic(err)
 	}
 	utils.CopyDir(cnt.path + "/runlevels/prestart-early", cnt.path + targetRootfs + "/etc/prestart/early-prestart.d")
 	utils.CopyDir(cnt.path + "/runlevels/prestart-late", cnt.path + targetRootfs + "/etc/prestart/late-prestart.d")
@@ -281,7 +276,7 @@ func (cnt *Cnt) copyRunlevelsPrestart() {
 
 func (cnt *Cnt) copyConfd() {
 	if err := os.MkdirAll(cnt.path + targetRootfs + "/etc/prestart/", 0755); err != nil {
-		panic(err)
+		log.Get().Panic(err)
 	}
 	utils.CopyDir(cnt.path + "/confd/conf.d", cnt.path + targetRootfs + "/etc/prestart/conf.d")
 	utils.CopyDir(cnt.path + "/confd/templates", cnt.path + targetRootfs + "/etc/prestart/templates")
@@ -293,7 +288,7 @@ func (cnt *Cnt) copyRootfs() {
 
 func (cnt *Cnt) copyAttributes() {
 	if err := os.MkdirAll(cnt.path + targetRootfs + "/etc/prestart/attributes/" + cnt.manifest.ProjectName.ShortName(), 0755); err != nil {
-		panic(err)
+		log.Get().Panic(err)
 	}
 	utils.CopyDir(cnt.path + "/attributes", cnt.path + targetRootfs + "/etc/prestart/attributes/" + cnt.manifest.ProjectName.ShortName())
 }
@@ -308,34 +303,9 @@ func (cnt *Cnt) writeBuildScript() {
 	ioutil.WriteFile(targetFull + "/build.sh", []byte(build), 0777)
 }
 
-func (cnt *Cnt) writePortage() {
-	if cnt.manifest.Portage.Install == "" {
-		return
-	}
-	targetFull := cnt.path + target
-
-
-	enter := "0"
-	if cnt.args.Enter {
-		enter = "1"
-	}
-
-	portage := strings.Replace(portageInstall, "%%INSTALL%%", cnt.manifest.Portage.Install, -1)
-	portage = strings.Replace(portage, "%%ENTER%%", enter, -1)
-	ioutil.WriteFile(targetFull + "/portage.sh", []byte(portage), 0777)
-
-	os.MkdirAll(targetFull + "/etc/portage", 0755)
-	os.MkdirAll(targetFull + "/etc/portage", 0755)
-	res := strings.Replace(makeConf, "%%USE%%", cnt.manifest.Portage.Use, 1)
-	res = strings.Replace(res, "%%FEATURES%%", cnt.manifest.Portage.Features, 1)
-	ioutil.WriteFile(targetFull + "/etc/portage/make.conf", []byte(res), 0777)
-
-	ioutil.WriteFile(targetFull + "/etc/portage/package.accept_keywords", []byte(cnt.manifest.Portage.Keywords), 0777)
-	ioutil.WriteFile(targetFull + "/etc/portage/package.mask", []byte(cnt.manifest.Portage.Mask), 0777)
-}
-
 func (cnt *Cnt) writeRktManifest() {
-	im := utils.BasicManifest()
+	log.Get().Debug("Writing aci manifest")
+	im := cnt.rkt
 	if cnt.manifest.Version == "" {
 		cnt.manifest.Version = utils.GenerateVersion()
 	}
