@@ -34,6 +34,7 @@ func (c *CntConfig) Load() {
 	default:
 		log.Get().Panic("Unsupported OS, please fill a bug repost")
 	}
+	log.Get().Debug("Home folder is " + cntHome)
 
 	if source, err := ioutil.ReadFile(cntHome + "/config.yml"); err == nil {
 		err = yaml.Unmarshal([]byte(source), &c)
