@@ -42,11 +42,29 @@ require_clean_work_tree () {
 }
 
 ${dir}/build.sh
-#require_clean_work_tree
+require_clean_work_tree
+
+
+for i in ${dir}/target/*/ ; do
+    if [ -d "$i" ]; then
+        cd $i
+        platform=${PWD##*/}
+        tar cvzf cnt-$platform-$version.tar.gz *
+        cd -
+    fi
+done
 
 git tag $version -a -m "Version $version"
 git push --tags
 
-curl --data "{\"tag_name\": \"$1\",\"target_commitish\": \"master\",\"name\": \"$1\",\"body\": \"Release of version $1\",\"draft\": false,\"prerelease\": true}" https://api.github.com/repos/blablacar/cnt/releases?access_token=$access_token
-POST https://api.github.com/repos/blablacar/cnt/releases/${version}/assets?name=cnt.tar.gz
+
+curl --data "{\"tag_name\": \"$1\",\"target_commitish\": \"master\",\"name\": \"$1\",\"body\": \"Release of version $1\",\"draft\": false,\"prerelease\": true}" https://api.github.com/repos/blablacar/cnt/releases?access_token=${access_token}
+
+for i in ${dir}/target/*/ ; do
+    if [ -d "$i" ]; then
+        fullpath=$(ls ${i}/*.tar.gz)
+        filename=${fullpath##*/}
+        curl -i -X POST -H "Content-Type: application/x-gzip" --data-binary "@${fullpath}" https://uploads.github.com/repos/blablacar/cnt/releases/${version}/assets?name=${filename}&access_token=${access_token}
+    fi
+done
 
