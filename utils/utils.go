@@ -3,34 +3,27 @@ import (
 	"os"
 	"fmt"
 	"io"
-	"os/user"
-	"log"
 	"strings"
 	"os/exec"
 	"math/rand"
 	"time"
 	"bytes"
+	"github.com/mitchellh/go-homedir"
+	"github.com/blablacar/cnt/log"
 )
 
 func UserHomeOrFatal() string {
-	usr, err := user.Current()
+	usr, err := homedir.Dir()
 	if err != nil {
-		log.Fatal(err)
+		log.Get().Panic(err)
 	}
-	return usr.HomeDir
-}
-
-func checkFatal(err error) {
-	if err != nil {
-		log.Fatal(err)
-		os.Exit(1) // just in case
-	}
+	return usr
 }
 
 func ExecCmdGetOutput(head string, parts ...string) (string, error) {
 	var stdout bytes.Buffer
 
-	log.Println("Exec > ", head, strings.Join(parts, " "))
+	log.Get().Debug("Exec > ", head, strings.Join(parts, " "))
 	cmd := exec.Command(head, parts...)
 	cmd.Stdout = &stdout
 	cmd.Stderr = os.Stderr
@@ -41,7 +34,7 @@ func ExecCmdGetOutput(head string, parts ...string) (string, error) {
 
 
 func ExecCmd(head string, parts ...string) error {
-	log.Println("Exec > ", head, strings.Join(parts, " "))
+	log.Get().Debug("Exec > ", head, strings.Join(parts, " "))
 	cmd := exec.Command(head, parts...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
