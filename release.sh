@@ -57,14 +57,16 @@ done
 git tag $version -a -m "Version $version"
 git push --tags
 
+sleep 5
 
-curl --data "{\"tag_name\": \"$1\",\"target_commitish\": \"master\",\"name\": \"$1\",\"body\": \"Release of version $1\",\"draft\": false,\"prerelease\": true}" https://api.github.com/repos/blablacar/cnt/releases?access_token=${access_token}
+release_json=$(curl --data "{\"tag_name\": \"$1\",\"target_commitish\": \"master\",\"name\": \"$1\",\"body\": \"Release of version $1\",\"draft\": false,\"prerelease\": true}" https://api.github.com/repos/blablacar/cnt/releases?access_token=${access_token})
+posturl=$(echo $release_json | grep "\"assets_url\"" | sed -ne 's/.*\(http[^"]*\).*/\1/p')
 
 for i in ${dir}/target/*/ ; do
     if [ -d "$i" ]; then
         fullpath=$(ls ${i}/*.tar.gz)
         filename=${fullpath##*/}
-        curl -i -X POST -H "Content-Type: application/x-gzip" --data-binary "@${fullpath}" https://uploads.github.com/repos/blablacar/cnt/releases/${version}/assets?name=${filename}&access_token=${access_token}
+        curl -i -X POST -H "Content-Type: application/x-gzip" --data-binary "@${fullpath}" ${posturl}?name=${filename}&access_token=${access_token}
     fi
 done
 
