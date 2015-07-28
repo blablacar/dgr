@@ -12,6 +12,7 @@ import (
 	"github.com/blablacar/cnt/config"
 	"github.com/blablacar/cnt/log"
 	"github.com/appc/spec/schema"
+	"bytes"
 )
 
 const (
@@ -258,9 +259,16 @@ func (cnt *Cnt) runPacker() {
 
 func (cnt *Cnt) copyInstallAndCreatePacker() {
 	if _, err := os.Stat(cnt.path + "/install.sh"); err == nil {
-		utils.CopyFile(cnt.path + "/install.sh", target + "/install.sh")
-		utils.WritePackerFiles(cnt.path + target)
+		utils.CopyFile(cnt.path + "/install.sh", cnt.path + target + "/install.sh")
+		sum, _ := utils.ChecksumFile(cnt.path + target + "/install.sh")
+		lastSum, err := ioutil.ReadFile(cnt.path + target + "/install.sh.SUM")
+		if err != nil || !bytes.Equal(lastSum, sum) {
+			utils.WritePackerFiles(cnt.path + target)
+			ioutil.WriteFile(cnt.path + target + "/install.sh.SUM", sum, 0755)
+			return
+		}
 	}
+	utils.RemovePackerFiles(cnt.path + target)
 }
 
 func (cnt *Cnt) copyRunlevelsPrestart() {

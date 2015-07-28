@@ -1,5 +1,8 @@
 package utils
-import "io/ioutil"
+import (
+  "io/ioutil"
+  "os"
+)
 
 const (
 	packer_filename = "/packer.json"
@@ -58,4 +61,10 @@ func WritePackerFiles(target string) {
 	ioutil.WriteFile(target + packer_filename, []byte(packer_content), 0644)
 	ioutil.WriteFile(target + pre_filename, []byte(pre_content), 0644)
 	ioutil.WriteFile(target + post_filename, []byte(post_content), 0644)
+}
+
+func RemovePackerFiles(target string) {
+  os.Remove(target + packer_filename)
+  os.Remove(target + pre_filename)
+  os.Remove(target + post_filename)
 }
