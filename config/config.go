@@ -3,6 +3,8 @@ import (
 	"io/ioutil"
 	"gopkg.in/yaml.v2"
 	"github.com/blablacar/cnt/utils"
+	"runtime"
+	"github.com/blablacar/cnt/log"
 )
 
 var cntConfig = new(CntConfig)
@@ -21,7 +23,19 @@ func GetConfig() *CntConfig {
 }
 
 func (c *CntConfig) Load() {
-	if source, err := ioutil.ReadFile(utils.UserHomeOrFatal() + "/.config/cnt/config.yml"); err == nil {
+	var cntHome string
+	switch runtime.GOOS {
+	case "windows":
+		cntHome = utils.UserHomeOrFatal() + "/AppData/Local/Cnt";
+	case "darwin":
+		cntHome = utils.UserHomeOrFatal() + "/Library/Cnt";
+	case "linux":
+		cntHome = utils.UserHomeOrFatal() + "/.config/cnt";
+	default:
+		log.Get().Panic("Unsupported OS, please fill a bug repost")
+	}
+
+	if source, err := ioutil.ReadFile(cntHome + "/config.yml"); err == nil {
 		err = yaml.Unmarshal([]byte(source), &c)
 		if err != nil {
 			panic(err)
