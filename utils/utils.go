@@ -23,7 +23,7 @@ func UserHomeOrFatal() string {
 func ExecCmdGetOutput(head string, parts ...string) (string, error) {
 	var stdout bytes.Buffer
 
-	log.Get().Debug("Exec > ", head, strings.Join(parts, " "))
+	log.Get().Debug("Exec > ", head, " ", strings.Join(parts, " "))
 	cmd := exec.Command(head, parts...)
 	cmd.Stdout = &stdout
 	cmd.Stderr = os.Stderr
@@ -34,7 +34,7 @@ func ExecCmdGetOutput(head string, parts ...string) (string, error) {
 
 
 func ExecCmd(head string, parts ...string) error {
-	log.Get().Debug("Exec > ", head, strings.Join(parts, " "))
+	log.Get().Debug("Exec > ", head, " ", strings.Join(parts, " "))
 	cmd := exec.Command(head, parts...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
