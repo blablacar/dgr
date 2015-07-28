@@ -48,7 +48,7 @@ apt-get update
 	post_filename = "/cnt-cleanup.sh"
 	post_content = `#!/bin/bash
 
-apt-get purge curl chef -y
+apt-get purge chef -y
 apt-get autoremove --purge -y
 rm -rf /tmp/*
 rm -rf /var/lib/apt/lists/*
