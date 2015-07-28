@@ -59,8 +59,7 @@ git push --tags
 
 sleep 5
 
-release_json=$(curl --data "{\"tag_name\": \"$1\",\"target_commitish\": \"master\",\"name\": \"$1\",\"body\": \"Release of version $1\",\"draft\": false,\"prerelease\": true}" https://api.github.com/repos/blablacar/cnt/releases?access_token=${access_token})
-posturl=$(echo $release_json | grep "\"assets_url\"" | sed -ne 's/.*\(http[^"]*\).*/\1/p')
+posturl=$(curl --data "{\"tag_name\": \"$1\",\"target_commitish\": \"master\",\"name\": \"$1\",\"body\": \"Release of version $1\",\"draft\": false,\"prerelease\": true}" https://api.github.com/repos/blablacar/cnt/releases?access_token=${access_token} | grep "\"assets_url\"" | sed -ne 's/.*\(http[^"]*\).*/\1/p')
 
 for i in ${dir}/target/*/ ; do
     if [ -d "$i" ]; then
