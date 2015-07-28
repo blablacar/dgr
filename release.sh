@@ -65,7 +65,7 @@ for i in ${dir}/target/*/ ; do
     if [ -d "$i" ]; then
         fullpath=$(ls ${i}/*.tar.gz)
         filename=${fullpath##*/}
-        curl -i -X POST -H "Content-Type: application/x-gzip" --data-binary "@${fullpath}" ${posturl}?name=${filename}&access_token=${access_token}
+        curl -i -X POST -H "Content-Type: application/x-gzip" --data-binary "@${fullpath}" ${posturl%\{?name\}}?name=${filename}&access_token=${access_token}
     fi
 done
 
