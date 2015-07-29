@@ -1,3 +1,5 @@
+[![build](https://img.shields.io/travis/blablacar/cnt.svg?style=flat)](https://travis-ci.org/blablacar/cnt)
+
 **Highly experimental and in development**
 
 # cnt
