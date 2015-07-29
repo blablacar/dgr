@@ -13,6 +13,7 @@ import (
 	"github.com/blablacar/cnt/log"
 	"github.com/appc/spec/schema"
 	"bytes"
+	"github.com/blablacar/cnt/bats"
 )
 
 const (
@@ -146,9 +147,24 @@ func OpenCnt(path string, args BuildArgs) (*Cnt, error) {
 }
 
 func (cnt *Cnt) Clean() {
+	log.Get().Info("Cleaning " + cnt.manifest.ProjectName)
 	if err := os.RemoveAll(cnt.path + "/target/"); err != nil {
 		log.Get().Panic("Cannot clean " + cnt.manifest.ProjectName, err)
 	}
+}
+
+func (cnt *Cnt) Test() {
+	log.Get().Info("Testing " + cnt.manifest.ProjectName)
+	if _, err := os.Stat(cnt.path + "/target/image.aci"); os.IsNotExist(err) {
+		if err := cnt.Build(); err != nil {
+			log.Get().Panic("Cannot Install since build failed")
+		}
+	}
+
+	// BATS
+	os.MkdirAll(cnt.path + "/target/test", 0777)
+	bats.WriteBats(cnt.path + "/target/test")
+	utils.ExecCmd("rkt", "--insecure-skip-verify=true", "run", cnt.path + "/target/image.aci") // TODO missing command override that will arrive in next RKT version
 }
 
 func (cnt *Cnt) Push() {
