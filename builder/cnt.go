@@ -168,6 +168,10 @@ func (cnt *Cnt) Test() {
 }
 
 func (cnt *Cnt) Push() {
+	if config.GetConfig().Push.Type == "" {
+		log.Get().Panic("Can't push, push is not configured in cnt global configuration file")
+	}
+
 	cnt.readManifest("/target/cnt-manifest.yml")
 	fmt.Printf("%#v\n\n", cnt)
 	utils.ExecCmd("curl", "-i",
