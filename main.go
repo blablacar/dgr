@@ -80,7 +80,7 @@ func processArgs() {
 			discoverAndRunBuildType(".", buildArgs)
 		},
 	}
-	cmdBuild.Flags().BoolVarP(&buildArgs.Zip, "nozip", "z", true, "zip final image or not")
+	cmdBuild.Flags().BoolVarP(&buildArgs.Zip, "nozip", "z", false, "zip final image or not")
 
 	var cmdClean = &cobra.Command{
 		Use:   "clean",
