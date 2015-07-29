@@ -27,7 +27,7 @@ func OpenPod(path string, args BuildArgs) (*Pod, error) {
 }
 
 func (p *Pod) Build() {
-	log.Get().Info("Building pod ")
+	log.Get().Info("Building POD ")
 
 //	runner := runner.ChrootRunner{}
 
@@ -42,11 +42,20 @@ func (p *Pod) Build() {
 }
 
 func (p *Pod) Install() {
-	log.Get().Info("Installing pod ")
+	log.Get().Info("Installing POD ")
+
+	files, _ := ioutil.ReadDir(p.path)
+	for _, f := range files {
+		if f.IsDir() {
+			if cnt, err := OpenCnt(p.path + "/" + f.Name(), p.args); err == nil {
+				cnt.Install()
+			}
+		}
+	}
 }
 
 func (p *Pod) Push() {
-	log.Get().Info("Push pod ")
+	log.Get().Info("Push POD ")
 
 	files, _ := ioutil.ReadDir(p.path)
 	for _, f := range files {
@@ -56,5 +65,17 @@ func (p *Pod) Push() {
 			}
 		}
 	}
+}
 
+func (p *Pod) Clean() {
+	log.Get().Info("Cleaning POD ")
+
+	files, _ := ioutil.ReadDir(p.path)
+	for _, f := range files {
+		if f.IsDir() {
+			if cnt, err := OpenCnt(p.path + "/" + f.Name(), p.args); err == nil {
+				cnt.Clean()
+			}
+		}
+	}
 }

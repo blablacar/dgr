@@ -145,6 +145,12 @@ func OpenCnt(path string, args BuildArgs) (*Cnt, error) {
 	return cnt, nil
 }
 
+func (cnt *Cnt) Clean() {
+	if err := os.RemoveAll(cnt.path + "/target/"); err != nil {
+		log.Get().Panic("Cannot clean " + cnt.manifest.ProjectName, err)
+	}
+}
+
 func (cnt *Cnt) Push() {
 	cnt.readManifest("/target/cnt-manifest.yml")
 	fmt.Printf("%#v\n\n", cnt)

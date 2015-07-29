@@ -47,6 +47,17 @@ func discoverAndRunInstallType(path string, args builder.BuildArgs) {
 	}
 }
 
+
+func discoverAndRunCleanType(path string, args builder.BuildArgs) {
+	if cnt, err := builder.OpenCnt(path, args); err == nil {
+		cnt.Clean()
+	} else if pod, err := builder.OpenPod(path, args); err == nil {
+		pod.Clean()
+	} else {
+		log.Get().Panic("Victory Cannot found cnt-manifest.yml")
+	}
+}
+
 func processArgs() {
 	log.Set(logger.NewLogger())
 
@@ -67,7 +78,7 @@ func processArgs() {
 		Short: "clean build",
 		Long:  `clean build, including rootfs`,
 		Run: func(cmd *cobra.Command, args []string) {
-			os.RemoveAll("target/");
+			discoverAndRunCleanType(".", buildArgs)
 		},
 	}
 
