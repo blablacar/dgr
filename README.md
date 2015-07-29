@@ -1,4 +1,4 @@
-[![build](https://img.shields.io/travis/blablacar/cnt.svg?style=flat)](https://travis-ci.org/blablacar/cnt)
+[![Build Status](https://travis-ci.org/blablacar/cnt.svg?branch=master)](https://travis-ci.org/blablacar/cnt)
 
 **Highly experimental and in development**
 
