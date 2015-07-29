@@ -4,7 +4,6 @@ import (
 	"github.com/appc/spec/schema"
 	"github.com/blablacar/cnt/utils"
 	"io/ioutil"
-	"github.com/blablacar/cnt/runner"
 	"path/filepath"
 )
 
@@ -30,16 +29,20 @@ func OpenPod(path string, args BuildArgs) (*Pod, error) {
 func (p *Pod) Build() {
 	log.Get().Info("Building pod ")
 
-	runner := runner.ChrootRunner{}
+//	runner := runner.ChrootRunner{}
 
 	files, _ := ioutil.ReadDir(p.path)
 	for _, f := range files {
 		if f.IsDir() {
 			if cnt, err := OpenCnt(p.path + "/" + f.Name(), p.args); err == nil {
-				cnt.Build(&runner)
+				cnt.Build()
 			}
 		}
 	}
+}
+
+func (p *Pod) Install() {
+	log.Get().Info("Installing pod ")
 }
 
 func (p *Pod) Push() {

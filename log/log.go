@@ -1,6 +1,7 @@
 package log
 import (
 	"fmt"
+	"os"
 )
 
 type Log interface {
@@ -25,14 +26,14 @@ type Log interface {
 type dummyLog struct {}
 func (l dummyLog) log(msg string) {println(msg)}
 
-func (l dummyLog) Panic(args ...interface{}) {l.log(fmt.Sprint(args))}
+func (l dummyLog) Panic(args ...interface{}) {l.log(fmt.Sprint(args)); os.Exit(1)}
 func (l dummyLog) Error(args ...interface{}) {l.log(fmt.Sprint(args))}
 func (l dummyLog) Warning(args ...interface{}) {l.log(fmt.Sprint(args))}
 func (l dummyLog) Info(args ...interface{}) {l.log(fmt.Sprint(args))}
 func (l dummyLog) Debug(args ...interface{}) {l.log(fmt.Sprint(args))}
 func (l dummyLog) Trace(args ...interface{}) {l.log(fmt.Sprint(args))}
 
-func (l dummyLog) Panicf(f string, args ...interface{}) {l.log(fmt.Sprintf(f, args))}
+func (l dummyLog) Panicf(f string, args ...interface{}) {l.log(fmt.Sprintf(f, args)); os.Exit(1)}
 func (l dummyLog) Errorf(f string, args ...interface{}) {l.log(fmt.Sprintf(f, args))}
 func (l dummyLog) Warningf(f string, args ...interface{}) {l.log(fmt.Sprintf(f, args))}
 func (l dummyLog) Infof(f string, args ...interface{}) {l.log(fmt.Sprintf(f, args))}

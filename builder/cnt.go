@@ -177,7 +177,16 @@ func (cnt *Cnt) readManifest(path string) {
 	}
 }
 
-func (cnt *Cnt) Build(runner runner.Runner) {
+func (cnt *Cnt) Install() {
+	if _, err := os.Stat(cnt.path + "/target/image.aci"); os.IsNotExist(err) {
+		if err := cnt.Build(); err != nil {
+			log.Get().Panic("Cannot Install since build failed")
+		}
+	}
+	utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.path + "/target/image.aci")
+}
+
+func (cnt *Cnt) Build() error {
 	log.Get().Info("Building Image : ", cnt.manifest.ProjectName)
 //	cnt.readManifest("/cnt-manifest.yml")
 
@@ -202,6 +211,7 @@ func (cnt *Cnt) Build(runner runner.Runner) {
 
 	cnt.tarAci()
 	//	ExecCmd("chown " + os.Getenv("SUDO_USER") + ": " + target + "/*") //TODO chown
+	return nil
 }
 
 
