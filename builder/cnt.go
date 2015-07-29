@@ -291,7 +291,7 @@ func (cnt *Cnt) copyConfd() {
 }
 
 func (cnt *Cnt) copyRootfs() {
-	utils.CopyDir(cnt.path + "/rootfs", cnt.path + targetRootfs)
+	utils.CopyDir(cnt.path + "/files", cnt.path + targetRootfs)
 }
 
 func (cnt *Cnt) copyAttributes() {
