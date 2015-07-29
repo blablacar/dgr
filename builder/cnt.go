@@ -4,10 +4,8 @@ import (
 	"io/ioutil"
 	"gopkg.in/yaml.v2"
 	"strings"
-	"fmt"
 	"path/filepath"
 	"github.com/blablacar/cnt/types"
-	"github.com/blablacar/cnt/runner"
 	"github.com/blablacar/cnt/utils"
 	"github.com/blablacar/cnt/config"
 	"github.com/blablacar/cnt/log"
@@ -17,10 +15,6 @@ import (
 )
 
 const (
-	targetRootfs = "/target/rootfs"
-	target = "/target"
-	targetManifest = "/target/manifest"
-
 	buildScript = `#!/bin/bash
 set -x
 set -e
@@ -40,66 +34,29 @@ execute_files() {
 
 
 export TERM=xterm
-source /etc/profile && env-update
+#source /etc/profile && env-update
 
 if [ -d "$TARGET/runlevels/build-early" ]; then
 	execute_files "$TARGET/runlevels/build-early"
 fi
 
 
-if [ -f "$TARGET/portage.sh" ]; then
-	$TARGET/portage.sh
+if [ -d "$TARGET/runlevels/build" ]; then
+	execute_files "$TARGET/runlevels/build"
 fi
 
 if [ -d "$TARGET/runlevels/build-late" ]; then
 	execute_files "$TARGET/runlevels/build-late"
 fi
-
-`
-portageInstall = `#!/bin/bash
-set -x
-set -e
-
-ROOTFS=/build/root
-
-mkdir -p /build/{root,db-pkg/.cache/{names,provides}}
-mkdir ${ROOTFS}/{dev,etc}
-mknod -m 622 ${ROOTFS}/dev/console c 5 1
-mknod -m 666 ${ROOTFS}/dev/null c 1 3
-mknod -m 666 ${ROOTFS}/dev/zero c 1 5
-mknod -m 444 ${ROOTFS}/dev/random c 1 8
-mknod -m 444 ${ROOTFS}/dev/urandom c 1 9
-touch ${ROOTFS}/etc/ld.so.cache
-mkdir ${ROOTFS}/lib64
-cd ${ROOTFS}
-ln -s lib64 lib
-
-echo "alias cave-i='cave resume --resume-file ~/.cave-resume'" >> /etc/bash/bashrc
-echo "alias cave-p='cave resolve --resume-file ~/.cave-resume'" >> /etc/bash/bashrc
-echo "alias cave-chroot=\"cave resolve --resume-file ~/.cave-resume -mc -/b --chroot-path /build/root/ -0 '*/*::installed'\"" >> /etc/bash/bashrc
-
-
-
-ln -sf /usr/portage/profiles/default/linux/amd64/13.0 ${TARGET}/etc/portage/make.profile
-#emerge-webrsync
-if [ %%ENTER%% -eq 1 ]; then
-	ROOT=${ROOTFS} emerge -vp --config-root=${TARGET}/ %%INSTALL%%
-	bash
-else
-	ROOT=${ROOTFS} emerge -v --config-root=${TARGET}/ %%INSTALL%%
-fi
-`
-
-	makeConf = `
-USE="-doc %%USE%%"
-FEATURES="nodoc noinfo noman %%FEATURES%%"
 `
 )
 
 type Cnt struct {
 	path     string
+	target   string
+	rootfs   string
 	manifest CntManifest
-	rkt		 *schema.ImageManifest
+	rkt      *schema.ImageManifest
 	args     BuildArgs
 }
 type CntBuild struct {
@@ -113,13 +70,14 @@ func (b *CntBuild) NoBuildImage() bool {
 type CntManifest struct {
 	ProjectName types.AciName       `yaml:"projectName,omitempty"`
 	Version     string                  `yaml:"version,omitempty"`
+	From        string                    `yaml:"from,omitempty"`
 	Build       CntBuild                `yaml:"build,omitempty"`
 	Portage     struct {
 					Use      string                `yaml:"use,omitempty"`
 					Mask     string                `yaml:"mask,omitempty"`
 					Install  string                `yaml:"install"`
 					Features string                `yaml:"features,omitempty"`
-					Keywords string				   `yaml:"keywords,omitempty"`
+					Keywords string                   `yaml:"keywords,omitempty"`
 				}                       `yaml:"portage,omitempty"`
 }
 
@@ -133,13 +91,15 @@ func OpenCnt(path string, args BuildArgs) (*Cnt, error) {
 		log.Get().Panic("Cannot get fullpath of project", err)
 	} else {
 		cnt.path = fullPath
+		cnt.target = cnt.path + "/target"
+		cnt.rootfs = cnt.target + "/rootfs"
 	}
 
 	if _, err := os.Stat(cnt.path + "/image-manifest.json"); os.IsNotExist(err) {
 		log.Get().Debug(cnt.path, "/image-manifest.json does not exists")
-		if _, err := os.Stat(cnt.path + "/cnt-config.yml"); os.IsNotExist(err) {
-			log.Get().Debug(cnt.path, "/cnt-config.yml does not exists")
-			return nil, &BuildError{"file not found : " + cnt.path + "/cnt-config.yml", err}
+		if _, err := os.Stat(cnt.path + "/cnt-manifest.yml"); os.IsNotExist(err) {
+			log.Get().Debug(cnt.path, "/cnt-manifest.yml does not exists")
+			return nil, &BuildError{"file not found : " + cnt.path + "/cnt-manifest.yml", err}
 		}
 	}
 
@@ -148,23 +108,23 @@ func OpenCnt(path string, args BuildArgs) (*Cnt, error) {
 
 func (cnt *Cnt) Clean() {
 	log.Get().Info("Cleaning " + cnt.manifest.ProjectName)
-	if err := os.RemoveAll(cnt.path + "/target/"); err != nil {
+	if err := os.RemoveAll(cnt.target + "/"); err != nil {
 		log.Get().Panic("Cannot clean " + cnt.manifest.ProjectName, err)
 	}
 }
 
 func (cnt *Cnt) Test() {
 	log.Get().Info("Testing " + cnt.manifest.ProjectName)
-	if _, err := os.Stat(cnt.path + "/target/image.aci"); os.IsNotExist(err) {
+	if _, err := os.Stat(cnt.target + "/image.aci"); os.IsNotExist(err) {
 		if err := cnt.Build(); err != nil {
 			log.Get().Panic("Cannot Install since build failed")
 		}
 	}
 
 	// BATS
-	os.MkdirAll(cnt.path + "/target/test", 0777)
-	bats.WriteBats(cnt.path + "/target/test")
-	utils.ExecCmd("rkt", "--insecure-skip-verify=true", "run", cnt.path + "/target/image.aci") // TODO missing command override that will arrive in next RKT version
+	os.MkdirAll(cnt.target + "/test", 0777)
+	bats.WriteBats(cnt.target + "/test")
+	utils.ExecCmd("rkt", "--insecure-skip-verify=true", "run", cnt.target + "/image.aci") // TODO missing command override that will arrive in next RKT version
 }
 
 func (cnt *Cnt) Push() {
@@ -173,7 +133,6 @@ func (cnt *Cnt) Push() {
 	}
 
 	cnt.readManifest("/target/cnt-manifest.yml")
-	fmt.Printf("%#v\n\n", cnt)
 	utils.ExecCmd("curl", "-i",
 		"-F", "r=releases",
 		"-F", "hasPom=false",
@@ -182,7 +141,7 @@ func (cnt *Cnt) Push() {
 		"-F", "p=aci",
 		"-F", "v=" + cnt.manifest.Version,
 		"-F", "a=" + cnt.manifest.ProjectName.ShortName(),
-		"-F", "file=@" + cnt.path + "/target/image.aci",
+		"-F", "file=@" + cnt.target + "/image.aci",
 		"-u", config.GetConfig().Push.Username + ":" + config.GetConfig().Push.Password,
 		config.GetConfig().Push.Url + "/service/local/artifact/maven/content")
 }
@@ -204,28 +163,34 @@ func (cnt *Cnt) readManifest(path string) {
 }
 
 func (cnt *Cnt) Install() {
-	if _, err := os.Stat(cnt.path + "/target/image.aci"); os.IsNotExist(err) {
+	if _, err := os.Stat(cnt.target + "/image.aci"); os.IsNotExist(err) {
 		if err := cnt.Build(); err != nil {
 			log.Get().Panic("Cannot Install since build failed")
 		}
 	}
-	utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.path + "/target/image.aci")
+	utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.target + "/image.aci")
 }
 
 func (cnt *Cnt) Build() error {
 	log.Get().Info("Building Image : ", cnt.manifest.ProjectName)
-//	cnt.readManifest("/cnt-manifest.yml")
 
-	cnt.rkt = utils.ReadManifest(cnt.path + "/image-manifest.json")
-	cnt.manifest.ProjectName = types.AciName(string(cnt.rkt.Name))
+	if _, err := os.Stat(cnt.path + "/image-manifest.json"); err == nil {
+		cnt.rkt = utils.ReadManifest(cnt.path + "/image-manifest.json")
+		cnt.manifest.ProjectName = types.AciName(string(cnt.rkt.Name))
+	} else {
+		cnt.readManifest("/cnt-manifest.yml")
+		cnt.rkt = utils.BasicManifest()
+	}
 
-	os.Mkdir(cnt.path + target, 0777)
+	os.Mkdir(cnt.target, 0777)
+
+	cnt.processFrom()
 
 	cnt.runlevelBuildSetup()
 	cnt.copyRunlevelsBuild()
 	cnt.copyRunlevelsPrestart()
 	cnt.copyAttributes()
-	cnt.copyRootfs()
+	cnt.copyFiles()
 	cnt.copyConfd()
 	cnt.copyInstallAndCreatePacker()
 
@@ -233,6 +198,7 @@ func (cnt *Cnt) Build() error {
 	cnt.writeRktManifest()
 	cnt.writeCntManifest() // TODO move that, here because we update the version number to generated version
 
+	cnt.nspawnBuild()
 	cnt.runPacker()
 
 	cnt.tarAci()
@@ -240,14 +206,28 @@ func (cnt *Cnt) Build() error {
 	return nil
 }
 
+func (cnt *Cnt) nspawnBuild() {
+	if err := utils.ExecCmd("systemd-nspawn", "--directory=" + cnt.rootfs, "--capability=all",
+		"--bind=" + cnt.target + "/:/target", "--share-system", "target/build.sh"); err != nil {
+		log.Get().Panic("Build step did not succeed", err)
+	}
+}
+
+func (cnt *Cnt) processFrom() {
+	if cnt.manifest.From != "" {
+		log.Get().Info("Prepare rootfs from " + cnt.manifest.From)
+		utils.ExecCmd("rkt", "image", "render", "--overwrite", cnt.manifest.From, cnt.target)
+	}
+}
 
 
 func (cnt *Cnt) copyRunlevelsBuild() {
-	if err := os.MkdirAll(cnt.path + target + "/runlevels", 0755); err != nil {
+	if err := os.MkdirAll(cnt.target + "/runlevels", 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	utils.CopyDir(cnt.path + "/runlevels/build-early", cnt.path + target + "/runlevels/build-early")
-	utils.CopyDir(cnt.path + "/runlevels/build-late", cnt.path + target + "/runlevels/build-late")
+	utils.CopyDir(cnt.path + "/runlevels/build-early", cnt.target + "/runlevels/build-early")
+	utils.CopyDir(cnt.path + "/runlevels/build", cnt.target + "/runlevels/build")
+	utils.CopyDir(cnt.path + "/runlevels/build-late", cnt.target + "/runlevels/build-late")
 }
 
 func (cnt *Cnt) runlevelBuildSetup() {
@@ -256,7 +236,7 @@ func (cnt *Cnt) runlevelBuildSetup() {
 		return
 	}
 
-	os.Setenv("TARGET", cnt.path + target)
+	os.Setenv("TARGET", cnt.target)
 	for _, f := range files {
 		if !f.IsDir() {
 			log.Get().Info("Running Build setup level : ", f.Name())
@@ -269,8 +249,8 @@ func (cnt *Cnt) runlevelBuildSetup() {
 
 func (cnt *Cnt) tarAci() {
 	dir, _ := os.Getwd();
-	log.Get().Debug("chdir to", cnt.path, target)
-	os.Chdir(cnt.path + target);
+	log.Get().Debug("chdir to", cnt.target)
+	os.Chdir(cnt.target);
 
 	utils.Tar(cnt.args.Zip, "image.aci", "manifest", "rootfs/")
 	log.Get().Debug("chdir to", dir)
@@ -278,16 +258,16 @@ func (cnt *Cnt) tarAci() {
 }
 
 func (cnt *Cnt) runPacker() {
-	if _, err := os.Stat(cnt.path + target + "/packer.json"); os.IsNotExist(err) {
+	if _, err := os.Stat(cnt.target + "/packer.json"); os.IsNotExist(err) {
 		return
 	}
 
 	dir, _ := os.Getwd();
-	os.Chdir(cnt.path + target);
+	os.Chdir(cnt.target);
 	defer os.Chdir(dir);
 	utils.ExecCmd("packer", "build", "packer.json");
 
-	if err := os.Chdir(cnt.path + target + "/rootfs"); err != nil {
+	if err := os.Chdir(cnt.target + "/rootfs"); err != nil {
 		log.Get().Panic(err)
 	}
 	utils.ExecCmd("tar", "xf", "../rootfs.tar")
@@ -295,56 +275,55 @@ func (cnt *Cnt) runPacker() {
 
 func (cnt *Cnt) copyInstallAndCreatePacker() {
 	if _, err := os.Stat(cnt.path + "/install.sh"); err == nil {
-		utils.CopyFile(cnt.path + "/install.sh", cnt.path + target + "/install.sh")
-		sum, _ := utils.ChecksumFile(cnt.path + target + "/install.sh")
-		lastSum, err := ioutil.ReadFile(cnt.path + target + "/install.sh.SUM")
+		utils.CopyFile(cnt.path + "/install.sh", cnt.target + "/install.sh")
+		sum, _ := utils.ChecksumFile(cnt.target + "/install.sh")
+		lastSum, err := ioutil.ReadFile(cnt.target + "/install.sh.SUM")
 		if err != nil || !bytes.Equal(lastSum, sum) {
-			utils.WritePackerFiles(cnt.path + target)
-			ioutil.WriteFile(cnt.path + target + "/install.sh.SUM", sum, 0755)
+			utils.WritePackerFiles(cnt.target)
+			ioutil.WriteFile(cnt.target + "/install.sh.SUM", sum, 0755)
 			return
 		}
 	}
-	utils.RemovePackerFiles(cnt.path + target)
+	utils.RemovePackerFiles(cnt.target)
 }
 
 func (cnt *Cnt) copyRunlevelsPrestart() {
-	if err := os.MkdirAll(cnt.path + targetRootfs + "/etc/prestart/late-prestart.d", 0755); err != nil {
+	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/late-prestart.d", 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	if err := os.MkdirAll(cnt.path + targetRootfs + "/etc/prestart/early-prestart.d", 0755); err != nil {
+	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/early-prestart.d", 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	utils.CopyDir(cnt.path + "/runlevels/prestart-early", cnt.path + targetRootfs + "/etc/prestart/early-prestart.d")
-	utils.CopyDir(cnt.path + "/runlevels/prestart-late", cnt.path + targetRootfs + "/etc/prestart/late-prestart.d")
+	utils.CopyDir(cnt.path + "/runlevels/prestart-early", cnt.rootfs + "/etc/prestart/early-prestart.d")
+	utils.CopyDir(cnt.path + "/runlevels/prestart-late", cnt.rootfs + "/etc/prestart/late-prestart.d")
 }
 
 func (cnt *Cnt) copyConfd() {
-	if err := os.MkdirAll(cnt.path + targetRootfs + "/etc/prestart/", 0755); err != nil {
+	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/", 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	utils.CopyDir(cnt.path + "/confd/conf.d", cnt.path + targetRootfs + "/etc/prestart/conf.d")
-	utils.CopyDir(cnt.path + "/confd/templates", cnt.path + targetRootfs + "/etc/prestart/templates")
+	utils.CopyDir(cnt.path + "/confd/conf.d", cnt.rootfs + "/etc/prestart/conf.d")
+	utils.CopyDir(cnt.path + "/confd/templates", cnt.rootfs + "/etc/prestart/templates")
 }
 
-func (cnt *Cnt) copyRootfs() {
-	utils.CopyDir(cnt.path + "/files", cnt.path + targetRootfs)
+func (cnt *Cnt) copyFiles() {
+	utils.CopyDir(cnt.path + "/files", cnt.rootfs)
 }
 
 func (cnt *Cnt) copyAttributes() {
-	if err := os.MkdirAll(cnt.path + targetRootfs + "/etc/prestart/attributes/" + cnt.manifest.ProjectName.ShortName(), 0755); err != nil {
+	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/attributes/" + cnt.manifest.ProjectName.ShortName(), 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	utils.CopyDir(cnt.path + "/attributes", cnt.path + targetRootfs + "/etc/prestart/attributes/" + cnt.manifest.ProjectName.ShortName())
+	utils.CopyDir(cnt.path + "/attributes", cnt.rootfs + "/etc/prestart/attributes/" + cnt.manifest.ProjectName.ShortName())
 }
 
 func (cnt *Cnt) writeBuildScript() {
-	targetFull := cnt.path + target
 	rootfs := "${TARGET}/rootfs"
 	if cnt.manifest.Build.NoBuildImage() {
 		rootfs = ""
 	}
 	build := strings.Replace(buildScript, "%%ROOTFS%%", rootfs, 1)
-	ioutil.WriteFile(targetFull + "/build.sh", []byte(build), 0777)
+	ioutil.WriteFile(cnt.target + "/build.sh", []byte(build), 0777)
 }
 
 func (cnt *Cnt) writeRktManifest() {
@@ -353,15 +332,5 @@ func (cnt *Cnt) writeRktManifest() {
 	if cnt.manifest.Version == "" {
 		cnt.manifest.Version = utils.GenerateVersion()
 	}
-	utils.WriteImageManifest(im, cnt.path + targetManifest, cnt.manifest.ProjectName, cnt.manifest.Version)
-}
-
-func (cnt *Cnt) runPortage(runner runner.Runner) {
-	if _, err := os.Stat(cnt.path + "/target/build.sh"); os.IsNotExist(err) {
-		return
-	}
-
-	runner.Prepare(cnt.path + target, cnt.manifest.Build.Image)
-	runner.Run(cnt.path + target, cnt.manifest.ProjectName.ShortName(), "/target/build.sh")
-	runner.Release(cnt.path + target, cnt.manifest.ProjectName.ShortName(), cnt.manifest.Build.NoBuildImage())
+	utils.WriteImageManifest(im, cnt.target + "/manifest", cnt.manifest.ProjectName, cnt.manifest.Version)
 }

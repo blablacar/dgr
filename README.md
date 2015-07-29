@@ -49,6 +49,11 @@ push:
 │   │   └── 10.mkdir.sh
 │   ├── prestart-late               # Scripts to be run when starting ACI after confd templating
 │   │   └── 10.fetch.sh
-    └── build-setup                 # Scripts to be run directly on source host before building
-        └── 10.prepare-rootfs.sh
+    ├── build-setup                 # Scripts to be run directly on source host before building
+    │   └── 10.prepare-rootfs.sh
+    ├── build-early                 # Scripts to be run before building when entering build context
+    │   └── 10.wget-some-files.sh
+    └── build-late                  # Scripts to be run after building when still in build context
+        └── 10.change-some-installed.sh
+
 ```
