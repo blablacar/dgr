@@ -14,6 +14,8 @@ import (
 	"github.com/appc/spec/schema/types"
 	"os/exec"
 	"io"
+	"github.com/appc/spec/discovery"
+	"runtime"
 )
 
 const (
@@ -179,7 +181,7 @@ func (cnt *Cnt) Install() {
 func (cnt *Cnt) Build() error {
 	log.Get().Info("Building Image : ", cnt.manifest.Aci.Name)
 
-	os.Mkdir(cnt.target, 0777)
+	os.MkdirAll(cnt.rootfs, 0777)
 
 	cnt.processFrom()
 
@@ -265,10 +267,30 @@ func (cnt *Cnt) runBuild() {
 func (cnt *Cnt) processFrom() {
 	if cnt.manifest.From != "" {
 		log.Get().Info("Prepare rootfs from " + cnt.manifest.From)
-		utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.manifest.From)
-		utils.ExecCmd("rkt", "image", "export", "--overwrite", cnt.manifest.From, cnt.target + "/from.aci")
-		utils.ExecCmd("tar", "xf", cnt.target + "/from.aci", "-C", cnt.target)
-		os.Remove(cnt.target + "/from.aci")
+
+		app, err := discovery.NewAppFromString(cnt.manifest.From)
+		if app.Labels["os"] == "" {
+			app.Labels["os"] = runtime.GOOS
+		}
+		if app.Labels["arch"] == "" {
+			app.Labels["arch"] = runtime.GOARCH
+		}
+
+		endpoint, _, err := discovery.DiscoverEndpoints(*app, false)
+		if err != nil {
+			panic(err)
+		}
+
+		url := endpoint.ACIEndpoints[0].ACI
+		aciPath := cnt.target + "/from.aci"
+		utils.ExecCmd("wget", "-O", aciPath, url)
+		utils.ExecCmd("tar", "xpf", aciPath, "-C", cnt.target)
+		os.Remove(aciPath)
+
+		//		utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.manifest.From)
+		//		utils.ExecCmd("rkt", "image", "export", "--overwrite", cnt.manifest.From, cnt.target + "/from.aci")
+		//		utils.ExecCmd("tar", "xf", cnt.target + "/from.aci", "-C", cnt.target)
+		//		os.Remove(cnt.target + "/from.aci")
 	}
 }
 
