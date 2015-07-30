@@ -2,16 +2,16 @@ package builder
 import (
 	"os"
 	"io/ioutil"
-	"gopkg.in/yaml.v2"
 	"strings"
 	"path/filepath"
-	"github.com/blablacar/cnt/types"
 	"github.com/blablacar/cnt/utils"
 	"github.com/blablacar/cnt/config"
 	"github.com/blablacar/cnt/log"
 	"github.com/appc/spec/schema"
 	"bytes"
 	"github.com/blablacar/cnt/bats"
+    "github.com/ghodss/yaml"
+	"github.com/appc/spec/schema/types"
 )
 
 const (
@@ -56,11 +56,10 @@ type Cnt struct {
 	target   string
 	rootfs   string
 	manifest CntManifest
-	rkt      *schema.ImageManifest
 	args     BuildArgs
 }
 type CntBuild struct {
-	Image types.AciName                `yaml:"image,omitempty"`
+	Image types.ACIdentifier                `json:"image"`
 }
 
 func (b *CntBuild) NoBuildImage() bool {
@@ -68,17 +67,15 @@ func (b *CntBuild) NoBuildImage() bool {
 }
 
 type CntManifest struct {
-	ProjectName types.AciName       `yaml:"projectName,omitempty"`
-	Version     string                  `yaml:"version,omitempty"`
-	From        string                    `yaml:"from,omitempty"`
-	Build       CntBuild                `yaml:"build,omitempty"`
-	Portage     struct {
-					Use      string                `yaml:"use,omitempty"`
-					Mask     string                `yaml:"mask,omitempty"`
-					Install  string                `yaml:"install"`
-					Features string                `yaml:"features,omitempty"`
-					Keywords string                   `yaml:"keywords,omitempty"`
-				}                       `yaml:"portage,omitempty"`
+	From        string                      `json:"from"`
+	Build       CntBuild                    `json:"build"`
+	Aci         schema.ImageManifest        `json:"aci"`
+}
+
+
+func ShortName(name types.ACIdentifier) string {
+	split := strings.Split(string(name), "/")
+	return split[1]
 }
 
 ////////////////////////////////////////////
@@ -95,26 +92,26 @@ func OpenCnt(path string, args BuildArgs) (*Cnt, error) {
 		cnt.rootfs = cnt.target + "/rootfs"
 	}
 
-	if _, err := os.Stat(cnt.path + "/image-manifest.json"); os.IsNotExist(err) {
-		log.Get().Debug(cnt.path, "/image-manifest.json does not exists")
-		if _, err := os.Stat(cnt.path + "/cnt-manifest.yml"); os.IsNotExist(err) {
-			log.Get().Debug(cnt.path, "/cnt-manifest.yml does not exists")
-			return nil, &BuildError{"file not found : " + cnt.path + "/cnt-manifest.yml", err}
-		}
+	if _, err := os.Stat(cnt.path + "/cnt-manifest.yml"); os.IsNotExist(err) {
+		log.Get().Debug(cnt.path, "/cnt-manifest.yml does not exists")
+		return nil, &BuildError{"file not found : " + cnt.path + "/cnt-manifest.yml", err}
 	}
+
+	cnt.manifest.Aci = *utils.BasicManifest()
+	cnt.readManifest(cnt.path + "/cnt-manifest.yml")
 
 	return cnt, nil
 }
 
 func (cnt *Cnt) Clean() {
-	log.Get().Info("Cleaning " + cnt.manifest.ProjectName)
+	log.Get().Info("Cleaning " + cnt.manifest.Aci.Name)
 	if err := os.RemoveAll(cnt.target + "/"); err != nil {
-		log.Get().Panic("Cannot clean " + cnt.manifest.ProjectName, err)
+		log.Get().Panic("Cannot clean " + cnt.manifest.Aci.Name, err)
 	}
 }
 
 func (cnt *Cnt) Test() {
-	log.Get().Info("Testing " + cnt.manifest.ProjectName)
+	log.Get().Info("Testing " + cnt.manifest.Aci.Name)
 	if _, err := os.Stat(cnt.target + "/image.aci"); os.IsNotExist(err) {
 		if err := cnt.Build(); err != nil {
 			log.Get().Panic("Cannot Install since build failed")
@@ -132,15 +129,17 @@ func (cnt *Cnt) Push() {
 		log.Get().Panic("Can't push, push is not configured in cnt global configuration file")
 	}
 
-	cnt.readManifest("/target/cnt-manifest.yml")
+	cnt.readManifest(cnt.target + "/cnt-manifest.yml")
+
+	val, _ := cnt.manifest.Aci.Labels.Get("version")
 	utils.ExecCmd("curl", "-i",
 		"-F", "r=releases",
 		"-F", "hasPom=false",
 		"-F", "e=aci",
 		"-F", "g=com.blablacar.aci.linux.amd64",
 		"-F", "p=aci",
-		"-F", "v=" + cnt.manifest.Version,
-		"-F", "a=" + cnt.manifest.ProjectName.ShortName(),
+		"-F", "v=" + val,
+		"-F", "a=" + ShortName(cnt.manifest.Aci.Name),
 		"-F", "file=@" + cnt.target + "/image.aci",
 		"-u", config.GetConfig().Push.Username + ":" + config.GetConfig().Push.Password,
 		config.GetConfig().Push.Url + "/service/local/artifact/maven/content")
@@ -151,8 +150,8 @@ func (cnt *Cnt) writeCntManifest() {
 	ioutil.WriteFile(cnt.path + "/target/cnt-manifest.yml", []byte(d), 0777)
 }
 
-func (cnt *Cnt) readManifest(path string) {
-	source, err := ioutil.ReadFile(cnt.path + path)
+func (cnt *Cnt) readManifest(manifestPath string) {
+	source, err := ioutil.ReadFile(manifestPath)
 	if err != nil {
 		log.Get().Panic(err)
 	}
@@ -160,6 +159,7 @@ func (cnt *Cnt) readManifest(path string) {
 	if err != nil {
 		log.Get().Panic(err)
 	}
+	log.Get().Trace("Cnt manifest : ", cnt.manifest.Aci.Name, cnt.manifest, cnt.manifest.Aci.App)
 }
 
 func (cnt *Cnt) Install() {
@@ -172,15 +172,7 @@ func (cnt *Cnt) Install() {
 }
 
 func (cnt *Cnt) Build() error {
-	log.Get().Info("Building Image : ", cnt.manifest.ProjectName)
-
-	if _, err := os.Stat(cnt.path + "/image-manifest.json"); err == nil {
-		cnt.rkt = utils.ReadManifest(cnt.path + "/image-manifest.json")
-		cnt.manifest.ProjectName = types.AciName(string(cnt.rkt.Name))
-	} else {
-		cnt.readManifest("/cnt-manifest.yml")
-		cnt.rkt = utils.BasicManifest()
-	}
+	log.Get().Info("Building Image : ", cnt.manifest.Aci.Name)
 
 	os.Mkdir(cnt.target, 0777)
 
@@ -311,10 +303,10 @@ func (cnt *Cnt) copyFiles() {
 }
 
 func (cnt *Cnt) copyAttributes() {
-	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/attributes/" + cnt.manifest.ProjectName.ShortName(), 0755); err != nil {
+	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/attributes/" + ShortName(cnt.manifest.Aci.Name), 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	utils.CopyDir(cnt.path + "/attributes", cnt.rootfs + "/etc/prestart/attributes/" + cnt.manifest.ProjectName.ShortName())
+	utils.CopyDir(cnt.path + "/attributes", cnt.rootfs + "/etc/prestart/attributes/" + ShortName(cnt.manifest.Aci.Name))
 }
 
 func (cnt *Cnt) writeBuildScript() {
@@ -328,9 +320,9 @@ func (cnt *Cnt) writeBuildScript() {
 
 func (cnt *Cnt) writeRktManifest() {
 	log.Get().Debug("Writing aci manifest")
-	im := cnt.rkt
-	if cnt.manifest.Version == "" {
-		cnt.manifest.Version = utils.GenerateVersion()
+	if val, _ := cnt.manifest.Aci.Labels.Get("version"); val == "" {
+		cnt.manifest.Aci.Labels.UnmarshalJSON([]byte("{\"version\":\"" + utils.GenerateVersion() + "\"}"))
 	}
-	utils.WriteImageManifest(im, cnt.target + "/manifest", cnt.manifest.ProjectName, cnt.manifest.Version)
+	version, _ := cnt.manifest.Aci.Labels.Get("version")
+	utils.WriteImageManifest(&cnt.manifest.Aci, cnt.target + "/manifest", cnt.manifest.Aci.Name, version)
 }

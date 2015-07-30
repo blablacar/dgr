@@ -3,14 +3,14 @@ import (
 	"github.com/appc/spec/schema"
 	"io/ioutil"
     "strings"
-    "github.com/blablacar/cnt/types"
     "log"
+    "github.com/appc/spec/schema/types"
 )
 
 const(
 	imageManifest = `{
     "acKind": "ImageManifest",
-    "acVersion": "0.0.1",
+    "acVersion": "0.6.1",
     "name": "xxx/xxx",
     "labels": [
         {
@@ -81,7 +81,7 @@ func ReadManifest(path string) *schema.ImageManifest {
     return im
 }
 
-func WriteImageManifest(im *schema.ImageManifest, targetFile string, projectName types.AciName, version string) {
+func WriteImageManifest(im *schema.ImageManifest, targetFile string, projectName types.ACIdentifier, version string) {
 	buff, err := im.MarshalJSON()
     res := strings.Replace(string(buff), "0.0.0", version, 1)
     res = strings.Replace(res, "__VERSION__", version, 1)
