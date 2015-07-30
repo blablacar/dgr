@@ -198,7 +198,6 @@ func (cnt *Cnt) Build() error {
 	cnt.writeCntManifest() // TODO move that, here because we update the version number to generated version
 
 	cnt.runBuild()
-	cnt.runPacker()
 
 	cnt.tarAci()
 	//	ExecCmd("chown " + os.Getenv("SUDO_USER") + ": " + target + "/*") //TODO chown
@@ -336,22 +335,6 @@ func (cnt *Cnt) tarAci() {
 	utils.Tar(cnt.args.Zip, "image.aci", args...)
 	log.Get().Debug("chdir to", dir)
 	os.Chdir(dir);
-}
-
-func (cnt *Cnt) runPacker() {
-	if _, err := os.Stat(cnt.target + "/packer.json"); os.IsNotExist(err) {
-		return
-	}
-
-	dir, _ := os.Getwd();
-	os.Chdir(cnt.target);
-	defer os.Chdir(dir);
-	utils.ExecCmd("packer", "build", "packer.json");
-
-	if err := os.Chdir(cnt.target + "/rootfs"); err != nil {
-		log.Get().Panic(err)
-	}
-	utils.ExecCmd("tar", "xf", "../rootfs.tar")
 }
 
 func (cnt *Cnt) copyInstallAndCreatePacker() {
