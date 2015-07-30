@@ -15,7 +15,6 @@ import (
 	"os/exec"
 	"io"
 	"github.com/appc/spec/discovery"
-	"runtime"
 )
 
 const (
@@ -269,10 +268,10 @@ func (cnt *Cnt) processFrom() {
 
 		app, err := discovery.NewAppFromString(cnt.manifest.From)
 		if app.Labels["os"] == "" {
-			app.Labels["os"] = runtime.GOOS
+			app.Labels["os"] = "linux"
 		}
 		if app.Labels["arch"] == "" {
-			app.Labels["arch"] = runtime.GOARCH
+			app.Labels["arch"] = "amd64"
 		}
 
 		endpoint, _, err := discovery.DiscoverEndpoints(*app, false)
