@@ -20,35 +20,23 @@ set -x
 set -e
 export TARGET=$( dirname $0 )
 export ROOTFS=%%ROOTFS%%
+export TERM=xterm
 
 execute_files() {
   fdir=$1
-  [ -d "$fdir" ] || return
+  [ -d "$fdir" ] || return 0
+
 
   find "$fdir" -mindepth 1 -maxdepth 1 -type f -print0 |
   while read -r -d $'\0' file; do
-      echo "$file"
+      echo "Running : $file"
       [ -x "$file" ] && "$file"
   done
 }
 
-
-export TERM=xterm
-#source /etc/profile && env-update
-
-if [ -d "$TARGET/runlevels/build-early" ]; then
-	execute_files "$TARGET/runlevels/build-early"
-fi
-
-
-if [ -d "$TARGET/runlevels/build" ]; then
-	execute_files "$TARGET/runlevels/build"
-fi
-
-if [ -d "$TARGET/runlevels/build-late" ]; then
-	execute_files "$TARGET/runlevels/build-late"
-fi
-`
+execute_files "$TARGET/runlevels/inherit-build-early"
+execute_files "$TARGET/runlevels/build"
+execute_files "$TARGET/runlevels/inherit-build-late"`
 )
 
 type Cnt struct {
@@ -67,11 +55,12 @@ func (b *CntBuild) NoBuildImage() bool {
 }
 
 type CntManifest struct {
+	Name		types.ACIdentifier			`json:"name"`
+	Version		string						`json:"version"`
 	From        string                      `json:"from"`
 	Build       CntBuild                    `json:"build"`
 	Aci         schema.ImageManifest        `json:"aci"`
 }
-
 
 func ShortName(name types.ACIdentifier) string {
 	split := strings.Split(string(name), "/")
@@ -159,6 +148,17 @@ func (cnt *Cnt) readManifest(manifestPath string) {
 	if err != nil {
 		log.Get().Panic(err)
 	}
+
+	cnt.manifest.Aci.Name.Set(string(cnt.manifest.Name))
+
+	labels := cnt.manifest.Aci.Labels.ToMap()
+	labels["version"] = cnt.manifest.Version
+	if newLabels, err := types.LabelsFromMap(labels); err != nil {
+		log.Get().Panic(err)
+	} else {
+		cnt.manifest.Aci.Labels = newLabels
+	}
+
 	log.Get().Trace("Cnt manifest : ", cnt.manifest.Aci.Name, cnt.manifest, cnt.manifest.Aci.App)
 }
 
@@ -208,7 +208,10 @@ func (cnt *Cnt) nspawnBuild() {
 func (cnt *Cnt) processFrom() {
 	if cnt.manifest.From != "" {
 		log.Get().Info("Prepare rootfs from " + cnt.manifest.From)
-		utils.ExecCmd("rkt", "image", "render", "--overwrite", cnt.manifest.From, cnt.target)
+		utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.manifest.From)
+		utils.ExecCmd("rkt", "image", "export", "--overwrite", cnt.manifest.From, cnt.target + "/from.aci")
+		utils.ExecCmd("tar", "xf", cnt.target + "/from.aci", "-C", cnt.target)
+		os.Remove(cnt.target + "/from.aci")
 	}
 }
 
@@ -217,9 +220,7 @@ func (cnt *Cnt) copyRunlevelsBuild() {
 	if err := os.MkdirAll(cnt.target + "/runlevels", 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	utils.CopyDir(cnt.path + "/runlevels/build-early", cnt.target + "/runlevels/build-early")
-	utils.CopyDir(cnt.path + "/runlevels/build", cnt.target + "/runlevels/build")
-	utils.CopyDir(cnt.path + "/runlevels/build-late", cnt.target + "/runlevels/build-late")
+	utils.CopyDir(cnt.path + "/runlevels", cnt.target + "/runlevels")
 }
 
 func (cnt *Cnt) runlevelBuildSetup() {
@@ -244,7 +245,16 @@ func (cnt *Cnt) tarAci() {
 	log.Get().Debug("chdir to", cnt.target)
 	os.Chdir(cnt.target);
 
-	utils.Tar(cnt.args.Zip, "image.aci", "manifest", "rootfs/")
+	args := []string{"manifest", "rootfs/"}
+
+	if _, err := os.Stat(cnt.path + "/runlevels/inherit-build-early"); err == nil {
+		args = append(args, "runlevels/inherit-build-early")
+	}
+	if _, err := os.Stat(cnt.path + "/runlevels/inherit-build-late"); err == nil {
+		args = append(args, "runlevels/inherit-build-late")
+	}
+
+	utils.Tar(cnt.args.Zip, "image.aci", args...)
 	log.Get().Debug("chdir to", dir)
 	os.Chdir(dir);
 }
@@ -320,7 +330,7 @@ func (cnt *Cnt) writeBuildScript() {
 
 func (cnt *Cnt) writeRktManifest() {
 	log.Get().Debug("Writing aci manifest")
-	if val, _ := cnt.manifest.Aci.Labels.Get("version"); val == "" {
+	if val, _ := cnt.manifest.Aci.Labels.Get("version"); val == "0.0.0" {
 		cnt.manifest.Aci.Labels.UnmarshalJSON([]byte("{\"version\":\"" + utils.GenerateVersion() + "\"}"))
 	}
 	version, _ := cnt.manifest.Aci.Labels.Get("version")

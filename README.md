@@ -40,8 +40,7 @@ push:
 │   │   └── config.toml             # Confd template resource config
 │   └── templates
 │       └── config.tmpl             # Confd source template
-├── image-manifest.json             # Image Manifest of the rocket Container
-├── install.sh                      # Script ran by packer at build time
+├── cnt-manifest.yml                # Manifest
 ├── files                           # Everything under this folder will be copied verbatim in the target rootfs.
 │   └── usr
 ├── runlevels
@@ -49,11 +48,13 @@ push:
 │   │   └── 10.mkdir.sh
 │   ├── prestart-late               # Scripts to be run when starting ACI after confd templating
 │   │   └── 10.fetch.sh
-    ├── build-setup                 # Scripts to be run directly on source host before building
-    │   └── 10.prepare-rootfs.sh
-    ├── build-early                 # Scripts to be run before building when entering build context
-    │   └── 10.wget-some-files.sh
-    └── build-late                  # Scripts to be run after building when still in build context
-        └── 10.change-some-installed.sh
+│   ├── build-setup                 # Scripts to be run directly on source host before building
+│   │   └── 10.prepare-rootfs.sh
+│   ├── build                       # Scripts to be run when building
+│   │   └── 10.install-stuff.sh
+│   ├── inherit-build-early         # Scripts stored in ACI and used when building from this image
+│   │   └── 00.apt-get-update.sh
+│   └── inherit-build-late
+│       └── 99.purge.sh
 
 ```
