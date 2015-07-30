@@ -150,16 +150,19 @@ func (cnt *Cnt) readManifest(manifestPath string) {
 	}
 
 	cnt.manifest.Aci.Name.Set(string(cnt.manifest.Name))
-
-	labels := cnt.manifest.Aci.Labels.ToMap()
-	labels["version"] = cnt.manifest.Version
-	if newLabels, err := types.LabelsFromMap(labels); err != nil {
-		log.Get().Panic(err)
-	} else {
-		cnt.manifest.Aci.Labels = newLabels
-	}
+	changeVersion(&cnt.manifest.Aci.Labels, cnt.manifest.Version)
 
 	log.Get().Trace("Cnt manifest : ", cnt.manifest.Aci.Name, cnt.manifest, cnt.manifest.Aci.App)
+}
+
+func changeVersion(labels *types.Labels, version string) {
+	labelMap := labels.ToMap()
+	labelMap["version"] = version
+	if newLabels, err := types.LabelsFromMap(labelMap); err != nil {
+		log.Get().Panic(err)
+	} else {
+		*labels = newLabels
+	}
 }
 
 func (cnt *Cnt) Install() {
@@ -330,8 +333,8 @@ func (cnt *Cnt) writeBuildScript() {
 
 func (cnt *Cnt) writeRktManifest() {
 	log.Get().Debug("Writing aci manifest")
-	if val, _ := cnt.manifest.Aci.Labels.Get("version"); val == "0.0.0" {
-		cnt.manifest.Aci.Labels.UnmarshalJSON([]byte("{\"version\":\"" + utils.GenerateVersion() + "\"}"))
+	if val, _ := cnt.manifest.Aci.Labels.Get("version"); val == "" {
+		changeVersion(&cnt.manifest.Aci.Labels, utils.GenerateVersion())
 	}
 	version, _ := cnt.manifest.Aci.Labels.Get("version")
 	utils.WriteImageManifest(&cnt.manifest.Aci, cnt.target + "/manifest", cnt.manifest.Aci.Name, version)
