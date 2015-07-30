@@ -10,8 +10,10 @@ import (
 	"github.com/appc/spec/schema"
 	"bytes"
 	"github.com/blablacar/cnt/bats"
-    "github.com/ghodss/yaml"
+	"github.com/ghodss/yaml"
 	"github.com/appc/spec/schema/types"
+	"os/exec"
+	"io"
 )
 
 const (
@@ -55,11 +57,11 @@ func (b *CntBuild) NoBuildImage() bool {
 }
 
 type CntManifest struct {
-	Name		types.ACIdentifier			`json:"name"`
-	Version		string						`json:"version"`
-	From        string                      `json:"from"`
-	Build       CntBuild                    `json:"build"`
-	Aci         schema.ImageManifest        `json:"aci"`
+	Name    types.ACIdentifier            `json:"name"`
+	Version string                        `json:"version"`
+	From    string                      `json:"from"`
+	Build   CntBuild                    `json:"build"`
+	Aci     schema.ImageManifest        `json:"aci"`
 }
 
 func ShortName(name types.ACIdentifier) string {
@@ -193,7 +195,7 @@ func (cnt *Cnt) Build() error {
 	cnt.writeRktManifest()
 	cnt.writeCntManifest() // TODO move that, here because we update the version number to generated version
 
-	cnt.nspawnBuild()
+	cnt.runBuild()
 	cnt.runPacker()
 
 	cnt.tarAci()
@@ -201,10 +203,62 @@ func (cnt *Cnt) Build() error {
 	return nil
 }
 
-func (cnt *Cnt) nspawnBuild() {
-	if err := utils.ExecCmd("systemd-nspawn", "--directory=" + cnt.rootfs, "--capability=all",
-		"--bind=" + cnt.target + "/:/target", "--share-system", "target/build.sh"); err != nil {
-		log.Get().Panic("Build step did not succeed", err)
+func (cnt *Cnt) runBuild() {
+	if err := utils.ExecCmd("systemd-nspawn", "--version"); err == nil {
+		log.Get().Info("Run with systemd-nspawn")
+		if err := utils.ExecCmd("systemd-nspawn", "--directory=" + cnt.rootfs, "--capability=all",
+			"--bind=" + cnt.target + "/:/target", "--share-system", "target/build.sh"); err != nil {
+			log.Get().Panic("Build step did not succeed", err)
+		}
+	} else {
+		log.Get().Info("Run with docker")
+
+		//
+		log.Get().Info("Prepare Docker");
+		first := exec.Command("bash", "-c", "cd " + cnt.rootfs + " && tar cf - .")
+		second := exec.Command("docker", "import", "-", "")
+
+		reader, writer := io.Pipe()
+		first.Stdout = writer
+		second.Stdin = reader
+
+		var buff bytes.Buffer
+		second.Stdout = &buff
+
+		first.Start()
+		second.Start()
+		first.Wait()
+		writer.Close()
+		second.Wait()
+		imgId := strings.TrimSpace(buff.String())
+
+		//
+		log.Get().Info("Run Docker\n");
+		cmd := []string{"run", "--name=" + ShortName(cnt.manifest.Name), "-v", cnt.target + ":/target", imgId, "/target/build.sh"}
+		utils.ExecCmd("docker", "rm", ShortName(cnt.manifest.Name))
+		if err := utils.ExecCmd("docker", cmd...); err != nil {
+			panic(err)
+		}
+
+		//
+		log.Get().Info("Release Docker");
+		if cnt.manifest.Build.NoBuildImage() {
+			os.RemoveAll(cnt.rootfs)
+			os.Mkdir(cnt.rootfs, 0777)
+
+			if err := utils.ExecCmd("docker", "export", "-o", cnt.target + "/dockerfs.tar", ShortName(cnt.manifest.Name)); err != nil {
+				panic(err)
+			}
+
+			utils.ExecCmd("tar", "xpf", cnt.target + "/dockerfs.tar", "-C", cnt.rootfs)
+		}
+		if err := utils.ExecCmd("docker", "rm", ShortName(cnt.manifest.Name)); err != nil {
+			panic(err)
+		}
+		if err := utils.ExecCmd("docker", "rmi", imgId); err != nil {
+			panic(err)
+		}
+
 	}
 }
 
