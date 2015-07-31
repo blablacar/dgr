@@ -5,7 +5,7 @@
 # cnt
 Tool to build **RKT** ACI and POD in a mixup of Chef, Dockerfile and Packer logic
 
-File templating will be resolved on container start using **confd** in local mode
+File templating will be resolved on container start using **confd** in env mode
 
 # commands
 ```bash
