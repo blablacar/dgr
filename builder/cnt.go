@@ -204,6 +204,9 @@ func (cnt *Cnt) Build() error {
 }
 
 func (cnt *Cnt) runBuild() {
+	if res, err := utils.IsDirEmpty(cnt.target + "/runlevels/build"); res || err != nil {
+		return
+	}
 	if err := utils.ExecCmd("systemd-nspawn", "--version"); err == nil {
 		log.Get().Info("Run with systemd-nspawn")
 		if err := utils.ExecCmd("systemd-nspawn", "--directory=" + cnt.rootfs, "--capability=all",
