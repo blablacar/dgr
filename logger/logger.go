@@ -134,7 +134,7 @@ func (l *Logger) Error(args ...interface{}) {
 	l.Log("ERROR", fmt.Sprint(args...))
 }
 
-func (l *Logger) Warning(args ...interface{}) {
+func (l *Logger) Warn(args ...interface{}) {
 	l.Log("WARNING", fmt.Sprint(args...))
 }
 
@@ -164,7 +164,7 @@ func (l *Logger) Errorf(format string, args ...interface{}) {
 	l.Log("ERROR", fmt.Sprintf(format, args...))
 }
 
-func (l *Logger) Warningf(format string, args ...interface{}) {
+func (l *Logger) Warnf(format string, args ...interface{}) {
 	l.Log("WARNING", fmt.Sprintf(format, args...))
 }
 

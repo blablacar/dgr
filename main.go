@@ -1,129 +1,16 @@
 package main
-
 import (
 	"os"
-	"github.com/spf13/cobra"
-	"github.com/blablacar/cnt/builder"
-	"github.com/blablacar/cnt/config"
-	"github.com/blablacar/cnt/log"
-	"github.com/blablacar/cnt/logger"
+	"runtime"
+	"github.com/blablacar/cnt/commands"
 )
 
 func main() {
 	if os.Getuid() != 0 {
-		log.Get().Panic("Please run this command as root")
+		println("Cnt needs to be run as root")
+		os.Exit(1)
 	}
 
-	processArgs();
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	commands.Execute();
 }
-
-func discoverAndRunBuildType(path string, args builder.BuildArgs) {
- 	if cnt, err := builder.OpenCnt(path, args); err == nil {
-		cnt.Build()
-	} else if pod, err := builder.OpenPod(path, args); err == nil {
-		pod.Build()
-	} else {
-		log.Get().Panic("Cannot found cnt-manifest.yml")
-	}
-}
-
-func discoverAndRunPushType(path string, args builder.BuildArgs) {
-	if cnt, err := builder.OpenCnt(path, args); err == nil {
-		cnt.Push()
-	} else if pod, err := builder.OpenPod(path, args); err == nil {
-		pod.Push()
-	} else {
-		log.Get().Panic("Cannot found cnt-manifest.yml")
-	}
-}
-
-func discoverAndRunInstallType(path string, args builder.BuildArgs) {
-	if cnt, err := builder.OpenCnt(path, args); err == nil {
-		cnt.Install()
-	} else if pod, err := builder.OpenPod(path, args); err == nil {
-		pod.Install()
-	} else {
-		log.Get().Panic("Cannot found cnt-manifest.yml")
-	}
-}
-
-func discoverAndRunCleanType(path string, args builder.BuildArgs) {
-	if cnt, err := builder.OpenCnt(path, args); err == nil {
-		cnt.Clean()
-	} else if pod, err := builder.OpenPod(path, args); err == nil {
-		pod.Clean()
-	} else {
-		log.Get().Panic("Cannot found cnt-manifest.yml")
-	}
-}
-
-func discoverAndRunTestType(path string, args builder.BuildArgs) {
-	if cnt, err := builder.OpenCnt(path, args); err == nil {
-		cnt.Test()
-	} else if pod, err := builder.OpenPod(path, args); err == nil {
-		pod.Test()
-	} else {
-		log.Get().Panic("Cannot found cnt-manifest.yml")
-	}
-}
-
-func processArgs() {
-	log.Set(logger.NewLogger())
-
-	buildArgs := builder.BuildArgs{}
-
-	var cmdBuild = &cobra.Command{
-		Use:   "build",
-		Short: "build aci or pod",
-		Long:  `build an aci or a pod`,
-		Run: func(cmd *cobra.Command, args []string) {
-			discoverAndRunBuildType(".", buildArgs)
-		},
-	}
-	cmdBuild.Flags().BoolVarP(&buildArgs.Zip, "nozip", "z", false, "zip final image or not")
-
-	var cmdClean = &cobra.Command{
-		Use:   "clean",
-		Short: "clean build",
-		Long:  `clean build, including rootfs`,
-		Run: func(cmd *cobra.Command, args []string) {
-			discoverAndRunCleanType(".", buildArgs)
-		},
-	}
-
-	var push = &cobra.Command{
-		Use:   "push",
-		Short: "push image(s)",
-		Long:  `push images to repository`,
-		Run: func(cmd *cobra.Command, args []string) {
-			discoverAndRunPushType(".", buildArgs)
-		},
-	}
-
-	var install = &cobra.Command{
-		Use:   "install",
-		Short: "install image(s)",
-		Long:  `install image(s) to rkt local storage`,
-		Run: func(cmd *cobra.Command, args []string) {
-			discoverAndRunInstallType(".", buildArgs)
-		},
-	}
-
-	var test = &cobra.Command{
-		Use:   "test",
-		Short: "test image(s)",
-		Long:  `test image(s)`,
-		Run: func(cmd *cobra.Command, args []string) {
-			discoverAndRunTestType(".", buildArgs)
-		},
-	}
-
-	var rootCmd = &cobra.Command{Use: "cnt"}
-	rootCmd.AddCommand(cmdBuild, cmdClean, push, install, test)
-
-	config.GetConfig().Load()
-	rootCmd.Execute()
-
-	log.Get().Info("Victory !")
-}
-

@@ -2,6 +2,7 @@ package builder
 
 type BuildArgs struct {
 	Zip bool
+	Clean bool
 }
 
 type BuildError struct {
