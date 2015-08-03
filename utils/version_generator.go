@@ -5,7 +5,7 @@ import (
 )
 
 func GenerateVersion() string {
-	return generateDate() + "-" + gitHash();
+	return generateDate() + "-" + GitHash();
 }
 
 func generateDate() string {
@@ -13,7 +13,7 @@ func generateDate() string {
 }
 
 
-func gitHash() string {
+func GitHash() string {
 	out, _ := ExecCmdGetOutput("git", "rev-parse", "--short", "HEAD")
 	return out;
 }

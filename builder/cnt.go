@@ -15,6 +15,7 @@ import (
 	"os/exec"
 	"io"
 	"github.com/appc/spec/discovery"
+	"github.com/appc/spec/aci"
 )
 
 const (
@@ -121,9 +122,8 @@ func (cnt *Cnt) Push() {
 		log.Get().Panic("Can't push, push is not configured in cnt global configuration file")
 	}
 
-	cnt.readManifest(cnt.target + "/cnt-manifest.yml")
-
-	val, _ := cnt.manifest.Aci.Labels.Get("version")
+	im := extractManifestFromAci(cnt.target + "/image.aci")
+	val, _ := im.Labels.Get("version")
 	utils.ExecCmd("curl", "-i",
 		"-F", "r=releases",
 		"-F", "hasPom=false",
@@ -131,15 +131,14 @@ func (cnt *Cnt) Push() {
 		"-F", "g=com.blablacar.aci.linux.amd64",
 		"-F", "p=aci",
 		"-F", "v=" + val,
-		"-F", "a=" + ShortName(cnt.manifest.Aci.Name),
+		"-F", "a=" + ShortName(im.Name),
 		"-F", "file=@" + cnt.target + "/image.aci",
 		"-u", config.GetConfig().Push.Username + ":" + config.GetConfig().Push.Password,
 		config.GetConfig().Push.Url + "/service/local/artifact/maven/content")
 }
 
 func (cnt *Cnt) writeCntManifest() {
-	d, _ := yaml.Marshal(&cnt.manifest)
-	ioutil.WriteFile(cnt.path + "/target/cnt-manifest.yml", []byte(d), 0777)
+	utils.CopyFile(cnt.path + "/cnt-manifest.yml", cnt.target + "/cnt-manifest.yml")
 }
 
 func (cnt *Cnt) readManifest(manifestPath string) {
@@ -399,4 +398,47 @@ func (cnt *Cnt) writeRktManifest() {
 	}
 	version, _ := cnt.manifest.Aci.Labels.Get("version")
 	utils.WriteImageManifest(&cnt.manifest.Aci, cnt.target + "/manifest", cnt.manifest.Aci.Name, version)
+}
+
+
+func extractManifestFromAci(aciPath string) schema.ImageManifest {
+	input, err := os.Open(aciPath)
+	if err != nil {
+		log.Get().Panic("cat-manifest: Cannot open %s: %v", aciPath, err)
+	}
+	defer input.Close()
+
+	tr, err := aci.NewCompressedTarReader(input)
+	if err != nil {
+		log.Get().Panic("cat-manifest: Cannot open tar %s: %v", aciPath, err)
+	}
+
+
+	im := schema.ImageManifest{}
+
+	Tar:
+	for {
+		hdr, err := tr.Next()
+		switch err {
+		case io.EOF:
+			break Tar
+		case nil:
+			if filepath.Clean(hdr.Name) == aci.ManifestFile {
+				bytes, err := ioutil.ReadAll(tr)
+				if err != nil {
+					log.Get().Panic(err)
+				}
+
+				err = im.UnmarshalJSON(bytes)
+				if err != nil {
+					log.Get().Panic(err)
+				}
+				return im
+			}
+		default:
+			log.Get().Panic("error reading tarball: %v", err)
+		}
+	}
+	log.Get().Panic("Cannot found manifest if aci");
+	return im
 }
