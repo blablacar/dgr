@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"github.com/spf13/cobra"
-	"github.com/blablacar/cnt/cnt"
+	"github.com/blablacar/cnt/application"
 )
 
 var versionCmd = &cobra.Command{
@@ -13,12 +13,12 @@ var versionCmd = &cobra.Command{
 	Long:  `Print the version number of cnt`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Print("Cnt\n\n");
-		fmt.Printf("version    : %s\n", cnt.Version)
-		if cnt.BuildDate != "" {
-			fmt.Printf("build date : %s\n", cnt.BuildDate)
+		fmt.Printf("version    : %s\n", application.Version)
+		if application.BuildDate != "" {
+			fmt.Printf("build date : %s\n", application.BuildDate)
 		}
-		if (cnt.CommitHash != "") {
-			fmt.Printf("CommitHash : %s\n", cnt.CommitHash)
+		if (application.CommitHash != "") {
+			fmt.Printf("CommitHash : %s\n", application.CommitHash)
 		}
 		os.Exit(0)
 	},
