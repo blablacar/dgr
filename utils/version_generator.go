@@ -5,7 +5,7 @@ import (
 )
 
 func GenerateVersion() string {
-	return generateDate() + "-" + GitHash();
+	return generateDate() + "-v" + GitHash();
 }
 
 func generateDate() string {
