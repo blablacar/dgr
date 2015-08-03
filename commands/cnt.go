@@ -15,7 +15,7 @@ func Execute() {
 
 	var rootCmd = &cobra.Command{Use: "cnt"}
 	buildCmd.Flags().BoolVarP(&buildArgs.Zip, "nozip", "z", false, "Zip final image or not")
-	rootCmd.Flags().BoolVarP(&buildArgs.Clean, "clean", "c", false, "Clean before doing anything")
+	rootCmd.PersistentFlags().BoolVarP(&buildArgs.Clean, "clean", "c", false, "Clean before doing anything")
 
 	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd)
 
