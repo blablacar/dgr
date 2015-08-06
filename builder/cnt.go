@@ -44,13 +44,6 @@ execute_files "$TARGET/runlevels/build"
 execute_files "$TARGET/runlevels/inherit-build-late"`
 )
 
-//find "$fdir" -mindepth 1 -maxdepth 1 -type f -print0 |
-//while ls read -r -d $'\0' file; do
-//echo "Running : $file"
-//[ -x "$file" ] && "$file"
-//done
-
-
 type Cnt struct {
 	path     string
 	target   string
