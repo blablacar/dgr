@@ -30,11 +30,12 @@ execute_files() {
   fdir=$1
   [ -d "$fdir" ] || return 0
 
-
-  find "$fdir" -mindepth 1 -maxdepth 1 -type f -print0 |
-  while read -r -d $'\0' file; do
-      echo "Running : $file"
-      [ -x "$file" ] && "$file"
+  for file in $fdir/*; do
+    if [ -x "$file" ]; then
+      $file
+    else
+      echo "$file is not exectuable"
+    fi
   done
 }
 
@@ -42,6 +43,13 @@ execute_files "$TARGET/runlevels/inherit-build-early"
 execute_files "$TARGET/runlevels/build"
 execute_files "$TARGET/runlevels/inherit-build-late"`
 )
+
+//find "$fdir" -mindepth 1 -maxdepth 1 -type f -print0 |
+//while ls read -r -d $'\0' file; do
+//echo "Running : $file"
+//[ -x "$file" ] && "$file"
+//done
+
 
 type Cnt struct {
 	path     string
