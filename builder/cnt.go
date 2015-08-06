@@ -60,16 +60,30 @@ func (b *CntBuild) NoBuildImage() bool {
 }
 
 type CntManifest struct {
-	Name    types.ACIdentifier            `json:"name"`
-	Version string                        `json:"version"`
-	From    string                      `json:"from"`
-	Build   CntBuild                    `json:"build"`
-	Aci     schema.ImageManifest        `json:"aci"`
+	NameAndVersion string            `json:"name"`
+	From  string                      `json:"from"`
+	Build CntBuild                    `json:"build"`
+	Aci   schema.ImageManifest        `json:"aci"`
 }
 
-func ShortName(name types.ACIdentifier) string {
-	split := strings.Split(string(name), "/")
+func Version(nameAndVersion string) string {
+	split := strings.Split(nameAndVersion, ":")
+	if (len(split) == 1) {
+		return ""
+	}
 	return split[1]
+}
+
+func ShortNameId(name types.ACIdentifier) string {
+	return strings.Split(string(name), "/")[1]
+}
+
+func ShortName(nameAndVersion string) string {
+	return strings.Split(Name(nameAndVersion), "/")[1]
+}
+
+func Name(nameAndVersion string) string {
+	return strings.Split(nameAndVersion, ":")[0]
 }
 
 ////////////////////////////////////////////
@@ -133,7 +147,7 @@ func (cnt *Cnt) Push() {
 		"-F", "g=com.blablacar.aci.linux.amd64",
 		"-F", "p=aci",
 		"-F", "v=" + val,
-		"-F", "a=" + ShortName(im.Name),
+		"-F", "a=" + ShortNameId(im.Name),
 		"-F", "file=@" + cnt.target + "/image.aci",
 		"-u", config.GetConfig().Push.Username + ":" + config.GetConfig().Push.Password,
 		config.GetConfig().Push.Url + "/service/local/artifact/maven/content")
@@ -186,8 +200,8 @@ func (cnt *Cnt) readManifest(manifestPath string) {
 		log.Get().Panic(err)
 	}
 
-	cnt.manifest.Aci.Name.Set(string(cnt.manifest.Name))
-	changeVersion(&cnt.manifest.Aci.Labels, cnt.manifest.Version)
+	cnt.manifest.Aci.Name.Set(Name(cnt.manifest.NameAndVersion))
+	changeVersion(&cnt.manifest.Aci.Labels, Version(cnt.manifest.NameAndVersion))
 
 	log.Get().Trace("Cnt manifest : ", cnt.manifest.Aci.Name, cnt.manifest, cnt.manifest.Aci.App)
 }
@@ -244,8 +258,8 @@ func (cnt *Cnt) runBuild() {
 
 		//
 		log.Get().Info("Run Docker\n");
-		cmd := []string{"run", "--name=" + ShortName(cnt.manifest.Name), "-v", cnt.target + ":/target", imgId, "/target/build.sh"}
-		utils.ExecCmd("docker", "rm", ShortName(cnt.manifest.Name))
+		cmd := []string{"run", "--name=" + ShortName(cnt.manifest.NameAndVersion), "-v", cnt.target + ":/target", imgId, "/target/build.sh"}
+		utils.ExecCmd("docker", "rm", ShortName(cnt.manifest.NameAndVersion))
 		if err := utils.ExecCmd("docker", cmd...); err != nil {
 			panic(err)
 		}
@@ -256,13 +270,13 @@ func (cnt *Cnt) runBuild() {
 			os.RemoveAll(cnt.rootfs)
 			os.Mkdir(cnt.rootfs, 0777)
 
-			if err := utils.ExecCmd("docker", "export", "-o", cnt.target + "/dockerfs.tar", ShortName(cnt.manifest.Name)); err != nil {
+			if err := utils.ExecCmd("docker", "export", "-o", cnt.target + "/dockerfs.tar", ShortName(cnt.manifest.NameAndVersion)); err != nil {
 				panic(err)
 			}
 
 			utils.ExecCmd("tar", "xpf", cnt.target + "/dockerfs.tar", "-C", cnt.rootfs)
 		}
-		if err := utils.ExecCmd("docker", "rm", ShortName(cnt.manifest.Name)); err != nil {
+		if err := utils.ExecCmd("docker", "rm", ShortName(cnt.manifest.NameAndVersion)); err != nil {
 			panic(err)
 		}
 		if err := utils.ExecCmd("docker", "rmi", imgId); err != nil {
@@ -392,10 +406,10 @@ func (cnt *Cnt) copyFiles() {
 }
 
 func (cnt *Cnt) copyAttributes() {
-	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/attributes/" + ShortName(cnt.manifest.Aci.Name), 0755); err != nil {
+	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/attributes/" + ShortNameId(cnt.manifest.Aci.Name), 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	utils.CopyDir(cnt.path + "/attributes", cnt.rootfs + "/etc/prestart/attributes/" + ShortName(cnt.manifest.Aci.Name))
+	utils.CopyDir(cnt.path + "/attributes", cnt.rootfs + "/etc/prestart/attributes/" + ShortNameId(cnt.manifest.Aci.Name))
 }
 
 func (cnt *Cnt) writeBuildScript() {
