@@ -119,6 +119,7 @@ func (cnt *Cnt) Test() {
 }
 
 func (cnt *Cnt) Push() {
+	cnt.checkBuilt()
 	if config.GetConfig().Push.Type == "" {
 		log.Get().Panic("Can't push, push is not configured in cnt global configuration file")
 	}
@@ -137,6 +138,39 @@ func (cnt *Cnt) Push() {
 		"-u", config.GetConfig().Push.Username + ":" + config.GetConfig().Push.Password,
 		config.GetConfig().Push.Url + "/service/local/artifact/maven/content")
 }
+
+func (cnt *Cnt) Install() {
+	cnt.checkBuilt()
+	utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.target + "/image.aci")
+}
+
+func (cnt *Cnt) Build() error {
+	log.Get().Info("Building Image : ", cnt.manifest.Aci.Name)
+
+	os.MkdirAll(cnt.rootfs, 0777)
+
+	cnt.processFrom()
+
+	cnt.runlevelBuildSetup()
+	cnt.copyRunlevelsBuild()
+	cnt.copyRunlevelsPrestart()
+	cnt.copyAttributes()
+	cnt.copyFiles()
+	cnt.copyConfd()
+	cnt.copyInstallAndCreatePacker()
+
+	cnt.writeBuildScript()
+	cnt.writeRktManifest()
+	cnt.writeCntManifest() // TODO move that, here because we update the version number to generated version
+
+	cnt.runBuild()
+
+	cnt.tarAci()
+	//	ExecCmd("chown " + os.Getenv("SUDO_USER") + ": " + target + "/*") //TODO chown
+	return nil
+}
+
+//////////////////////////////////////////////////////////////////
 
 func (cnt *Cnt) writeCntManifest() {
 	utils.CopyFile(cnt.path + "/cnt-manifest.yml", cnt.target + "/cnt-manifest.yml")
@@ -168,39 +202,12 @@ func changeVersion(labels *types.Labels, version string) {
 	}
 }
 
-func (cnt *Cnt) Install() {
+func (cnt *Cnt) checkBuilt() {
 	if _, err := os.Stat(cnt.target + "/image.aci"); os.IsNotExist(err) {
 		if err := cnt.Build(); err != nil {
 			log.Get().Panic("Cannot Install since build failed")
 		}
 	}
-	utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.target + "/image.aci")
-}
-
-func (cnt *Cnt) Build() error {
-	log.Get().Info("Building Image : ", cnt.manifest.Aci.Name)
-
-	os.MkdirAll(cnt.rootfs, 0777)
-
-	cnt.processFrom()
-
-	cnt.runlevelBuildSetup()
-	cnt.copyRunlevelsBuild()
-	cnt.copyRunlevelsPrestart()
-	cnt.copyAttributes()
-	cnt.copyFiles()
-	cnt.copyConfd()
-	cnt.copyInstallAndCreatePacker()
-
-	cnt.writeBuildScript()
-	cnt.writeRktManifest()
-	cnt.writeCntManifest() // TODO move that, here because we update the version number to generated version
-
-	cnt.runBuild()
-
-	cnt.tarAci()
-	//	ExecCmd("chown " + os.Getenv("SUDO_USER") + ": " + target + "/*") //TODO chown
-	return nil
 }
 
 func (cnt *Cnt) runBuild() {
