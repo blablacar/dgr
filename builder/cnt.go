@@ -48,7 +48,7 @@ execute_files "$TARGET/runlevels/inherit-build-late"`
 )
 
 const MANIFEST = "cnt-manifest.yml"
-const RUNLEVELS = "runlevels"
+const RUNLEVELS = "/runlevels"
 const RUNLEVELS_PRESTART = RUNLEVELS + "/prestart-early"
 const RUNLEVELS_LATESTART =  RUNLEVELS + "/prestart-late"
 const RUNLEVELS_BUILD =  RUNLEVELS + "/build"
@@ -127,7 +127,7 @@ func OpenCnt(path string, args BuildArgs) (*Cnt, error) {
 		return nil, &BuildError{"file not found : " + cnt.path +  "/"+ MANIFEST, err}
 	}
 
-	if notInit {
+	if !notInit {
 		cnt.manifest.Aci = *utils.BasicManifest()
 		cnt.readManifest(cnt.path + "/"+ MANIFEST)
 	}
