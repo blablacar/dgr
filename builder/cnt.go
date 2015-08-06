@@ -290,10 +290,18 @@ func (cnt *Cnt) processFrom() {
 		}
 
 		url := endpoint.ACIEndpoints[0].ACI
-		aciPath := cnt.target + "/from.aci"
-		utils.ExecCmd("wget", "-O", aciPath, url)
-		utils.ExecCmd("tar", "xpf", aciPath, "-C", cnt.target)
-		os.Remove(aciPath)
+
+		aciPath := config.GetConfig().AciPath + "/" + cnt.manifest.From
+		if _, err := os.Stat(aciPath + "/image.aci"); cnt.args.ForceUpdate || os.IsNotExist(err) {
+			if err := os.MkdirAll(aciPath, 0755); err != nil {
+				log.Get().Panic(err)
+			}
+			utils.ExecCmd("wget", "-O", aciPath + "/image.aci", url)
+		} else {
+			log.Get().Info("Image " + cnt.manifest.From + " Already exists locally, will not be downloaded")
+		}
+
+		utils.ExecCmd("tar", "xpf", aciPath + "/image.aci", "-C", cnt.target)
 
 		//		utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.manifest.From)
 		//		utils.ExecCmd("rkt", "image", "export", "--overwrite", cnt.manifest.From, cnt.target + "/from.aci")

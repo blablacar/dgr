@@ -10,3 +10,7 @@ var buildCmd = &cobra.Command{
 		discoverAndRunBuildType(".", buildArgs)
 	},
 }
+
+func init() {
+	buildCmd.Flags().BoolVarP(&buildArgs.ForceUpdate, "force-update", "U", false, "Force update of dependencies")
+}

@@ -7,9 +7,11 @@ import (
 	"github.com/blablacar/cnt/log"
 )
 
-var cntConfig = new(CntConfig)
+var cntConfig CntConfig
 
 type CntConfig struct {
+	Path string
+	AciPath string
 	Push struct {
 			 Type     string                `yaml:"type,omitempty"`
 			 Url      string                `yaml:"url,omitempty"`
@@ -19,27 +21,32 @@ type CntConfig struct {
 }
 
 func GetConfig() *CntConfig {
-	return cntConfig
+	return &cntConfig
 }
 
 func (c *CntConfig) Load() {
-	var cntHome string
+}
+
+func init() {
+	cntConfig = CntConfig{}
 	switch runtime.GOOS {
 	case "windows":
-		cntHome = utils.UserHomeOrFatal() + "/AppData/Local/Cnt";
+		cntConfig.Path = utils.UserHomeOrFatal() + "/AppData/Local/Cnt";
 	case "darwin":
-		cntHome = utils.UserHomeOrFatal() + "/Library/Cnt";
+		cntConfig.Path = utils.UserHomeOrFatal() + "/Library/Cnt";
 	case "linux":
-		cntHome = utils.UserHomeOrFatal() + "/.config/cnt";
+		cntConfig.Path = utils.UserHomeOrFatal() + "/.config/cnt";
 	default:
 		log.Get().Panic("Unsupported OS, please fill a bug repost")
 	}
-	log.Get().Debug("Home folder is " + cntHome)
+	cntConfig.AciPath = cntConfig.Path + "/aci"
 
-	if source, err := ioutil.ReadFile(cntHome + "/config.yml"); err == nil {
-		err = yaml.Unmarshal([]byte(source), &c)
+	if source, err := ioutil.ReadFile(cntConfig.Path + "/config.yml"); err == nil {
+		err = yaml.Unmarshal([]byte(source), &cntConfig)
 		if err != nil {
 			panic(err)
 		}
 	}
+
+	log.Get().Debug("Home folder is " + cntConfig.Path)
 }
