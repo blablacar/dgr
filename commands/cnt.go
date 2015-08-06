@@ -17,7 +17,7 @@ func Execute() {
 	buildCmd.Flags().BoolVarP(&buildArgs.Zip, "nozip", "z", false, "Zip final image or not")
 	rootCmd.PersistentFlags().BoolVarP(&buildArgs.Clean, "clean", "c", false, "Clean before doing anything")
 
-	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd)
+	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd)
 
 	config.GetConfig().Load()
 	rootCmd.Execute()
@@ -79,6 +79,12 @@ func discoverAndRunTestType(path string, args builder.BuildArgs) {
 func runCleanIfRequested(path string, args builder.BuildArgs) {
 	if args.Clean {
 		discoverAndRunCleanType(path, args)
+	}
+}
+
+func discoverAndRunInitType(path string, args builder.BuildArgs) {
+	if cnt, err := builder.OpenCnt(path, args); err == nil {
+		cnt.Init()
 	}
 }
 
