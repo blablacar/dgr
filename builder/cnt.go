@@ -16,9 +16,6 @@ import (
 	"io"
 	"github.com/appc/spec/discovery"
 	"github.com/appc/spec/aci"
-	"strconv"
-	"runtime"
-	"regexp"
 )
 
 const (
@@ -46,20 +43,6 @@ execute_files "$TARGET/runlevels/inherit-build-early"
 execute_files "$TARGET/runlevels/build"
 execute_files "$TARGET/runlevels/inherit-build-late"`
 )
-
-const MANIFEST = "cnt-manifest.yml"
-const RUNLEVELS = "runlevels"
-const RUNLEVELS_PRESTART = RUNLEVELS + "/prestart-early"
-const RUNLEVELS_LATESTART =  RUNLEVELS + "/prestart-late"
-const RUNLEVELS_BUILD =  RUNLEVELS + "/build"
-const RUNLEVELS_BUILD_SETUP =  RUNLEVELS + "/build-setup"
-const RUNLEVELS_BUILD_INHERIT_EARLY =  RUNLEVELS + "/inherit-build-early"
-const RUNLEVELS_BUILD_INHERIT_LATE = RUNLEVELS + "/inherit-build-late"
-const CONFD = "confd"
-const CONFD_TEMPLATE = CONFD + "/conf.d"
-const CONFD_CONFIG = CONFD + "/templates"
-const ATTRIBUTES = "attributes"
-const FILES_PATH = "files"
 
 type Cnt struct {
 	path     string
@@ -103,10 +86,6 @@ func Name(nameAndVersion string) string {
 	return strings.Split(nameAndVersion, ":")[0]
 }
 
-func getCallerName() string {
-	pc, _, _, _ := runtime.Caller(2)
-	return runtime.FuncForPC(pc).Name()
-}
 ////////////////////////////////////////////
 
 func OpenCnt(path string, args BuildArgs) (*Cnt, error) {
@@ -121,16 +100,13 @@ func OpenCnt(path string, args BuildArgs) (*Cnt, error) {
 		cnt.rootfs = cnt.target + "/rootfs"
 	}
 
-	notInit,_ := regexp.MatchString("/commands.discoverAndRunInitType/",getCallerName())
-	if _, err := os.Stat(cnt.path + "/" + MANIFEST); notInit  && os.IsNotExist(err)  {
-		log.Get().Debug(cnt.path, "/"+ MANIFEST +" does not exists")
-		return nil, &BuildError{"file not found : " + cnt.path +  "/"+ MANIFEST, err}
+	if _, err := os.Stat(cnt.path + "/cnt-manifest.yml"); os.IsNotExist(err) {
+		log.Get().Debug(cnt.path, "/cnt-manifest.yml does not exists")
+		return nil, &BuildError{"file not found : " + cnt.path + "/cnt-manifest.yml", err}
 	}
 
-	if notInit {
-		cnt.manifest.Aci = *utils.BasicManifest()
-		cnt.readManifest(cnt.path + "/"+ MANIFEST)
-	}
+	cnt.manifest.Aci = *utils.BasicManifest()
+	cnt.readManifest(cnt.path + "/cnt-manifest.yml")
 
 	return cnt, nil
 }
@@ -154,37 +130,6 @@ func (cnt *Cnt) Test() {
 	os.MkdirAll(cnt.target + "/test", 0777)
 	bats.WriteBats(cnt.target + "/test")
 	utils.ExecCmd("rkt", "--insecure-skip-verify=true", "run", cnt.target + "/image.aci") // TODO missing command override that will arrive in next RKT version
-}
-
-func (cnt *Cnt) Init() {
-	log.Get().Info("Setting up files three")
-	uid := os.Getenv("SUDO_UID")
-	uidInt,err := strconv.Atoi(uid)
-	gid := os.Getenv("SUDO_GID")
-	gidInt ,err := strconv.Atoi(gid)
-
-	if err != nil {
-		log.Get().Panic(err)
-	}
-	folderList := []string{
-		RUNLEVELS,
-		RUNLEVELS_PRESTART,
-		RUNLEVELS_LATESTART,
-		RUNLEVELS_BUILD,
-		RUNLEVELS_BUILD_SETUP,
-		RUNLEVELS_BUILD_INHERIT_EARLY,
-		RUNLEVELS_BUILD_INHERIT_LATE,
-		CONFD,
-		CONFD_TEMPLATE,
-		CONFD_CONFIG,
-		ATTRIBUTES,
-		FILES_PATH,
-	}
-	for _,folder := range folderList  {
-		fpath := cnt.path + "/" +folder
-		os.MkdirAll(fpath,0777 )
-		os.Lchown(fpath,uidInt,gidInt)
-	}
 }
 
 func (cnt *Cnt) Push() {
@@ -242,7 +187,7 @@ func (cnt *Cnt) Build() error {
 //////////////////////////////////////////////////////////////////
 
 func (cnt *Cnt) writeCntManifest() {
-	utils.CopyFile(cnt.path +  "/"+ MANIFEST, cnt.target + "/"+ MANIFEST)
+	utils.CopyFile(cnt.path + "/cnt-manifest.yml", cnt.target + "/cnt-manifest.yml")
 }
 
 func (cnt *Cnt) readManifest(manifestPath string) {
@@ -280,7 +225,7 @@ func (cnt *Cnt) checkBuilt() {
 }
 
 func (cnt *Cnt) runBuild() {
-	if res, err := utils.IsDirEmpty(cnt.target + RUNLEVELS_BUILD); res || err != nil {
+	if res, err := utils.IsDirEmpty(cnt.target + "/runlevels/build"); res || err != nil {
 		return
 	}
 	if err := utils.ExecCmd("systemd-nspawn", "--version"); err == nil {
@@ -381,14 +326,14 @@ func (cnt *Cnt) processFrom() {
 
 
 func (cnt *Cnt) copyRunlevelsBuild() {
-	if err := os.MkdirAll(cnt.target + RUNLEVELS, 0755); err != nil {
+	if err := os.MkdirAll(cnt.target + "/runlevels", 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	utils.CopyDir(cnt.path + RUNLEVELS, cnt.target + RUNLEVELS)
+	utils.CopyDir(cnt.path + "/runlevels", cnt.target + "/runlevels")
 }
 
 func (cnt *Cnt) runlevelBuildSetup() {
-	files, err := ioutil.ReadDir(cnt.path + RUNLEVELS_BUILD_SETUP) // already sorted by name
+	files, err := ioutil.ReadDir(cnt.path + "/runlevels/build-setup") // already sorted by name
 	if err != nil {
 		return
 	}
@@ -397,7 +342,7 @@ func (cnt *Cnt) runlevelBuildSetup() {
 	for _, f := range files {
 		if !f.IsDir() {
 			log.Get().Info("Running Build setup level : ", f.Name())
-			if err := utils.ExecCmd(cnt.path + RUNLEVELS_BUILD_SETUP + f.Name()); err != nil {
+			if err := utils.ExecCmd(cnt.path + "/runlevels/build-setup/" + f.Name()); err != nil {
 				log.Get().Panic(err)
 			}
 		}
@@ -411,11 +356,11 @@ func (cnt *Cnt) tarAci() {
 
 	args := []string{"manifest", "rootfs/"}
 
-	if _, err := os.Stat(cnt.path + RUNLEVELS_BUILD_INHERIT_EARLY); err == nil {
-		args = append(args, RUNLEVELS_BUILD_INHERIT_EARLY)
+	if _, err := os.Stat(cnt.path + "/runlevels/inherit-build-early"); err == nil {
+		args = append(args, "runlevels/inherit-build-early")
 	}
-	if _, err := os.Stat(cnt.path + RUNLEVELS_BUILD_INHERIT_LATE); err == nil {
-		args = append(args, RUNLEVELS_BUILD_INHERIT_LATE)
+	if _, err := os.Stat(cnt.path + "/runlevels/inherit-build-late"); err == nil {
+		args = append(args, "runlevels/inherit-build-late")
 	}
 
 	utils.Tar(cnt.args.Zip, "image.aci", args...)
@@ -444,27 +389,27 @@ func (cnt *Cnt) copyRunlevelsPrestart() {
 	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/early-prestart.d", 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	utils.CopyDir(cnt.path + RUNLEVELS_PRESTART, cnt.rootfs + "/etc/prestart/early-prestart.d")
-	utils.CopyDir(cnt.path + RUNLEVELS_LATESTART, cnt.rootfs + "/etc/prestart/late-prestart.d")
+	utils.CopyDir(cnt.path + "/runlevels/prestart-early", cnt.rootfs + "/etc/prestart/early-prestart.d")
+	utils.CopyDir(cnt.path + "/runlevels/prestart-late", cnt.rootfs + "/etc/prestart/late-prestart.d")
 }
 
 func (cnt *Cnt) copyConfd() {
 	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/", 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	utils.CopyDir(cnt.path + CONFD_CONFIG, cnt.rootfs + "/etc/prestart/conf.d")
-	utils.CopyDir(cnt.path + CONFD_TEMPLATE, cnt.rootfs + "/etc/prestart/templates")
+	utils.CopyDir(cnt.path + "/confd/conf.d", cnt.rootfs + "/etc/prestart/conf.d")
+	utils.CopyDir(cnt.path + "/confd/templates", cnt.rootfs + "/etc/prestart/templates")
 }
 
 func (cnt *Cnt) copyFiles() {
-	utils.CopyDir(cnt.path + FILES_PATH, cnt.rootfs)
+	utils.CopyDir(cnt.path + "/files", cnt.rootfs)
 }
 
 func (cnt *Cnt) copyAttributes() {
 	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/attributes/" + ShortNameId(cnt.manifest.Aci.Name), 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	utils.CopyDir(cnt.path + ATTRIBUTES, cnt.rootfs + "/etc/prestart/attributes/" + ShortNameId(cnt.manifest.Aci.Name))
+	utils.CopyDir(cnt.path + "/attributes", cnt.rootfs + "/etc/prestart/attributes/" + ShortNameId(cnt.manifest.Aci.Name))
 }
 
 func (cnt *Cnt) writeBuildScript() {
