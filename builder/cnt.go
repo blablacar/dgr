@@ -55,11 +55,11 @@ const RUNLEVELS_BUILD =  RUNLEVELS + "/build"
 const RUNLEVELS_BUILD_SETUP =  RUNLEVELS + "/build-setup"
 const RUNLEVELS_BUILD_INHERIT_EARLY =  RUNLEVELS + "/inherit-build-early"
 const RUNLEVELS_BUILD_INHERIT_LATE = RUNLEVELS + "/inherit-build-late"
-const CONFD = "confd"
-const CONFD_TEMPLATE = CONFD + "/conf.d"
-const CONFD_CONFIG = CONFD + "/templates"
-const ATTRIBUTES = "attributes"
-const FILES_PATH = "files"
+const CONFD = "/confd"
+const CONFD_TEMPLATE = CONFD + "/templates"
+const CONFD_CONFIG = CONFD + "/conf.d"
+const ATTRIBUTES = "/attributes"
+const FILES_PATH = "/files"
 
 type Cnt struct {
 	path     string
@@ -121,8 +121,9 @@ func OpenCnt(path string, args BuildArgs) (*Cnt, error) {
 		cnt.rootfs = cnt.target + "/rootfs"
 	}
 
-	notInit,_ := regexp.MatchString("/commands.discoverAndRunInitType/",getCallerName())
-	if _, err := os.Stat(cnt.path + "/" + MANIFEST); notInit  && os.IsNotExist(err)  {
+	notInit,_ := regexp.MatchString("commands.discoverAndRunInitType",getCallerName())
+
+	if _, err := os.Stat(cnt.path + "/" + MANIFEST); !notInit  && os.IsNotExist(err)  {
 		log.Get().Debug(cnt.path, "/"+ MANIFEST +" does not exists")
 		return nil, &BuildError{"file not found : " + cnt.path +  "/"+ MANIFEST, err}
 	}
@@ -397,7 +398,7 @@ func (cnt *Cnt) runlevelBuildSetup() {
 	for _, f := range files {
 		if !f.IsDir() {
 			log.Get().Info("Running Build setup level : ", f.Name())
-			if err := utils.ExecCmd(cnt.path + RUNLEVELS_BUILD_SETUP + f.Name()); err != nil {
+			if err := utils.ExecCmd(cnt.path + RUNLEVELS_BUILD_SETUP + "/" +f.Name()); err != nil {
 				log.Get().Panic(err)
 			}
 		}
