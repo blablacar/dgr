@@ -177,10 +177,10 @@ func (cnt *Cnt) tarAci() {
 	args := []string{"manifest", "rootfs/"}
 
 	if _, err := os.Stat(cnt.path + RUNLEVELS_BUILD_INHERIT_EARLY); err == nil {
-		args = append(args, RUNLEVELS_BUILD_INHERIT_EARLY)
+		args = append(args, strings.TrimPrefix(RUNLEVELS_BUILD_INHERIT_EARLY,"/"))
 	}
 	if _, err := os.Stat(cnt.path + RUNLEVELS_BUILD_INHERIT_LATE); err == nil {
-		args = append(args, RUNLEVELS_BUILD_INHERIT_LATE)
+		args = append(args, strings.TrimPrefix(RUNLEVELS_BUILD_INHERIT_LATE,"/"))
 	}
 
 	utils.Tar(cnt.args.Zip, "image.aci", args...)

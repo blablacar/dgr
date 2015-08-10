@@ -32,7 +32,7 @@ func discoverAndRunBuildType(path string, args builder.BuildArgs) {
 	} else if pod, err := builder.OpenPod(path, args); err == nil {
 		pod.Build()
 	} else {
-		log.Get().Panic("Cannot found cnt-manifest.yml")
+		log.Get().Panic("Cannot find cnt-manifest.yml")
 	}
 }
 
@@ -42,7 +42,7 @@ func discoverAndRunPushType(path string, args builder.BuildArgs) {
 	} else if pod, err := builder.OpenPod(path, args); err == nil {
 		pod.Push()
 	} else {
-		log.Get().Panic("Cannot found cnt-manifest.yml")
+		log.Get().Panic("Cannot find cnt-manifest.yml")
 	}
 }
 
@@ -52,7 +52,7 @@ func discoverAndRunInstallType(path string, args builder.BuildArgs) {
 	} else if pod, err := builder.OpenPod(path, args); err == nil {
 		pod.Install()
 	} else {
-		log.Get().Panic("Cannot found cnt-manifest.yml")
+		log.Get().Panic("Cannot find cnt-manifest.yml")
 	}
 }
 
@@ -62,7 +62,7 @@ func discoverAndRunCleanType(path string, args builder.BuildArgs) {
 	} else if pod, err := builder.OpenPod(path, args); err == nil {
 		pod.Clean()
 	} else {
-		log.Get().Panic("Cannot found cnt-manifest.yml")
+		log.Get().Panic("Cannot find cnt-manifest.yml")
 	}
 }
 
@@ -72,7 +72,7 @@ func discoverAndRunTestType(path string, args builder.BuildArgs) {
 	} else if pod, err := builder.OpenPod(path, args); err == nil {
 		pod.Test()
 	} else {
-		log.Get().Panic("Cannot found cnt-manifest.yml")
+		log.Get().Panic("Cannot find cnt-manifest.yml")
 	}
 }
 
@@ -83,7 +83,7 @@ func runCleanIfRequested(path string, args builder.BuildArgs) {
 }
 
 func discoverAndRunInitType(path string, args builder.BuildArgs) {
-	if cnt, err := builder.OpenCnt(path, args); err == nil {
+	if cnt, err := builder.PrepCnt(path, args); err == nil {
 		cnt.Init()
 	}
 }
