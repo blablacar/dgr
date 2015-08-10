@@ -8,20 +8,20 @@ import (
 )
 
 
-const (info_template=`package application
+const info_template=`package application
 
 func init() {
 	Version = "X.X.X"
 	CommitHash = "HASH"
 	BuildDate = "DATE"
-}`)
+}`
 
 func main() {
 	hash := utils.GitHash()
 
 	version := os.Getenv("VERSION")
 	if version == "" {
-		panic("You must set cnt version into VERSION env to generate: # VERSION=1.0 go generate")
+		panic("You must set cnt version into VERSION env to generate. ex: # VERSION=1.0 go generate")
 	}
 	buildDate := time.Now()
 

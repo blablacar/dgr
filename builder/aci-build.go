@@ -21,17 +21,17 @@ func (cnt *Cnt) Build() error {
 
 	cnt.runlevelBuildSetup()
 	cnt.copyRunlevelsBuild()
-	cnt.copyRunlevelsPrestart()
-	cnt.copyAttributes()
-	cnt.copyFiles()
-	cnt.copyConfd()
-	cnt.copyInstallAndCreatePacker()
+//	cnt.copyInstallAndCreatePacker()
 
 	cnt.writeBuildScript()
 	cnt.writeRktManifest()
 	cnt.writeCntManifest() // TODO move that, here because we update the version number to generated version
 
 	cnt.runBuild()
+	cnt.copyRunlevelsPrestart()
+	cnt.copyAttributes()
+	cnt.copyConfd()
+	cnt.copyFiles()
 
 	cnt.tarAci()
 	//	ExecCmd("chown " + os.Getenv("SUDO_USER") + ": " + target + "/*") //TODO chown
@@ -188,19 +188,19 @@ func (cnt *Cnt) tarAci() {
 	os.Chdir(dir);
 }
 
-func (cnt *Cnt) copyInstallAndCreatePacker() {
-	if _, err := os.Stat(cnt.path + "/install.sh"); err == nil {
-		utils.CopyFile(cnt.path + "/install.sh", cnt.target + "/install.sh")
-		sum, _ := utils.ChecksumFile(cnt.target + "/install.sh")
-		lastSum, err := ioutil.ReadFile(cnt.target + "/install.sh.SUM")
-		if err != nil || !bytes.Equal(lastSum, sum) {
-			utils.WritePackerFiles(cnt.target)
-			ioutil.WriteFile(cnt.target + "/install.sh.SUM", sum, 0755)
-			return
-		}
-	}
-	utils.RemovePackerFiles(cnt.target)
-}
+//func (cnt *Cnt) copyInstallAndCreatePacker() {
+//	if _, err := os.Stat(cnt.path + "/install.sh"); err == nil {
+//		utils.CopyFile(cnt.path + "/install.sh", cnt.target + "/install.sh")
+//		sum, _ := utils.ChecksumFile(cnt.target + "/install.sh")
+//		lastSum, err := ioutil.ReadFile(cnt.target + "/install.sh.SUM")
+//		if err != nil || !bytes.Equal(lastSum, sum) {
+//			utils.WritePackerFiles(cnt.target)
+//			ioutil.WriteFile(cnt.target + "/install.sh.SUM", sum, 0755)
+//			return
+//		}
+//	}
+//	utils.RemovePackerFiles(cnt.target)
+//}
 
 func (cnt *Cnt) copyRunlevelsPrestart() {
 	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/late-prestart.d", 0755); err != nil {
