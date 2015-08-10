@@ -9,8 +9,6 @@ import (
 	"github.com/appc/spec/schema"
 	"github.com/ghodss/yaml"
 	"github.com/appc/spec/schema/types"
-	"runtime"
-	"regexp"
 )
 
 const (
@@ -95,13 +93,23 @@ func Name(nameAndVersion string) string {
 	return strings.Split(nameAndVersion, ":")[0]
 }
 
-func getCallerName() string {
-	pc, _, _, _ := runtime.Caller(2)
-	return runtime.FuncForPC(pc).Name()
-}
 ////////////////////////////////////////////
 
 func OpenCnt(path string, args BuildArgs) (*Cnt, error) {
+	cnt ,_ :=PrepCnt(path, args)
+
+	if _, err := os.Stat(cnt.path + "/" + MANIFEST); os.IsNotExist(err)  {
+		log.Get().Debug(cnt.path, "/"+ MANIFEST +" does not exists")
+		return nil, &BuildError{"file not found : " + cnt.path +  "/"+ MANIFEST, err}
+	}
+
+	cnt.manifest.Aci = *utils.BasicManifest()
+	cnt.readManifest(cnt.path + "/"+ MANIFEST)
+
+	return cnt, nil
+}
+
+func PrepCnt(path string, args BuildArgs)(*Cnt, error){
 	cnt := new(Cnt)
 	cnt.args = args
 
@@ -112,19 +120,6 @@ func OpenCnt(path string, args BuildArgs) (*Cnt, error) {
 		cnt.target = cnt.path + "/target"
 		cnt.rootfs = cnt.target + "/rootfs"
 	}
-
-	notInit,_ := regexp.MatchString("commands.discoverAndRunInitType",getCallerName())
-
-	if _, err := os.Stat(cnt.path + "/" + MANIFEST); !notInit  && os.IsNotExist(err)  {
-		log.Get().Debug(cnt.path, "/"+ MANIFEST +" does not exists")
-		return nil, &BuildError{"file not found : " + cnt.path +  "/"+ MANIFEST, err}
-	}
-
-	if !notInit {
-		cnt.manifest.Aci = *utils.BasicManifest()
-		cnt.readManifest(cnt.path + "/"+ MANIFEST)
-	}
-
 	return cnt, nil
 }
 
