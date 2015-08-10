@@ -1,218 +1,16 @@
 package builder
 import (
-	"os"
-	"io/ioutil"
-	"strings"
-	"path/filepath"
-	"github.com/blablacar/cnt/utils"
-	"github.com/blablacar/cnt/config"
 	"github.com/blablacar/cnt/log"
-	"github.com/appc/spec/schema"
-	"bytes"
-	"github.com/blablacar/cnt/bats"
-	"github.com/ghodss/yaml"
-	"github.com/appc/spec/schema/types"
+	"os"
+	"github.com/blablacar/cnt/utils"
 	"os/exec"
 	"io"
+	"bytes"
+	"strings"
 	"github.com/appc/spec/discovery"
-	"github.com/appc/spec/aci"
-	"strconv"
-	"runtime"
-	"regexp"
+	"github.com/blablacar/cnt/config"
+	"io/ioutil"
 )
-
-const (
-	buildScript = `#!/bin/bash
-set -x
-set -e
-export TARGET=$( dirname $0 )
-export ROOTFS=%%ROOTFS%%
-export TERM=xterm
-
-execute_files() {
-  fdir=$1
-  [ -d "$fdir" ] || return 0
-
-  for file in $fdir/*; do
-    if [ -x "$file" ]; then
-      $file
-    else
-      echo "$file is not exectuable"
-    fi
-  done
-}
-
-execute_files "$TARGET/runlevels/inherit-build-early"
-execute_files "$TARGET/runlevels/build"
-execute_files "$TARGET/runlevels/inherit-build-late"`
-)
-
-const MANIFEST = "cnt-manifest.yml"
-const RUNLEVELS = "/runlevels"
-const RUNLEVELS_PRESTART = RUNLEVELS + "/prestart-early"
-const RUNLEVELS_LATESTART =  RUNLEVELS + "/prestart-late"
-const RUNLEVELS_BUILD =  RUNLEVELS + "/build"
-const RUNLEVELS_BUILD_SETUP =  RUNLEVELS + "/build-setup"
-const RUNLEVELS_BUILD_INHERIT_EARLY =  RUNLEVELS + "/inherit-build-early"
-const RUNLEVELS_BUILD_INHERIT_LATE = RUNLEVELS + "/inherit-build-late"
-const CONFD = "/confd"
-const CONFD_TEMPLATE = CONFD + "/templates"
-const CONFD_CONFIG = CONFD + "/conf.d"
-const ATTRIBUTES = "/attributes"
-const FILES_PATH = "/files"
-
-type Cnt struct {
-	path     string
-	target   string
-	rootfs   string
-	manifest CntManifest
-	args     BuildArgs
-}
-type CntBuild struct {
-	Image types.ACIdentifier                `json:"image"`
-}
-
-func (b *CntBuild) NoBuildImage() bool {
-	return b.Image == ""
-}
-
-type CntManifest struct {
-	NameAndVersion string            `json:"name"`
-	From  string                      `json:"from"`
-	Build CntBuild                    `json:"build"`
-	Aci   schema.ImageManifest        `json:"aci"`
-}
-
-func Version(nameAndVersion string) string {
-	split := strings.Split(nameAndVersion, ":")
-	if (len(split) == 1) {
-		return ""
-	}
-	return split[1]
-}
-
-func ShortNameId(name types.ACIdentifier) string {
-	return strings.Split(string(name), "/")[1]
-}
-
-func ShortName(nameAndVersion string) string {
-	return strings.Split(Name(nameAndVersion), "/")[1]
-}
-
-func Name(nameAndVersion string) string {
-	return strings.Split(nameAndVersion, ":")[0]
-}
-
-func getCallerName() string {
-	pc, _, _, _ := runtime.Caller(2)
-	return runtime.FuncForPC(pc).Name()
-}
-////////////////////////////////////////////
-
-func OpenCnt(path string, args BuildArgs) (*Cnt, error) {
-	cnt := new(Cnt)
-	cnt.args = args
-
-	if fullPath, err := filepath.Abs(path); err != nil {
-		log.Get().Panic("Cannot get fullpath of project", err)
-	} else {
-		cnt.path = fullPath
-		cnt.target = cnt.path + "/target"
-		cnt.rootfs = cnt.target + "/rootfs"
-	}
-
-	notInit,_ := regexp.MatchString("commands.discoverAndRunInitType",getCallerName())
-
-	if _, err := os.Stat(cnt.path + "/" + MANIFEST); !notInit  && os.IsNotExist(err)  {
-		log.Get().Debug(cnt.path, "/"+ MANIFEST +" does not exists")
-		return nil, &BuildError{"file not found : " + cnt.path +  "/"+ MANIFEST, err}
-	}
-
-	if !notInit {
-		cnt.manifest.Aci = *utils.BasicManifest()
-		cnt.readManifest(cnt.path + "/"+ MANIFEST)
-	}
-
-	return cnt, nil
-}
-
-func (cnt *Cnt) Clean() {
-	log.Get().Info("Cleaning " + cnt.manifest.Aci.Name)
-	if err := os.RemoveAll(cnt.target + "/"); err != nil {
-		log.Get().Panic("Cannot clean " + cnt.manifest.Aci.Name, err)
-	}
-}
-
-func (cnt *Cnt) Test() {
-	log.Get().Info("Testing " + cnt.manifest.Aci.Name)
-	if _, err := os.Stat(cnt.target + "/image.aci"); os.IsNotExist(err) {
-		if err := cnt.Build(); err != nil {
-			log.Get().Panic("Cannot Install since build failed")
-		}
-	}
-
-	// BATS
-	os.MkdirAll(cnt.target + "/test", 0777)
-	bats.WriteBats(cnt.target + "/test")
-	utils.ExecCmd("rkt", "--insecure-skip-verify=true", "run", cnt.target + "/image.aci") // TODO missing command override that will arrive in next RKT version
-}
-
-func (cnt *Cnt) Init() {
-	log.Get().Info("Setting up files three")
-	uid := os.Getenv("SUDO_UID")
-	uidInt,err := strconv.Atoi(uid)
-	gid := os.Getenv("SUDO_GID")
-	gidInt ,err := strconv.Atoi(gid)
-
-	if err != nil {
-		log.Get().Panic(err)
-	}
-	folderList := []string{
-		RUNLEVELS,
-		RUNLEVELS_PRESTART,
-		RUNLEVELS_LATESTART,
-		RUNLEVELS_BUILD,
-		RUNLEVELS_BUILD_SETUP,
-		RUNLEVELS_BUILD_INHERIT_EARLY,
-		RUNLEVELS_BUILD_INHERIT_LATE,
-		CONFD,
-		CONFD_TEMPLATE,
-		CONFD_CONFIG,
-		ATTRIBUTES,
-		FILES_PATH,
-	}
-	for _,folder := range folderList  {
-		fpath := cnt.path + "/" +folder
-		os.MkdirAll(fpath,0777 )
-		os.Lchown(fpath,uidInt,gidInt)
-	}
-}
-
-func (cnt *Cnt) Push() {
-	cnt.checkBuilt()
-	if config.GetConfig().Push.Type == "" {
-		log.Get().Panic("Can't push, push is not configured in cnt global configuration file")
-	}
-
-	im := extractManifestFromAci(cnt.target + "/image.aci")
-	val, _ := im.Labels.Get("version")
-	utils.ExecCmd("curl", "-i",
-		"-F", "r=releases",
-		"-F", "hasPom=false",
-		"-F", "e=aci",
-		"-F", "g=com.blablacar.aci.linux.amd64",
-		"-F", "p=aci",
-		"-F", "v=" + val,
-		"-F", "a=" + ShortNameId(im.Name),
-		"-F", "file=@" + cnt.target + "/image.aci",
-		"-u", config.GetConfig().Push.Username + ":" + config.GetConfig().Push.Password,
-		config.GetConfig().Push.Url + "/service/local/artifact/maven/content")
-}
-
-func (cnt *Cnt) Install() {
-	cnt.checkBuilt()
-	utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.target + "/image.aci")
-}
 
 func (cnt *Cnt) Build() error {
 	log.Get().Info("Building Image : ", cnt.manifest.Aci.Name)
@@ -240,44 +38,10 @@ func (cnt *Cnt) Build() error {
 	return nil
 }
 
-//////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 
 func (cnt *Cnt) writeCntManifest() {
 	utils.CopyFile(cnt.path +  "/"+ MANIFEST, cnt.target + "/"+ MANIFEST)
-}
-
-func (cnt *Cnt) readManifest(manifestPath string) {
-	source, err := ioutil.ReadFile(manifestPath)
-	if err != nil {
-		log.Get().Panic(err)
-	}
-	err = yaml.Unmarshal([]byte(source), &cnt.manifest)
-	if err != nil {
-		log.Get().Panic(err)
-	}
-
-	cnt.manifest.Aci.Name.Set(Name(cnt.manifest.NameAndVersion))
-	changeVersion(&cnt.manifest.Aci.Labels, Version(cnt.manifest.NameAndVersion))
-
-	log.Get().Trace("Cnt manifest : ", cnt.manifest.Aci.Name, cnt.manifest, cnt.manifest.Aci.App)
-}
-
-func changeVersion(labels *types.Labels, version string) {
-	labelMap := labels.ToMap()
-	labelMap["version"] = version
-	if newLabels, err := types.LabelsFromMap(labelMap); err != nil {
-		log.Get().Panic(err)
-	} else {
-		*labels = newLabels
-	}
-}
-
-func (cnt *Cnt) checkBuilt() {
-	if _, err := os.Stat(cnt.target + "/image.aci"); os.IsNotExist(err) {
-		if err := cnt.Build(); err != nil {
-			log.Get().Panic("Cannot Install since build failed")
-		}
-	}
 }
 
 func (cnt *Cnt) runBuild() {
@@ -380,7 +144,6 @@ func (cnt *Cnt) processFrom() {
 	}
 }
 
-
 func (cnt *Cnt) copyRunlevelsBuild() {
 	if err := os.MkdirAll(cnt.target + RUNLEVELS, 0755); err != nil {
 		log.Get().Panic(err)
@@ -404,6 +167,7 @@ func (cnt *Cnt) runlevelBuildSetup() {
 		}
 	}
 }
+
 
 func (cnt *Cnt) tarAci() {
 	dir, _ := os.Getwd();
@@ -484,47 +248,4 @@ func (cnt *Cnt) writeRktManifest() {
 	}
 	version, _ := cnt.manifest.Aci.Labels.Get("version")
 	utils.WriteImageManifest(&cnt.manifest.Aci, cnt.target + "/manifest", cnt.manifest.Aci.Name, version)
-}
-
-
-func extractManifestFromAci(aciPath string) schema.ImageManifest {
-	input, err := os.Open(aciPath)
-	if err != nil {
-		log.Get().Panic("cat-manifest: Cannot open %s: %v", aciPath, err)
-	}
-	defer input.Close()
-
-	tr, err := aci.NewCompressedTarReader(input)
-	if err != nil {
-		log.Get().Panic("cat-manifest: Cannot open tar %s: %v", aciPath, err)
-	}
-
-
-	im := schema.ImageManifest{}
-
-	Tar:
-	for {
-		hdr, err := tr.Next()
-		switch err {
-		case io.EOF:
-			break Tar
-		case nil:
-			if filepath.Clean(hdr.Name) == aci.ManifestFile {
-				bytes, err := ioutil.ReadAll(tr)
-				if err != nil {
-					log.Get().Panic(err)
-				}
-
-				err = im.UnmarshalJSON(bytes)
-				if err != nil {
-					log.Get().Panic(err)
-				}
-				return im
-			}
-		default:
-			log.Get().Panic("error reading tarball: %v", err)
-		}
-	}
-	log.Get().Panic("Cannot found manifest if aci");
-	return im
 }
