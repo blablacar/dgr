@@ -157,6 +157,7 @@ func (cnt *Cnt) runlevelBuildSetup() {
 		return
 	}
 
+	os.Setenv("BASEDIR", cnt.path)
 	os.Setenv("TARGET", cnt.target)
 	for _, f := range files {
 		if !f.IsDir() {
