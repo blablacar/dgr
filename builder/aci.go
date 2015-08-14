@@ -27,13 +27,13 @@ execute_files() {
     if [ -x "$file" ]; then
       $file
     else
-      echo "$file is not exectuable"
+      echo -e "\e[31m$file is not exectuable\e[0m"
     fi
   done
 }
 
 execute_files "$TARGET/runlevels/inherit-build-early"
-execute_files "$TARGET/runlevels/build"
+execute_files "faili $TARGET/runlevels/build"
 execute_files "$TARGET/runlevels/inherit-build-late"`
 )
 

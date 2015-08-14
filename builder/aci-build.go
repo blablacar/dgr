@@ -130,7 +130,10 @@ func (cnt *Cnt) processFrom() {
 			if err := os.MkdirAll(aciPath, 0755); err != nil {
 				log.Get().Panic(err)
 			}
-			utils.ExecCmd("wget", "-O", aciPath + "/image.aci", url)
+			if err = utils.ExecCmd("wget", "-O", aciPath + "/image.aci", url); err != nil {
+				os.Remove(aciPath + "/image.aci")
+				log.Get().Panic("Cannot download from image", err)
+			}
 		} else {
 			log.Get().Info("Image " + cnt.manifest.From + " Already exists locally, will not be downloaded")
 		}
