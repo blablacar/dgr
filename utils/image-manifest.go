@@ -7,8 +7,7 @@ import (
     "github.com/appc/spec/schema/types"
 )
 
-const(
-	imageManifest = `{
+const IMAGE_MANIFEST = `{
     "acKind": "ImageManifest",
     "acVersion": "0.6.1",
     "name": "xxx/xxx",
@@ -41,45 +40,24 @@ const(
     }
 }
 `
-)
 
-//"eventHandlers": [
-//{
-//"exec": [
-//"/usr/local/bin/prestart"
-//],
-//"name": "pre-start"
+func BasicImageManifest() *schema.ImageManifest {
+    im := new(schema.ImageManifest)
+    im.UnmarshalJSON([]byte(IMAGE_MANIFEST))
+    return im
+}
+
+//
+//func ReadManifest(path string) *schema.ImageManifest {
+//    im := new(schema.ImageManifest)
+//    content, err := ioutil.ReadFile(path)
+//    if  err != nil {
+//        panic(err)
+////        config.GetConfig().Log.Panic("Cannot read manifest file", err)
+//    }
+//    im.UnmarshalJSON(content)
+//    return im
 //}
-//],
-
-
-func BasicManifest() *schema.ImageManifest {
-    im := new(schema.ImageManifest)
-    im.UnmarshalJSON([]byte(imageManifest))
-    return im
-}
-
-func ReadPodManifest(path string) *schema.PodManifest {
-    im := new(schema.PodManifest)
-    content, err := ioutil.ReadFile(path)
-    if  err != nil {
-        panic(err)
-        //        config.GetConfig().Log.Panic("Cannot read manifest file", err)
-    }
-    im.UnmarshalJSON(content)
-    return im
-}
-
-func ReadManifest(path string) *schema.ImageManifest {
-    im := new(schema.ImageManifest)
-    content, err := ioutil.ReadFile(path)
-    if  err != nil {
-        panic(err)
-//        config.GetConfig().Log.Panic("Cannot read manifest file", err)
-    }
-    im.UnmarshalJSON(content)
-    return im
-}
 
 func WriteImageManifest(im *schema.ImageManifest, targetFile string, projectName types.ACIdentifier, version string) {
 	buff, err := im.MarshalJSON()

@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-func (cnt *Cnt) Init() {
+func (cnt *Img) Init() {
 	log.Get().Info("Setting up files three")
 	uid := os.Getenv("SUDO_UID")
 	uidInt,err := strconv.Atoi(uid)

@@ -12,7 +12,7 @@ import (
 	"io/ioutil"
 )
 
-func (cnt *Cnt) Build() error {
+func (cnt *Img) Build() error {
 	log.Get().Info("Building Image : ", cnt.manifest.Aci.Name)
 
 	os.MkdirAll(cnt.rootfs, 0777)
@@ -24,7 +24,7 @@ func (cnt *Cnt) Build() error {
 //	cnt.copyInstallAndCreatePacker()
 
 	cnt.writeBuildScript()
-	cnt.writeRktManifest()
+	cnt.writeImgManifest()
 	cnt.writeCntManifest() // TODO move that, here because we update the version number to generated version
 
 	cnt.runBuild()
@@ -40,11 +40,11 @@ func (cnt *Cnt) Build() error {
 
 ///////////////////////////////////////////////////////
 
-func (cnt *Cnt) writeCntManifest() {
-	utils.CopyFile(cnt.path +  "/"+ MANIFEST, cnt.target + "/"+ MANIFEST)
+func (cnt *Img) writeCntManifest() {
+	utils.CopyFile(cnt.path +  "/"+ IMG_MANIFEST, cnt.target + "/"+ IMG_MANIFEST)
 }
 
-func (cnt *Cnt) runBuild() {
+func (cnt *Img) runBuild() {
 	if res, err := utils.IsDirEmpty(cnt.target + RUNLEVELS_BUILD); res || err != nil {
 		return
 	}
@@ -106,7 +106,7 @@ func (cnt *Cnt) runBuild() {
 	}
 }
 
-func (cnt *Cnt) processFrom() {
+func (cnt *Img) processFrom() {
 	if cnt.manifest.From != "" {
 		log.Get().Info("Prepare rootfs from " + cnt.manifest.From)
 
@@ -147,14 +147,14 @@ func (cnt *Cnt) processFrom() {
 	}
 }
 
-func (cnt *Cnt) copyRunlevelsBuild() {
+func (cnt *Img) copyRunlevelsBuild() {
 	if err := os.MkdirAll(cnt.target + RUNLEVELS, 0755); err != nil {
 		log.Get().Panic(err)
 	}
 	utils.CopyDir(cnt.path + RUNLEVELS, cnt.target + RUNLEVELS)
 }
 
-func (cnt *Cnt) runlevelBuildSetup() {
+func (cnt *Img) runlevelBuildSetup() {
 	files, err := ioutil.ReadDir(cnt.path + RUNLEVELS_BUILD_SETUP) // already sorted by name
 	if err != nil {
 		return
@@ -173,7 +173,7 @@ func (cnt *Cnt) runlevelBuildSetup() {
 }
 
 
-func (cnt *Cnt) tarAci() {
+func (cnt *Img) tarAci() {
 	dir, _ := os.Getwd();
 	log.Get().Debug("chdir to", cnt.target)
 	os.Chdir(cnt.target);
@@ -206,7 +206,7 @@ func (cnt *Cnt) tarAci() {
 //	utils.RemovePackerFiles(cnt.target)
 //}
 
-func (cnt *Cnt) copyRunlevelsPrestart() {
+func (cnt *Img) copyRunlevelsPrestart() {
 	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/late-prestart.d", 0755); err != nil {
 		log.Get().Panic(err)
 	}
@@ -217,7 +217,7 @@ func (cnt *Cnt) copyRunlevelsPrestart() {
 	utils.CopyDir(cnt.path + RUNLEVELS_LATESTART, cnt.rootfs + "/etc/prestart/late-prestart.d")
 }
 
-func (cnt *Cnt) copyConfd() {
+func (cnt *Img) copyConfd() {
 	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/", 0755); err != nil {
 		log.Get().Panic(err)
 	}
@@ -225,18 +225,18 @@ func (cnt *Cnt) copyConfd() {
 	utils.CopyDir(cnt.path + CONFD_TEMPLATE, cnt.rootfs + "/etc/prestart/templates")
 }
 
-func (cnt *Cnt) copyFiles() {
+func (cnt *Img) copyFiles() {
 	utils.CopyDir(cnt.path + FILES_PATH, cnt.rootfs)
 }
 
-func (cnt *Cnt) copyAttributes() {
+func (cnt *Img) copyAttributes() {
 	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/attributes/" + ShortNameId(cnt.manifest.Aci.Name), 0755); err != nil {
 		log.Get().Panic(err)
 	}
 	utils.CopyDir(cnt.path + ATTRIBUTES, cnt.rootfs + "/etc/prestart/attributes/" + ShortNameId(cnt.manifest.Aci.Name))
 }
 
-func (cnt *Cnt) writeBuildScript() {
+func (cnt *Img) writeBuildScript() {
 	rootfs := "${TARGET}/rootfs"
 	if cnt.manifest.Build.NoBuildImage() {
 		rootfs = ""
@@ -245,7 +245,7 @@ func (cnt *Cnt) writeBuildScript() {
 	ioutil.WriteFile(cnt.target + "/build.sh", []byte(build), 0777)
 }
 
-func (cnt *Cnt) writeRktManifest() {
+func (cnt *Img) writeImgManifest() {
 	log.Get().Debug("Writing aci manifest")
 	if val, _ := cnt.manifest.Aci.Labels.Get("version"); val == "" {
 		changeVersion(&cnt.manifest.Aci.Labels, utils.GenerateVersion())

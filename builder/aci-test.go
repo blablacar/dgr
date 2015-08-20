@@ -6,7 +6,7 @@ import (
 	"github.com/blablacar/cnt/utils"
 )
 
-func (cnt *Cnt) Test() {
+func (cnt *Img) Test() {
 	log.Get().Info("Testing " + cnt.manifest.Aci.Name)
 	if _, err := os.Stat(cnt.target + "/image.aci"); os.IsNotExist(err) {
 		if err := cnt.Build(); err != nil {

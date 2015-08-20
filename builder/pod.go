@@ -2,15 +2,24 @@ package builder
 import (
 	"github.com/blablacar/cnt/log"
 	"github.com/appc/spec/schema"
-	"github.com/blablacar/cnt/utils"
-	"io/ioutil"
 	"path/filepath"
+	"io/ioutil"
+	"github.com/ghodss/yaml"
+	"github.com/blablacar/cnt/utils"
 )
 
+const POD_MANIFEST = "cnt-pod-manifest.yml"
+
 type Pod struct {
-	path string
-	args BuildArgs
-	manifest *schema.PodManifest
+	path     string
+	args     BuildArgs
+	target	 string
+	manifest PodManifest
+}
+
+type PodManifest struct {
+	NameAndVersion string                      `json:"name"`
+	Pod            *schema.PodManifest          `json:"pod"`
 }
 
 func OpenPod(path string, args BuildArgs) (*Pod, error) {
@@ -22,74 +31,20 @@ func OpenPod(path string, args BuildArgs) (*Pod, error) {
 		pod.path = fullPath
 	}
 	pod.args = args
-	pod.manifest = utils.ReadPodManifest(pod.path + "/pod-manifest.json")
+	pod.target = pod.path + "/target"
+	pod.manifest.Pod = utils.BasicPodManifest()
+	pod.readManifest(pod.path + "/"+ POD_MANIFEST)
 	return pod, nil
 }
 
-func (p *Pod) Build() {
-	log.Get().Info("Building POD ")
-
-//	runner := runner.ChrootRunner{}
-
-	files, _ := ioutil.ReadDir(p.path)
-	for _, f := range files {
-		if f.IsDir() {
-			if cnt, err := OpenCnt(p.path + "/" + f.Name(), p.args); err == nil {
-				cnt.Build()
-			}
-		}
+func (p *Pod) readManifest(manifestPath string) {
+	source, err := ioutil.ReadFile(manifestPath)
+	if err != nil {
+		log.Get().Panic(err)
 	}
-}
-
-func (p *Pod) Install() {
-	log.Get().Info("Installing POD ")
-
-	files, _ := ioutil.ReadDir(p.path)
-	for _, f := range files {
-		if f.IsDir() {
-			if cnt, err := OpenCnt(p.path + "/" + f.Name(), p.args); err == nil {
-				cnt.Install()
-			}
-		}
+	err = yaml.Unmarshal([]byte(source), &p.manifest)
+	if err != nil {
+		log.Get().Panic(err)
 	}
-}
-
-func (p *Pod) Push() {
-	log.Get().Info("Push POD ")
-
-	files, _ := ioutil.ReadDir(p.path)
-	for _, f := range files {
-		if f.IsDir() {
-			if cnt, err := OpenCnt(p.path + "/" + f.Name(), p.args); err == nil {
-				cnt.Push()
-			}
-		}
-	}
-}
-
-func (p *Pod) Clean() {
-	log.Get().Info("Cleaning POD ")
-
-	files, _ := ioutil.ReadDir(p.path)
-	for _, f := range files {
-		if f.IsDir() {
-			if cnt, err := OpenCnt(p.path + "/" + f.Name(), p.args); err == nil {
-				cnt.Clean()
-			}
-		}
-	}
-}
-
-
-func (p *Pod) Test() {
-	log.Get().Info("Testing POD ")
-
-	files, _ := ioutil.ReadDir(p.path)
-	for _, f := range files {
-		if f.IsDir() {
-			if cnt, err := OpenCnt(p.path + "/" + f.Name(), p.args); err == nil {
-				cnt.Test()
-			}
-		}
-	}
+	log.Get().Trace("Pod manifest : ", p.manifest.NameAndVersion, p.manifest)
 }

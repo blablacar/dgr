@@ -11,7 +11,7 @@ import (
 	"io/ioutil"
 )
 
-func (cnt *Cnt) Push() {
+func (cnt *Img) Push() {
 	cnt.checkBuilt()
 	if config.GetConfig().Push.Type == "" {
 		log.Get().Panic("Can't push, push is not configured in cnt global configuration file")
