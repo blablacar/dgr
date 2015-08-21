@@ -1,25 +1,21 @@
 package builder
 import (
 	"github.com/blablacar/cnt/log"
-	"github.com/appc/spec/schema"
 	"path/filepath"
 	"io/ioutil"
 	"github.com/ghodss/yaml"
-	"github.com/blablacar/cnt/utils"
+	"github.com/blablacar/cnt/spec"
+	"github.com/appc/spec/schema/types"
 )
 
-const POD_MANIFEST = "cnt-pod-manifest.yml"
+const POD_MANIFEST = "/cnt-pod-manifest.yml"
+const POD_TARGET_MANIFEST = "/pod-manifest.json"
 
 type Pod struct {
 	path     string
 	args     BuildArgs
-	target	 string
-	manifest PodManifest
-}
-
-type PodManifest struct {
-	NameAndVersion string                      `json:"name"`
-	Pod            *schema.PodManifest          `json:"pod"`
+	target   string
+	manifest spec.PodManifest
 }
 
 func OpenPod(path string, args BuildArgs) (*Pod, error) {
@@ -32,8 +28,7 @@ func OpenPod(path string, args BuildArgs) (*Pod, error) {
 	}
 	pod.args = args
 	pod.target = pod.path + "/target"
-	pod.manifest.Pod = utils.BasicPodManifest()
-	pod.readManifest(pod.path + "/"+ POD_MANIFEST)
+	pod.readManifest(pod.path + POD_MANIFEST)
 	return pod, nil
 }
 
@@ -46,5 +41,36 @@ func (p *Pod) readManifest(manifestPath string) {
 	if err != nil {
 		log.Get().Panic(err)
 	}
+
+	for i, app := range p.manifest.Pod.Apps {
+		if app.Name == "" {
+			p.manifest.Pod.Apps[i].Name = app.Image.ShortName()
+		}
+	}
+
+	//TODO check that there is no app name conflict
+
 	log.Get().Trace("Pod manifest : ", p.manifest.NameAndVersion, p.manifest)
+}
+
+func (p *Pod) toAciManifest(e spec.RuntimeApp) spec.AciManifest {
+	fullname, _ := spec.NewACFullName(p.manifest.NameAndVersion.Name() + "_" + e.Image.ShortName() + ":" + p.manifest.NameAndVersion.Version())
+	name, _ := types.NewACIdentifier(e.Image.Name())
+	dependencies := types.Dependencies{}
+	labels := types.Labels{}
+	labels = append(labels, types.Label{Name: "version", Value: e.Image.Version()})
+	dependencies = append(dependencies, types.Dependency{
+		ImageName: *name,
+		Labels: labels,
+	})
+	return spec.AciManifest{
+		Aci: spec.AciDefinition{
+			Annotations: e.Annotations,
+			App: e.App,
+			Dependencies: dependencies,
+			PathWhitelist: nil, // TODO
+		},
+		NameAndVersion: *fullname,
+	}
+
 }

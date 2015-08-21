@@ -5,6 +5,7 @@ import (
 	"github.com/blablacar/cnt/utils"
 	"github.com/appc/spec/schema/types"
 	"github.com/appc/spec/schema"
+	"github.com/blablacar/cnt/spec"
 )
 
 
@@ -12,47 +13,61 @@ func (p *Pod) Build() {
 	log.Get().Info("Building POD : ", p.manifest.NameAndVersion)
 
 	os.MkdirAll(p.target, 0777)
+	os.Remove(p.target + POD_TARGET_MANIFEST)
 
-	//	p.manifest.Pod.Apps.Get("yop").Image.ID.Set("sha512-3cf428b611c03a08d5732a1dd576fd5de257022023a21fd440ad42fc7ee006cd")
-	//	p.manifest.Pod.Apps.Get("").Image.ID.Set("sha512-3cf428b611c03a08d5732a1dd576fd5de257022023a21fd440ad42fc7ee006cd")
-	//	p.manifest.Pod.Apps.Get("").Name.Set("yopla")
-//	for _, element := range p.manifest.Pod.Apps {
-//		if err := element.Name.Set("yopla"); err != nil {
-//			log.Get().Panic(err)
-//		}
-//		element.Image.ID.Set("sha512-3cf428b611c03a08d5732a1dd576fd5de257022023a21fd440ad42fc7ee006cd")
-//	}
+	apps := p.processAci()
 
-	if err := p.manifest.Pod.Apps.Get("yoplaboom").Image.ID.Set("sha512-3cf428b611c03a08d5732a1dd576fd5de257022023a21fd440ad42fc7ee006cd"); err != nil {
-		log.Get().Panic(err)
-	}
-
-	tmp, _ := types.NewHash("sha512-3cf428b611c03a08d5732a1dd576fd5de257022023a21fd440ad42fc7ee006cd")
-//	tmp.Set("sha512-aaf428b611c03a08d5732a1dd576fd5de257022023a21fd440ad42fc7ee006cd")
-//	log.Get().Panic(tmp)
-
-
-	p.manifest.Pod.Apps.Get("yoplaboom").Image.ID.Set("sha512-aaf428b611c03a08d5732a1dd576fd5de257022023a21fd440ad42fc7ee006cd")
-	p.manifest.Pod.Apps.Get("yoplaboom").Image.ID = *tmp
-	log.Get().Warn(">>", p.manifest.Pod.Apps.Get("yoplaboom").Image.ID.Empty())
-	log.Get().Warn(">>", p.manifest.Pod.Apps.Get("yoplaboom").Image.ID.String())
-
-	old := p.manifest.Pod.Apps.Get("yoplaboom").Image
-
-	ttmp := schema.RuntimeImage{Name: old.Name, ID: *tmp, Labels: old.Labels}
-//	p.manifest.Pod.Apps.Get("yoplaboom").Image
-
-	p.manifest.Pod.Apps = []schema.RuntimeApp{}
-	name, _ := types.NewACName("ouda")
-	p.manifest.Pod.Apps = append(p.manifest.Pod.Apps, schema.RuntimeApp{Name: *name, Image: ttmp})
-//	*new(schema.AppList)
-//	p.manifest.Pod.Apps.
-
-	log.Get().Warn(p.manifest.Pod.Apps.Get("ouda"))
-
-	p.writePodManifest()
+	p.writePodManifest(apps)
 }
 
-func (p *Pod) writePodManifest() {
-	utils.WritePodManifest(p.manifest.Pod, p.target + "/manifest")
+func (p *Pod) processAci() []schema.RuntimeApp {
+	apps := []schema.RuntimeApp{}
+	for _, e := range p.manifest.Pod.Apps {
+
+		p.buildAciIfNeeded(e)
+
+		name, _ := types.NewACName(e.Image.ShortName())
+
+		sum, err := utils.Sha512sum(p.path + "/" + e.Name + "/target/image.aci")
+		if (err != nil) {
+			log.Get().Panic(err)
+		}
+
+		tmp, _ := types.NewHash("sha512-" + sum)
+
+		labels := types.Labels{}
+		labels = append(labels, types.Label{Name: "version", Value: e.Image.Version()})
+		identifier, _ := types.NewACIdentifier(e.Image.Name())
+		ttmp := schema.RuntimeImage{Name: identifier, ID: *tmp, Labels: labels}
+		apps = append(apps, schema.RuntimeApp{Name: *name, Image: ttmp, App: e.App, Mounts: e.Mounts, Annotations: e.Annotations})
+
+	}
+	return apps
+}
+
+func (p *Pod) buildAciIfNeeded(e spec.RuntimeApp) bool {
+	if dir, err := os.Stat(p.path + "/" + e.Name); err == nil && dir.IsDir() {
+		aci, err := NewAciWithManifest(p.path + "/" + e.Name, p.args, p.toAciManifest(e))
+		if (err != nil) {
+			log.Get().Panic(err)
+		}
+		aci.Build()
+		return true
+	}
+	return false
+}
+
+func (p *Pod) writePodManifest(apps []schema.RuntimeApp) {
+
+	m := p.manifest.Pod
+	ver, _ := types.NewSemVer("0.6.1")
+	manifest := schema.PodManifest{
+		ACKind: "PodManifest",
+		ACVersion: *ver,
+		Apps: apps,
+		Volumes: m.Volumes,
+		Isolators: m.Isolators,
+		Annotations: m.Annotations,
+		Ports: m.Ports}
+	utils.WritePodManifest(&manifest, p.target + POD_TARGET_MANIFEST)
 }

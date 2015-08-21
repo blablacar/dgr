@@ -4,11 +4,10 @@ import (
 	"io/ioutil"
 	"strings"
 	"path/filepath"
-	"github.com/blablacar/cnt/utils"
 	"github.com/blablacar/cnt/log"
-	"github.com/appc/spec/schema"
 	"github.com/ghodss/yaml"
 	"github.com/appc/spec/schema/types"
+	"github.com/blablacar/cnt/spec"
 )
 
 const (
@@ -37,7 +36,7 @@ execute_files "faili $TARGET/runlevels/build"
 execute_files "$TARGET/runlevels/inherit-build-late"`
 )
 
-const IMG_MANIFEST = "cnt-manifest.yml"
+const IMG_MANIFEST = "/cnt-manifest.yml"
 const RUNLEVELS = "/runlevels"
 const RUNLEVELS_PRESTART = RUNLEVELS + "/prestart-early"
 const RUNLEVELS_LATESTART =  RUNLEVELS + "/prestart-late"
@@ -55,22 +54,8 @@ type Img struct {
 	path     string
 	target   string
 	rootfs   string
-	manifest ImgManifest
+	manifest spec.AciManifest
 	args     BuildArgs
-}
-type CntBuild struct {
-	Image types.ACIdentifier                `json:"image"`
-}
-
-func (b *CntBuild) NoBuildImage() bool {
-	return b.Image == ""
-}
-
-type ImgManifest struct {
-	NameAndVersion string             `json:"name"`
-	From  string                      `json:"from"`
-	Build CntBuild                    `json:"build"`
-	Aci   schema.ImageManifest        `json:"aci"`
 }
 
 func Version(nameAndVersion string) string {
@@ -95,21 +80,26 @@ func Name(nameAndVersion string) string {
 
 ////////////////////////////////////////////
 
-func OpenAci(path string, args BuildArgs) (*Img, error) {
-	cnt ,_ := PrepAci(path, args)
-
-	if _, err := os.Stat(cnt.path + "/" + IMG_MANIFEST); os.IsNotExist(err)  {
-		log.Get().Debug(cnt.path, "/"+ IMG_MANIFEST +" does not exists")
-		return nil, &BuildError{"file not found : " + cnt.path +  "/"+ IMG_MANIFEST, err}
+func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest) (*Img, error) {
+	log.Get().Debug("New aci", path, args, manifest)
+	cnt, err := PrepAci(path, args)
+	if (err != nil) {
+		return nil, err
 	}
-
-	cnt.manifest.Aci = *utils.BasicImageManifest()
-	cnt.readManifest(cnt.path + "/"+ IMG_MANIFEST)
-
+	cnt.manifest = manifest
 	return cnt, nil
 }
 
-func PrepAci(path string, args BuildArgs)(*Img, error){
+func NewAci(path string, args BuildArgs) (*Img, error) {
+	manifest, err := readManifest(path + IMG_MANIFEST)
+	if (err != nil) {
+		log.Get().Debug(path, IMG_MANIFEST +" does not exists")
+		return nil, err
+	}
+	return NewAciWithManifest(path, args, *manifest)
+}
+
+func PrepAci(path string, args BuildArgs) (*Img, error) {
 	cnt := new(Img)
 	cnt.args = args
 
@@ -125,30 +115,19 @@ func PrepAci(path string, args BuildArgs)(*Img, error){
 
 //////////////////////////////////////////////////////////////////
 
-func (i *Img) readManifest(manifestPath string) {
+func readManifest(manifestPath string) (*spec.AciManifest, error) {
+	manifest := spec.AciManifest{}
+
 	source, err := ioutil.ReadFile(manifestPath)
 	if err != nil {
-		log.Get().Panic(err)
+		return nil, err
 	}
-	err = yaml.Unmarshal([]byte(source), &i.manifest)
+	err = yaml.Unmarshal([]byte(source), &manifest)
 	if err != nil {
 		log.Get().Panic(err)
 	}
 
-	i.manifest.Aci.Name.Set(Name(i.manifest.NameAndVersion))
-	changeVersion(&i.manifest.Aci.Labels, Version(i.manifest.NameAndVersion))
-
-	log.Get().Trace("Img manifest : ", i.manifest.Aci.Name, i.manifest, i.manifest.Aci.App)
-}
-
-func changeVersion(labels *types.Labels, version string) {
-	labelMap := labels.ToMap()
-	labelMap["version"] = version
-	if newLabels, err := types.LabelsFromMap(labelMap); err != nil {
-		log.Get().Panic(err)
-	} else {
-		*labels = newLabels
-	}
+	return &manifest, nil
 }
 
 func (i *Img) checkBuilt() {

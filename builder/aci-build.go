@@ -13,7 +13,7 @@ import (
 )
 
 func (cnt *Img) Build() error {
-	log.Get().Info("Building Image : ", cnt.manifest.Aci.Name)
+	log.Get().Info("Building Image : ", cnt.manifest.NameAndVersion)
 
 	os.MkdirAll(cnt.rootfs, 0777)
 
@@ -41,7 +41,7 @@ func (cnt *Img) Build() error {
 ///////////////////////////////////////////////////////
 
 func (cnt *Img) writeCntManifest() {
-	utils.CopyFile(cnt.path +  "/"+ IMG_MANIFEST, cnt.target + "/"+ IMG_MANIFEST)
+	utils.CopyFile(cnt.path + IMG_MANIFEST, cnt.target + IMG_MANIFEST)
 }
 
 func (cnt *Img) runBuild() {
@@ -78,8 +78,8 @@ func (cnt *Img) runBuild() {
 
 		//
 		log.Get().Info("Run Docker\n");
-		cmd := []string{"run", "--name=" + ShortName(cnt.manifest.NameAndVersion), "-v", cnt.target + ":/target", imgId, "/target/build.sh"}
-		utils.ExecCmd("docker", "rm", ShortName(cnt.manifest.NameAndVersion))
+		cmd := []string{"run", "--name=" + cnt.manifest.NameAndVersion.ShortName(), "-v", cnt.target + ":/target", imgId, "/target/build.sh"}
+		utils.ExecCmd("docker", "rm", cnt.manifest.NameAndVersion.ShortName())
 		if err := utils.ExecCmd("docker", cmd...); err != nil {
 			panic(err)
 		}
@@ -90,13 +90,13 @@ func (cnt *Img) runBuild() {
 			os.RemoveAll(cnt.rootfs)
 			os.Mkdir(cnt.rootfs, 0777)
 
-			if err := utils.ExecCmd("docker", "export", "-o", cnt.target + "/dockerfs.tar", ShortName(cnt.manifest.NameAndVersion)); err != nil {
+			if err := utils.ExecCmd("docker", "export", "-o", cnt.target + "/dockerfs.tar", cnt.manifest.NameAndVersion.ShortName()); err != nil {
 				panic(err)
 			}
 
 			utils.ExecCmd("tar", "xpf", cnt.target + "/dockerfs.tar", "-C", cnt.rootfs)
 		}
-		if err := utils.ExecCmd("docker", "rm", ShortName(cnt.manifest.NameAndVersion)); err != nil {
+		if err := utils.ExecCmd("docker", "rm", cnt.manifest.NameAndVersion.ShortName()); err != nil {
 			panic(err)
 		}
 		if err := utils.ExecCmd("docker", "rmi", imgId); err != nil {
@@ -110,7 +110,7 @@ func (cnt *Img) processFrom() {
 	if cnt.manifest.From != "" {
 		log.Get().Info("Prepare rootfs from " + cnt.manifest.From)
 
-		app, err := discovery.NewAppFromString(cnt.manifest.From)
+		app, err := discovery.NewAppFromString(string(cnt.manifest.From))
 		if app.Labels["os"] == "" {
 			app.Labels["os"] = "linux"
 		}
@@ -125,7 +125,7 @@ func (cnt *Img) processFrom() {
 
 		url := endpoint.ACIEndpoints[0].ACI
 
-		aciPath := config.GetConfig().AciPath + "/" + cnt.manifest.From
+		aciPath := config.GetConfig().AciPath + "/" + string(cnt.manifest.From)
 		if _, err := os.Stat(aciPath + "/image.aci"); cnt.args.ForceUpdate || os.IsNotExist(err) {
 			if err := os.MkdirAll(aciPath, 0755); err != nil {
 				log.Get().Panic(err)
@@ -230,10 +230,10 @@ func (cnt *Img) copyFiles() {
 }
 
 func (cnt *Img) copyAttributes() {
-	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/attributes/" + ShortNameId(cnt.manifest.Aci.Name), 0755); err != nil {
+	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/attributes/" + cnt.manifest.NameAndVersion.ShortNameId(), 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	utils.CopyDir(cnt.path + ATTRIBUTES, cnt.rootfs + "/etc/prestart/attributes/" + ShortNameId(cnt.manifest.Aci.Name))
+	utils.CopyDir(cnt.path + ATTRIBUTES, cnt.rootfs + "/etc/prestart/attributes/" + cnt.manifest.NameAndVersion.ShortNameId())
 }
 
 func (cnt *Img) writeBuildScript() {
@@ -247,9 +247,9 @@ func (cnt *Img) writeBuildScript() {
 
 func (cnt *Img) writeImgManifest() {
 	log.Get().Debug("Writing aci manifest")
-	if val, _ := cnt.manifest.Aci.Labels.Get("version"); val == "" {
-		changeVersion(&cnt.manifest.Aci.Labels, utils.GenerateVersion())
+	version := cnt.manifest.NameAndVersion.Version()
+	if version == "" {
+		version = utils.GenerateVersion()
 	}
-	version, _ := cnt.manifest.Aci.Labels.Get("version")
-	utils.WriteImageManifest(&cnt.manifest.Aci, cnt.target + "/manifest", cnt.manifest.Aci.Name, version)
+	utils.WriteImageManifest(&cnt.manifest, cnt.target + "/manifest", cnt.manifest.NameAndVersion.Name(), version)
 }

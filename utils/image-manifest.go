@@ -2,8 +2,8 @@ package utils
 import (
 	"github.com/appc/spec/schema"
 	"io/ioutil"
-    "strings"
-    "log"
+	"log"
+	"github.com/blablacar/cnt/spec"
     "github.com/appc/spec/schema/types"
 )
 
@@ -42,9 +42,9 @@ const IMAGE_MANIFEST = `{
 `
 
 func BasicImageManifest() *schema.ImageManifest {
-    im := new(schema.ImageManifest)
-    im.UnmarshalJSON([]byte(IMAGE_MANIFEST))
-    return im
+	im := new(schema.ImageManifest)
+	im.UnmarshalJSON([]byte(IMAGE_MANIFEST))
+	return im
 }
 
 //
@@ -59,15 +59,24 @@ func BasicImageManifest() *schema.ImageManifest {
 //    return im
 //}
 
-func WriteImageManifest(im *schema.ImageManifest, targetFile string, projectName types.ACIdentifier, version string) {
+func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName string, version string) {
+    name, _ := types.NewACIdentifier(m.NameAndVersion.Name())
+
+    labels := types.Labels{}
+    labels = append(labels, types.Label{Name: "version", Value: m.NameAndVersion.Version()})
+
+    im := schema.BlankImageManifest()
+	im.Annotations = m.Aci.Annotations
+    im.Dependencies = m.Aci.Dependencies
+    im.Name = *name
+    im.Labels = labels
+    im.App = m.Aci.App
+
 	buff, err := im.MarshalJSON()
-    res := strings.Replace(string(buff), "0.0.0", version, 1)
-    res = strings.Replace(res, "__VERSION__", version, 1)
-    res = strings.Replace(res, "xxx/xxx", string(projectName), 1)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = ioutil.WriteFile(targetFile, []byte(res), 0644)
+	err = ioutil.WriteFile(targetFile, buff, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}

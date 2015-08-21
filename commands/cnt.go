@@ -25,9 +25,8 @@ func Execute() {
 	log.Get().Info("Victory !")
 }
 
-
 func discoverAndRunBuildType(path string, args builder.BuildArgs) {
-	if cnt, err := builder.OpenAci(path, args); err == nil {
+	if cnt, err := builder.NewAci(path, args); err == nil {
 		cnt.Build()
 	} else if pod, err := builder.OpenPod(path, args); err == nil {
 		pod.Build()
@@ -37,7 +36,7 @@ func discoverAndRunBuildType(path string, args builder.BuildArgs) {
 }
 
 func discoverAndRunPushType(path string, args builder.BuildArgs) {
-	if cnt, err := builder.OpenAci(path, args); err == nil {
+	if cnt, err := builder.NewAci(path, args); err == nil {
 		cnt.Push()
 	} else if pod, err := builder.OpenPod(path, args); err == nil {
 		pod.Push()
@@ -47,7 +46,7 @@ func discoverAndRunPushType(path string, args builder.BuildArgs) {
 }
 
 func discoverAndRunInstallType(path string, args builder.BuildArgs) {
-	if cnt, err := builder.OpenAci(path, args); err == nil {
+	if cnt, err := builder.NewAci(path, args); err == nil {
 		cnt.Install()
 	} else if pod, err := builder.OpenPod(path, args); err == nil {
 		pod.Install()
@@ -57,7 +56,7 @@ func discoverAndRunInstallType(path string, args builder.BuildArgs) {
 }
 
 func discoverAndRunCleanType(path string, args builder.BuildArgs) {
-	if cnt, err := builder.OpenAci(path, args); err == nil {
+	if cnt, err := builder.NewAci(path, args); err == nil {
 		cnt.Clean()
 	} else if pod, err := builder.OpenPod(path, args); err == nil {
 		pod.Clean()
@@ -67,7 +66,7 @@ func discoverAndRunCleanType(path string, args builder.BuildArgs) {
 }
 
 func discoverAndRunTestType(path string, args builder.BuildArgs) {
-	if cnt, err := builder.OpenAci(path, args); err == nil {
+	if cnt, err := builder.NewAci(path, args); err == nil {
 		cnt.Test()
 	} else if pod, err := builder.OpenPod(path, args); err == nil {
 		pod.Test()
