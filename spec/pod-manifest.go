@@ -20,7 +20,8 @@ type PodDefinition struct {
 type RuntimeApp struct {
 	Image       ACFullname               `json:"image"`
 	Name        string					 `json:"name"`
-	App         *types.App               `json:"app"`
+	App         *CntApp                     `json:"app"`
 	Mounts      []schema.Mount           `json:"mounts"`
 	Annotations types.Annotations        `json:"annotations"`
 }
+

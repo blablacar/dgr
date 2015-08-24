@@ -37,6 +37,7 @@ func (p *Pod) readManifest(manifestPath string) {
 	if err != nil {
 		log.Get().Panic(err)
 	}
+
 	err = yaml.Unmarshal([]byte(source), &p.manifest)
 	if err != nil {
 		log.Get().Panic(err)

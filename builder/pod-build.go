@@ -39,7 +39,30 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 		labels = append(labels, types.Label{Name: "version", Value: e.Image.Version()})
 		identifier, _ := types.NewACIdentifier(e.Image.Name())
 		ttmp := schema.RuntimeImage{Name: identifier, ID: *tmp, Labels: labels}
-		apps = append(apps, schema.RuntimeApp{Name: *name, Image: ttmp, App: e.App, Mounts: e.Mounts, Annotations: e.Annotations})
+
+		if e.App.User == "" {
+			e.App.User = "0"
+		}
+		if e.App.Group == "" {
+			e.App.Group = "0"
+		}
+
+		apps = append(apps, schema.RuntimeApp{
+			Name: *name,
+			Image: ttmp,
+			App: &types.App{
+				Exec: e.App.Exec,
+				EventHandlers: e.App.EventHandlers,
+				User: e.App.User,
+				Group: e.App.Group,
+				WorkingDirectory: e.App.WorkingDirectory,
+				Environment: e.App.Environment,
+				MountPoints: e.App.MountPoints,
+				Ports: e.App.Ports,
+				Isolators: e.App.Isolators,
+			},
+			Mounts: e.Mounts,
+			Annotations: e.Annotations})
 
 	}
 	return apps

@@ -32,7 +32,7 @@ execute_files() {
 }
 
 execute_files "$TARGET/runlevels/inherit-build-early"
-execute_files "faili $TARGET/runlevels/build"
+execute_files "$TARGET/runlevels/build"
 execute_files "$TARGET/runlevels/inherit-build-late"`
 )
 
@@ -116,7 +116,7 @@ func PrepAci(path string, args BuildArgs) (*Img, error) {
 //////////////////////////////////////////////////////////////////
 
 func readManifest(manifestPath string) (*spec.AciManifest, error) {
-	manifest := spec.AciManifest{}
+	manifest := spec.AciManifest{Aci: spec.AciDefinition{}}
 
 	source, err := ioutil.ReadFile(manifestPath)
 	if err != nil {

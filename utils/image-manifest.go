@@ -65,12 +65,29 @@ func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName stri
     labels := types.Labels{}
     labels = append(labels, types.Label{Name: "version", Value: m.NameAndVersion.Version()})
 
+    if m.Aci.App.User == "" {
+        m.Aci.App.User = "0"
+    }
+    if m.Aci.App.Group == "" {
+        m.Aci.App.Group = "0"
+    }
+
     im := schema.BlankImageManifest()
 	im.Annotations = m.Aci.Annotations
     im.Dependencies = m.Aci.Dependencies
     im.Name = *name
     im.Labels = labels
-    im.App = m.Aci.App
+    im.App = &types.App{
+        Exec: m.Aci.App.Exec,
+        EventHandlers: m.Aci.App.EventHandlers,
+        User: m.Aci.App.User,
+        Group: m.Aci.App.Group,
+        WorkingDirectory: m.Aci.App.WorkingDirectory,
+        Environment: m.Aci.App.Environment,
+        MountPoints: m.Aci.App.MountPoints,
+        Ports: m.Aci.App.Ports,
+        Isolators: m.Aci.App.Isolators,
+    }
 
 	buff, err := im.MarshalJSON()
 	if err != nil {
