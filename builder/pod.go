@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"github.com/ghodss/yaml"
 	"github.com/blablacar/cnt/spec"
-	"github.com/appc/spec/schema/types"
 )
 
 const POD_MANIFEST = "/cnt-pod-manifest.yml"
@@ -56,19 +55,11 @@ func (p *Pod) readManifest(manifestPath string) {
 
 func (p *Pod) toAciManifest(e spec.RuntimeApp) spec.AciManifest {
 	fullname, _ := spec.NewACFullName(p.manifest.NameAndVersion.Name() + "_" + e.Image.ShortName() + ":" + p.manifest.NameAndVersion.Version())
-	name, _ := types.NewACIdentifier(e.Image.Name())
-	dependencies := types.Dependencies{}
-	labels := types.Labels{}
-	labels = append(labels, types.Label{Name: "version", Value: e.Image.Version()})
-	dependencies = append(dependencies, types.Dependency{
-		ImageName: *name,
-		Labels: labels,
-	})
 	return spec.AciManifest{
 		Aci: spec.AciDefinition{
 			Annotations: e.Annotations,
 			App: e.App,
-			Dependencies: dependencies,
+			Dependencies: []spec.ACFullname{e.Image},
 			PathWhitelist: nil, // TODO
 		},
 		NameAndVersion: *fullname,

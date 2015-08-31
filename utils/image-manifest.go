@@ -2,9 +2,9 @@ package utils
 import (
 	"github.com/appc/spec/schema"
 	"io/ioutil"
-	"log"
 	"github.com/blablacar/cnt/spec"
     "github.com/appc/spec/schema/types"
+    "github.com/blablacar/cnt/log"
 )
 
 const IMAGE_MANIFEST = `{
@@ -74,7 +74,7 @@ func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName stri
 
     im := schema.BlankImageManifest()
 	im.Annotations = m.Aci.Annotations
-    im.Dependencies = m.Aci.Dependencies
+    im.Dependencies = toAppcDependencies(m.Aci.Dependencies)
     im.Name = *name
     im.Labels = labels
     im.App = &types.App{
@@ -91,10 +91,28 @@ func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName stri
 
 	buff, err := im.MarshalJSON()
 	if err != nil {
-		log.Fatal(err)
+		log.Get().Panic(err)
 	}
 	err = ioutil.WriteFile(targetFile, buff, 0644)
 	if err != nil {
-		log.Fatal(err)
+		log.Get().Panic(err)
 	}
+}
+
+func toAppcDependencies(dependencies []spec.ACFullname) types.Dependencies {
+    appcDependencies := types.Dependencies{}
+    for _, dep := range dependencies {
+        id, err := types.NewACIdentifier(dep.Name())
+        if err != nil {
+            log.Get().Panic(err)
+        }
+        t := types.Dependency{ImageName: *id}
+        if dep.Version() != "" {
+            t.Labels = types.Labels{}
+            t.Labels = append(t.Labels, types.Label{Name: "version", Value: dep.Version()})
+        }
+
+        appcDependencies = append(appcDependencies, t)
+    }
+    return appcDependencies
 }

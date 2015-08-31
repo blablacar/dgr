@@ -32,7 +32,11 @@ push:
   password: admin 
 ```
 
-#Standard FileTree
+
+Building an ACI
+===============
+
+#Standard FileTree for ACI
 ```bash
 ├── attributes
 │   └── attributes.yml              # Attributes file for confd
@@ -57,5 +61,44 @@ push:
 │   │   └── 00.apt-get-update.sh
 │   └── inherit-build-late
 │       └── 99.purge.sh
+
+```
+
+#The cnt manifest look like
+```yaml
+from: aci.test.com/aci-base:5
+name: aci.test.com/aci-elasticsearch:1
+aci:
+  app:
+    eventHandlers:
+      - { name: pre-start, exec: [ "/usr/local/bin/prestart" ] }
+    exec: [
+        "/usr/share/elasticsearch/bin/elasticsearch",
+          "-p", "/var/run/elasticsearch.pid",
+          "-Des.default.config=/etc/elasticsearch/elasticsearch.yml",
+          "-Des.default.path.home=/usr/share/elasticsearch",
+          "-Des.default.path.logs=/var/log/elasticsearch",
+          "-Des.default.path.data=/var/lib/elasticsearch",
+          "-Des.default.path.work=/tmp/elasticsearch",
+          "-Des.default.path.conf=/etc/elasticsearch"
+    ]
+    mountPoints:
+      - {name: es-data, path: /var/lib/elasticsearch, readOnly: false}
+      - {name: es-log, path: /var/log/elasticsearch, readOnly: false}
+```
+
+
+Building a POD
+=============
+
+#Standard FileTree for POD
+
+```bash
+├── aci-elasticsearch               # Directory that match the pod app shortname (or name)
+│   ├── attributes
+│   │   └── attributes.yml          # Attributes file for confd in this ACI
+│   ├── files                       # Files to be inserted into this ACI
+│   ...  
+├── cnt-pod-manifest.yml            # Pod Manifest
 
 ```
