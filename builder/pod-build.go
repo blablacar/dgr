@@ -25,11 +25,12 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 	for _, e := range p.manifest.Pod.Apps {
 
 		aciName := p.buildAciIfNeeded(e)
-		if aciName == nil {
-			aciName = &e.Image
-		}
+// TODO: support not FS override by only storing info pod manifest
+//		if aciName == nil {
+//			aciName = &e.Image
+//		}
 
-		name, _ := types.NewACName(e.Image.ShortName())
+		name, _ := types.NewACName(e.Name)
 
 		sum, err := utils.Sha512sum(p.path + "/" + e.Name + "/target/image.aci")
 		if err != nil {
