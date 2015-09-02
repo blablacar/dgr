@@ -24,7 +24,10 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 	apps := []schema.RuntimeApp{}
 	for _, e := range p.manifest.Pod.Apps {
 
-		p.buildAciIfNeeded(e)
+		aciName := p.buildAciIfNeeded(e)
+		if aciName == nil {
+			aciName = &e.Image
+		}
 
 		name, _ := types.NewACName(e.Image.ShortName())
 
@@ -36,8 +39,8 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 		tmp, _ := types.NewHash("sha512-" + sum)
 
 		labels := types.Labels{}
-		labels = append(labels, types.Label{Name: "version", Value: e.Image.Version()})
-		identifier, _ := types.NewACIdentifier(e.Image.Name())
+		labels = append(labels, types.Label{Name: "version", Value: aciName.Version()})
+		identifier, _ := types.NewACIdentifier(aciName.Name())
 		ttmp := schema.RuntimeImage{Name: identifier, ID: *tmp, Labels: labels}
 
 		if e.App.User == "" {
@@ -65,23 +68,23 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 			Annotations: e.Annotations})
 
 	}
+
 	return apps
 }
 
-func (p *Pod) buildAciIfNeeded(e spec.RuntimeApp) bool {
+func (p *Pod) buildAciIfNeeded(e spec.RuntimeApp) *spec.ACFullname {
 	if dir, err := os.Stat(p.path + "/" + e.Name); err == nil && dir.IsDir() {
 		aci, err := NewAciWithManifest(p.path + "/" + e.Name, p.args, p.toAciManifest(e))
 		if (err != nil) {
 			log.Get().Panic(err)
 		}
 		aci.Build()
-		return true
+		return &aci.manifest.NameAndVersion
 	}
-	return false
+	return nil
 }
 
 func (p *Pod) writePodManifest(apps []schema.RuntimeApp) {
-
 	m := p.manifest.Pod
 	ver, _ := types.NewSemVer("0.6.1")
 	manifest := schema.PodManifest{

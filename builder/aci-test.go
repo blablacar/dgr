@@ -14,8 +14,21 @@ func (cnt *Img) Test() {
 		}
 	}
 
+	// prepare runner in target
+	// run contauner with mout mpoint
+	// run real service in background
+	// run tests
+	//
+
+
 	// BATS
 	os.MkdirAll(cnt.target + "/test", 0777)
 	bats.WriteBats(cnt.target + "/test")
-	utils.ExecCmd("rkt", "--insecure-skip-verify=true", "run", cnt.target + "/image.aci") // TODO missing command override that will arrive in next RKT version
+
+	if err := utils.ExecCmd("systemd-nspawn", "--directory=" + cnt.rootfs, "--capability=all",
+		"--bind=" + cnt.target + "/:/target", "--share-system", "target/build.sh"); err != nil {
+		log.Get().Panic("Build step did not succeed", err)
+
+
+		utils.ExecCmd("rkt", "--insecure-skip-verify=true", "run", cnt.target + "/image.aci") // TODO missing command override that will arrive in next RKT version
 }

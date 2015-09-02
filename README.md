@@ -85,6 +85,8 @@ aci:
     mountPoints:
       - {name: es-data, path: /var/lib/elasticsearch, readOnly: false}
       - {name: es-log, path: /var/log/elasticsearch, readOnly: false}
+    dependencies:
+        - aci.test.com/aci-php:0.2
 ```
 
 
