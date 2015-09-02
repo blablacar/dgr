@@ -1,23 +1,24 @@
 package config
+
 import (
-	"io/ioutil"
-	"gopkg.in/yaml.v2"
-	"github.com/blablacar/cnt/utils"
-	"runtime"
 	"github.com/blablacar/cnt/log"
+	"github.com/blablacar/cnt/utils"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"runtime"
 )
 
 var cntConfig CntConfig
 
 type CntConfig struct {
-	Path string
+	Path    string
 	AciPath string
-	Push struct {
-			 Type     string                `yaml:"type,omitempty"`
-			 Url      string                `yaml:"url,omitempty"`
-			 Username string                `yaml:"username,omitempty"`
-			 Password string                `yaml:"password,omitempty"`
-		 }                            `yaml:"push,omitempty"`
+	Push    struct {
+		Type     string `yaml:"type,omitempty"`
+		Url      string `yaml:"url,omitempty"`
+		Username string `yaml:"username,omitempty"`
+		Password string `yaml:"password,omitempty"`
+	} `yaml:"push,omitempty"`
 }
 
 func GetConfig() *CntConfig {
@@ -31,11 +32,11 @@ func init() {
 	cntConfig = CntConfig{}
 	switch runtime.GOOS {
 	case "windows":
-		cntConfig.Path = utils.UserHomeOrFatal() + "/AppData/Local/Cnt";
+		cntConfig.Path = utils.UserHomeOrFatal() + "/AppData/Local/Cnt"
 	case "darwin":
-		cntConfig.Path = utils.UserHomeOrFatal() + "/Library/Cnt";
+		cntConfig.Path = utils.UserHomeOrFatal() + "/Library/Cnt"
 	case "linux":
-		cntConfig.Path = utils.UserHomeOrFatal() + "/.config/cnt";
+		cntConfig.Path = utils.UserHomeOrFatal() + "/.config/cnt"
 	default:
 		log.Get().Panic("Unsupported OS, please fill a bug repost")
 	}

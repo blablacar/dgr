@@ -1,14 +1,15 @@
 package builder
+
 import (
+	"github.com/appc/spec/aci"
+	"github.com/appc/spec/schema"
 	"github.com/blablacar/cnt/config"
 	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/utils"
-	"os"
-	"github.com/appc/spec/schema"
-	"github.com/appc/spec/aci"
 	"io"
-	"path/filepath"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
 func (cnt *Img) Push() {
@@ -25,11 +26,11 @@ func (cnt *Img) Push() {
 		"-F", "e=aci",
 		"-F", "g=com.blablacar.aci.linux.amd64",
 		"-F", "p=aci",
-		"-F", "v=" + val,
-		"-F", "a=" + ShortNameId(im.Name),
-		"-F", "file=@" + cnt.target + "/image.aci",
-		"-u", config.GetConfig().Push.Username + ":" + config.GetConfig().Push.Password,
-		config.GetConfig().Push.Url + "/service/local/artifact/maven/content")
+		"-F", "v="+val,
+		"-F", "a="+ShortNameId(im.Name),
+		"-F", "file=@"+cnt.target+"/image.aci",
+		"-u", config.GetConfig().Push.Username+":"+config.GetConfig().Push.Password,
+		config.GetConfig().Push.Url+"/service/local/artifact/maven/content")
 }
 
 func extractManifestFromAci(aciPath string) schema.ImageManifest {
@@ -44,10 +45,9 @@ func extractManifestFromAci(aciPath string) schema.ImageManifest {
 		log.Get().Panic("cat-manifest: Cannot open tar %s: %v", aciPath, err)
 	}
 
-
 	im := schema.ImageManifest{}
 
-	Tar:
+Tar:
 	for {
 		hdr, err := tr.Next()
 		switch err {
@@ -70,6 +70,6 @@ func extractManifestFromAci(aciPath string) schema.ImageManifest {
 			log.Get().Panic("error reading tarball: %v", err)
 		}
 	}
-	log.Get().Panic("Cannot found manifest if aci");
+	log.Get().Panic("Cannot found manifest if aci")
 	return im
 }

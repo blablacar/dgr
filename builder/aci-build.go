@@ -1,15 +1,16 @@
 package builder
+
 import (
-	"github.com/blablacar/cnt/log"
-	"os"
-	"github.com/blablacar/cnt/utils"
-	"os/exec"
-	"io"
 	"bytes"
-	"strings"
 	"github.com/appc/spec/discovery"
 	"github.com/blablacar/cnt/config"
+	"github.com/blablacar/cnt/log"
+	"github.com/blablacar/cnt/utils"
+	"io"
 	"io/ioutil"
+	"os"
+	"os/exec"
+	"strings"
 )
 
 func (cnt *Img) Build() error {
@@ -21,7 +22,7 @@ func (cnt *Img) Build() error {
 
 	cnt.runlevelBuildSetup()
 	cnt.copyRunlevelsBuild()
-//	cnt.copyInstallAndCreatePacker()
+	//	cnt.copyInstallAndCreatePacker()
 
 	cnt.writeBuildScript()
 	cnt.writeImgManifest()
@@ -41,7 +42,7 @@ func (cnt *Img) Build() error {
 ///////////////////////////////////////////////////////
 
 func (cnt *Img) writeCntManifest() {
-	utils.CopyFile(cnt.path + IMG_MANIFEST, cnt.target + IMG_MANIFEST)
+	utils.CopyFile(cnt.path+IMG_MANIFEST, cnt.target+IMG_MANIFEST)
 }
 
 func (cnt *Img) runBuild() {
@@ -50,16 +51,16 @@ func (cnt *Img) runBuild() {
 	}
 	if err := utils.ExecCmd("systemd-nspawn", "--version"); err == nil {
 		log.Get().Info("Run with systemd-nspawn")
-		if err := utils.ExecCmd("systemd-nspawn", "--directory=" + cnt.rootfs, "--capability=all",
-			"--bind=" + cnt.target + "/:/target", "--share-system", "target/build.sh"); err != nil {
+		if err := utils.ExecCmd("systemd-nspawn", "--directory="+cnt.rootfs, "--capability=all",
+			"--bind="+cnt.target+"/:/target", "--share-system", "target/build.sh"); err != nil {
 			log.Get().Panic("Build step did not succeed", err)
 		}
 	} else {
 		log.Get().Info("Run with docker")
 
 		//
-		log.Get().Info("Prepare Docker");
-		first := exec.Command("bash", "-c", "cd " + cnt.rootfs + " && tar cf - .")
+		log.Get().Info("Prepare Docker")
+		first := exec.Command("bash", "-c", "cd "+cnt.rootfs+" && tar cf - .")
 		second := exec.Command("docker", "import", "-", "")
 
 		reader, writer := io.Pipe()
@@ -77,7 +78,7 @@ func (cnt *Img) runBuild() {
 		imgId := strings.TrimSpace(buff.String())
 
 		//
-		log.Get().Info("Run Docker\n");
+		log.Get().Info("Run Docker\n")
 		cmd := []string{"run", "--name=" + cnt.manifest.NameAndVersion.ShortName(), "-v", cnt.target + ":/target", imgId, "/target/build.sh"}
 		utils.ExecCmd("docker", "rm", cnt.manifest.NameAndVersion.ShortName())
 		if err := utils.ExecCmd("docker", cmd...); err != nil {
@@ -85,16 +86,16 @@ func (cnt *Img) runBuild() {
 		}
 
 		//
-		log.Get().Info("Release Docker");
+		log.Get().Info("Release Docker")
 		if cnt.manifest.Build.NoBuildImage() {
 			os.RemoveAll(cnt.rootfs)
 			os.Mkdir(cnt.rootfs, 0777)
 
-			if err := utils.ExecCmd("docker", "export", "-o", cnt.target + "/dockerfs.tar", cnt.manifest.NameAndVersion.ShortName()); err != nil {
+			if err := utils.ExecCmd("docker", "export", "-o", cnt.target+"/dockerfs.tar", cnt.manifest.NameAndVersion.ShortName()); err != nil {
 				panic(err)
 			}
 
-			utils.ExecCmd("tar", "xpf", cnt.target + "/dockerfs.tar", "-C", cnt.rootfs)
+			utils.ExecCmd("tar", "xpf", cnt.target+"/dockerfs.tar", "-C", cnt.rootfs)
 		}
 		if err := utils.ExecCmd("docker", "rm", cnt.manifest.NameAndVersion.ShortName()); err != nil {
 			panic(err)
@@ -130,7 +131,7 @@ func (cnt *Img) processFrom() {
 			if err := os.MkdirAll(aciPath, 0755); err != nil {
 				log.Get().Panic(err)
 			}
-			if err = utils.ExecCmd("wget", "-O", aciPath + "/image.aci", url); err != nil {
+			if err = utils.ExecCmd("wget", "-O", aciPath+"/image.aci", url); err != nil {
 				os.Remove(aciPath + "/image.aci")
 				log.Get().Panic("Cannot download from image", err)
 			}
@@ -138,7 +139,7 @@ func (cnt *Img) processFrom() {
 			log.Get().Info("Image " + cnt.manifest.From + " Already exists locally, will not be downloaded")
 		}
 
-		utils.ExecCmd("tar", "xpf", aciPath + "/image.aci", "-C", cnt.target)
+		utils.ExecCmd("tar", "xpf", aciPath+"/image.aci", "-C", cnt.target)
 
 		//		utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.manifest.From)
 		//		utils.ExecCmd("rkt", "image", "export", "--overwrite", cnt.manifest.From, cnt.target + "/from.aci")
@@ -148,10 +149,10 @@ func (cnt *Img) processFrom() {
 }
 
 func (cnt *Img) copyRunlevelsBuild() {
-	if err := os.MkdirAll(cnt.target + RUNLEVELS, 0755); err != nil {
+	if err := os.MkdirAll(cnt.target+RUNLEVELS, 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	utils.CopyDir(cnt.path + RUNLEVELS, cnt.target + RUNLEVELS)
+	utils.CopyDir(cnt.path+RUNLEVELS, cnt.target+RUNLEVELS)
 }
 
 func (cnt *Img) runlevelBuildSetup() {
@@ -165,31 +166,30 @@ func (cnt *Img) runlevelBuildSetup() {
 	for _, f := range files {
 		if !f.IsDir() {
 			log.Get().Info("Running Build setup level : ", f.Name())
-			if err := utils.ExecCmd(cnt.path + RUNLEVELS_BUILD_SETUP + "/" +f.Name()); err != nil {
+			if err := utils.ExecCmd(cnt.path + RUNLEVELS_BUILD_SETUP + "/" + f.Name()); err != nil {
 				log.Get().Panic(err)
 			}
 		}
 	}
 }
 
-
 func (cnt *Img) tarAci() {
-	dir, _ := os.Getwd();
+	dir, _ := os.Getwd()
 	log.Get().Debug("chdir to", cnt.target)
-	os.Chdir(cnt.target);
+	os.Chdir(cnt.target)
 
 	args := []string{"manifest", "rootfs/"}
 
 	if _, err := os.Stat(cnt.path + RUNLEVELS_BUILD_INHERIT_EARLY); err == nil {
-		args = append(args, strings.TrimPrefix(RUNLEVELS_BUILD_INHERIT_EARLY,"/"))
+		args = append(args, strings.TrimPrefix(RUNLEVELS_BUILD_INHERIT_EARLY, "/"))
 	}
 	if _, err := os.Stat(cnt.path + RUNLEVELS_BUILD_INHERIT_LATE); err == nil {
-		args = append(args, strings.TrimPrefix(RUNLEVELS_BUILD_INHERIT_LATE,"/"))
+		args = append(args, strings.TrimPrefix(RUNLEVELS_BUILD_INHERIT_LATE, "/"))
 	}
 
 	utils.Tar(cnt.args.Zip, "image.aci", args...)
 	log.Get().Debug("chdir to", dir)
-	os.Chdir(dir);
+	os.Chdir(dir)
 }
 
 //func (cnt *Cnt) copyInstallAndCreatePacker() {
@@ -207,33 +207,33 @@ func (cnt *Img) tarAci() {
 //}
 
 func (cnt *Img) copyRunlevelsPrestart() {
-	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/late-prestart.d", 0755); err != nil {
+	if err := os.MkdirAll(cnt.rootfs+"/etc/prestart/late-prestart.d", 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/early-prestart.d", 0755); err != nil {
+	if err := os.MkdirAll(cnt.rootfs+"/etc/prestart/early-prestart.d", 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	utils.CopyDir(cnt.path + RUNLEVELS_PRESTART, cnt.rootfs + "/etc/prestart/early-prestart.d")
-	utils.CopyDir(cnt.path + RUNLEVELS_LATESTART, cnt.rootfs + "/etc/prestart/late-prestart.d")
+	utils.CopyDir(cnt.path+RUNLEVELS_PRESTART, cnt.rootfs+"/etc/prestart/early-prestart.d")
+	utils.CopyDir(cnt.path+RUNLEVELS_LATESTART, cnt.rootfs+"/etc/prestart/late-prestart.d")
 }
 
 func (cnt *Img) copyConfd() {
-	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/", 0755); err != nil {
+	if err := os.MkdirAll(cnt.rootfs+"/etc/prestart/", 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	utils.CopyDir(cnt.path + CONFD_CONFIG, cnt.rootfs + "/etc/prestart/conf.d")
-	utils.CopyDir(cnt.path + CONFD_TEMPLATE, cnt.rootfs + "/etc/prestart/templates")
+	utils.CopyDir(cnt.path+CONFD_CONFIG, cnt.rootfs+"/etc/prestart/conf.d")
+	utils.CopyDir(cnt.path+CONFD_TEMPLATE, cnt.rootfs+"/etc/prestart/templates")
 }
 
 func (cnt *Img) copyFiles() {
-	utils.CopyDir(cnt.path + FILES_PATH, cnt.rootfs)
+	utils.CopyDir(cnt.path+FILES_PATH, cnt.rootfs)
 }
 
 func (cnt *Img) copyAttributes() {
-	if err := os.MkdirAll(cnt.rootfs + "/etc/prestart/attributes/" + cnt.manifest.NameAndVersion.ShortNameId(), 0755); err != nil {
+	if err := os.MkdirAll(cnt.rootfs+"/etc/prestart/attributes/"+cnt.manifest.NameAndVersion.ShortNameId(), 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	utils.CopyDir(cnt.path + ATTRIBUTES, cnt.rootfs + "/etc/prestart/attributes/" + cnt.manifest.NameAndVersion.ShortNameId())
+	utils.CopyDir(cnt.path+ATTRIBUTES, cnt.rootfs+"/etc/prestart/attributes/"+cnt.manifest.NameAndVersion.ShortNameId())
 }
 
 func (cnt *Img) writeBuildScript() {
@@ -242,7 +242,7 @@ func (cnt *Img) writeBuildScript() {
 		rootfs = ""
 	}
 	build := strings.Replace(buildScript, "%%ROOTFS%%", rootfs, 1)
-	ioutil.WriteFile(cnt.target + "/build.sh", []byte(build), 0777)
+	ioutil.WriteFile(cnt.target+"/build.sh", []byte(build), 0777)
 }
 
 func (cnt *Img) writeImgManifest() {
@@ -251,5 +251,5 @@ func (cnt *Img) writeImgManifest() {
 	if version == "" {
 		version = utils.GenerateVersion()
 	}
-	utils.WriteImageManifest(&cnt.manifest, cnt.target + "/manifest", cnt.manifest.NameAndVersion.Name(), version)
+	utils.WriteImageManifest(&cnt.manifest, cnt.target+"/manifest", cnt.manifest.NameAndVersion.Name(), version)
 }

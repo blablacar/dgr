@@ -1,20 +1,21 @@
 package logger
-import (
-	"os"
-	"time"
-	"sync/atomic"
-	"io"
-	"fmt"
-	"bytes"
-	"log"
-	"runtime"
-)
 
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"log"
+	"os"
+	"runtime"
+	"sync/atomic"
+	"time"
+)
 
 var (
 	colors map[string]string
-	logNo uint64
+	logNo  uint64
 )
+
 const (
 	Black = (iota + 30)
 	Red
@@ -34,8 +35,8 @@ type Worker struct {
 type Info struct {
 	Id      uint64
 	Time    string
-	File	string
-	Line	int
+	File    string
+	Line    int
 	Module  string
 	Level   string
 	Message string
@@ -74,12 +75,12 @@ func colorString(color int) string {
 
 func initColors() {
 	colors = map[string]string{
-		"PANIC": colorString(Magenta),
-		"ERROR":    colorString(Red),
-		"WARNING":  colorString(Yellow),
-		"INFO" :    colorString(Green),
-		"NOTICE":   colorString(White),
-		"DEBUG":    colorString(Cyan),
+		"PANIC":   colorString(Magenta),
+		"ERROR":   colorString(Red),
+		"WARNING": colorString(Yellow),
+		"INFO":    colorString(Green),
+		"NOTICE":  colorString(White),
+		"DEBUG":   colorString(Cyan),
 		"TRACE":   colorString(Blue),
 	}
 }
@@ -91,15 +92,15 @@ func NewLogger(args ...interface{}) *Logger {
 	var color int = 1
 	var out io.Writer = os.Stderr
 
-	for _, arg := range (args) {
+	for _, arg := range args {
 		switch t := arg.(type) {
-			case string:
+		case string:
 			module = t
-			case int:
+		case int:
 			color = t
-			case io.Writer:
+		case io.Writer:
 			out = t
-			default:
+		default:
 			panic("logger: Unknown argument")
 		}
 	}
@@ -114,8 +115,8 @@ func (l *Logger) Log(lvl string, message string) {
 	info := &Info{
 		Id:      atomic.AddUint64(&logNo, 1),
 		Time:    time.Now().Format("2006-01-02 15:04:05"),
-		File:	 file,
-		Line:	 line,
+		File:    file,
+		Line:    line,
 		Module:  l.Module,
 		Level:   lvl,
 		Message: message,

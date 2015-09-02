@@ -1,13 +1,14 @@
 package builder
+
 import (
-	"os"
-	"io/ioutil"
-	"strings"
-	"path/filepath"
-	"github.com/blablacar/cnt/log"
-	"github.com/ghodss/yaml"
 	"github.com/appc/spec/schema/types"
+	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/spec"
+	"github.com/ghodss/yaml"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 const (
@@ -39,10 +40,10 @@ execute_files "$TARGET/runlevels/inherit-build-late"`
 const IMG_MANIFEST = "/cnt-manifest.yml"
 const RUNLEVELS = "/runlevels"
 const RUNLEVELS_PRESTART = RUNLEVELS + "/prestart-early"
-const RUNLEVELS_LATESTART =  RUNLEVELS + "/prestart-late"
-const RUNLEVELS_BUILD =  RUNLEVELS + "/build"
-const RUNLEVELS_BUILD_SETUP =  RUNLEVELS + "/build-setup"
-const RUNLEVELS_BUILD_INHERIT_EARLY =  RUNLEVELS + "/inherit-build-early"
+const RUNLEVELS_LATESTART = RUNLEVELS + "/prestart-late"
+const RUNLEVELS_BUILD = RUNLEVELS + "/build"
+const RUNLEVELS_BUILD_SETUP = RUNLEVELS + "/build-setup"
+const RUNLEVELS_BUILD_INHERIT_EARLY = RUNLEVELS + "/inherit-build-early"
 const RUNLEVELS_BUILD_INHERIT_LATE = RUNLEVELS + "/inherit-build-late"
 const CONFD = "/confd"
 const CONFD_TEMPLATE = CONFD + "/templates"
@@ -60,7 +61,7 @@ type Img struct {
 
 func Version(nameAndVersion string) string {
 	split := strings.Split(nameAndVersion, ":")
-	if (len(split) == 1) {
+	if len(split) == 1 {
 		return ""
 	}
 	return split[1]
@@ -83,7 +84,7 @@ func Name(nameAndVersion string) string {
 func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest) (*Img, error) {
 	log.Get().Debug("New aci", path, args, manifest)
 	cnt, err := PrepAci(path, args)
-	if (err != nil) {
+	if err != nil {
 		return nil, err
 	}
 	cnt.manifest = manifest
@@ -92,8 +93,8 @@ func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest) 
 
 func NewAci(path string, args BuildArgs) (*Img, error) {
 	manifest, err := readManifest(path + IMG_MANIFEST)
-	if (err != nil) {
-		log.Get().Debug(path, IMG_MANIFEST +" does not exists")
+	if err != nil {
+		log.Get().Debug(path, IMG_MANIFEST+" does not exists")
 		return nil, err
 	}
 	return NewAciWithManifest(path, args, *manifest)

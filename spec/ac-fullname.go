@@ -1,8 +1,9 @@
 package spec
+
 import (
-	"strings"
 	"encoding/json"
 	"github.com/blablacar/cnt/log"
+	"strings"
 )
 
 type ACFullname string
@@ -39,7 +40,7 @@ func NewACFullName(s string) (*ACFullname, error) {
 /* 1 */
 func (n ACFullname) Version() string {
 	split := strings.Split(string(n), ":")
-	if (len(split) == 1) {
+	if len(split) == 1 {
 		return ""
 	}
 	return split[1]

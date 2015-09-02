@@ -5,6 +5,6 @@ import (
 )
 
 func TestVersionGenerator(t *testing.T) {
-	v := GenerateVersion();
-	println(v);
+	v := GenerateVersion()
+	println(v)
 }

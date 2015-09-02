@@ -1,6 +1,6 @@
 package commands
-import "github.com/spf13/cobra"
 
+import "github.com/spf13/cobra"
 
 var cleanCmd = &cobra.Command{
 	Use:   "clean",

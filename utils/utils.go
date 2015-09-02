@@ -1,15 +1,16 @@
 package utils
+
 import (
-	"os"
-	"fmt"
-	"io"
-	"strings"
-	"os/exec"
-	"math/rand"
-	"time"
 	"bytes"
-	"github.com/mitchellh/go-homedir"
+	"fmt"
 	"github.com/blablacar/cnt/log"
+	"github.com/mitchellh/go-homedir"
+	"io"
+	"math/rand"
+	"os"
+	"os/exec"
+	"strings"
+	"time"
 )
 
 func UserHomeOrFatal() string {
@@ -32,7 +33,6 @@ func ExecCmdGetOutput(head string, parts ...string) (string, error) {
 	return strings.TrimSpace(stdout.String()), err
 }
 
-
 func ExecCmd(head string, parts ...string) error {
 	log.Get().Debug("Exec > ", head, " ", strings.Join(parts, " "))
 	cmd := exec.Command(head, parts...)
@@ -51,8 +51,6 @@ func RandSeq(n int) string {
 	}
 	return string(b)
 }
-
-
 
 func CopyDir(source string, dest string) (err error) {
 
@@ -78,7 +76,6 @@ func CopyDir(source string, dest string) (err error) {
 		sourcefilepointer := source + "/" + obj.Name()
 
 		destinationfilepointer := dest + "/" + obj.Name()
-
 
 		if obj.IsDir() {
 			// create sub-directories - recursively

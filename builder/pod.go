@@ -1,10 +1,11 @@
 package builder
+
 import (
 	"github.com/blablacar/cnt/log"
-	"path/filepath"
-	"io/ioutil"
-	"github.com/ghodss/yaml"
 	"github.com/blablacar/cnt/spec"
+	"github.com/ghodss/yaml"
+	"io/ioutil"
+	"path/filepath"
 )
 
 const POD_MANIFEST = "/cnt-pod-manifest.yml"
@@ -57,9 +58,9 @@ func (p *Pod) toAciManifest(e spec.RuntimeApp) spec.AciManifest {
 	fullname, _ := spec.NewACFullName(p.manifest.NameAndVersion.Name() + "_" + e.Image.ShortName() + ":" + p.manifest.NameAndVersion.Version())
 	return spec.AciManifest{
 		Aci: spec.AciDefinition{
-			Annotations: e.Annotations,
-			App: e.App,
-			Dependencies: []spec.ACFullname{e.Image},
+			Annotations:   e.Annotations,
+			App:           e.App,
+			Dependencies:  []spec.ACFullname{e.Image},
 			PathWhitelist: nil, // TODO
 		},
 		NameAndVersion: *fullname,

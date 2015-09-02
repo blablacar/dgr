@@ -1,4 +1,5 @@
 package builder
+
 import (
 	"github.com/blablacar/cnt/log"
 	"os"
@@ -8,9 +9,9 @@ import (
 func (cnt *Img) Init() {
 	log.Get().Info("Setting up files three")
 	uid := os.Getenv("SUDO_UID")
-	uidInt,err := strconv.Atoi(uid)
+	uidInt, err := strconv.Atoi(uid)
 	gid := os.Getenv("SUDO_GID")
-	gidInt ,err := strconv.Atoi(gid)
+	gidInt, err := strconv.Atoi(gid)
 
 	if err != nil {
 		log.Get().Panic(err)
@@ -29,9 +30,9 @@ func (cnt *Img) Init() {
 		ATTRIBUTES,
 		FILES_PATH,
 	}
-	for _,folder := range folderList  {
-		fpath := cnt.path + "/" +folder
-		os.MkdirAll(fpath,0777 )
-		os.Lchown(fpath,uidInt,gidInt)
+	for _, folder := range folderList {
+		fpath := cnt.path + "/" + folder
+		os.MkdirAll(fpath, 0777)
+		os.Lchown(fpath, uidInt, gidInt)
 	}
 }

@@ -1,12 +1,13 @@
 package runner
+
 import (
-	"github.com/blablacar/cnt/log"
-	"os/exec"
-	"io"
 	"bytes"
-	"strings"
+	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/utils"
+	"io"
 	"os"
+	"os/exec"
+	"strings"
 )
 
 type DockerRunner struct {
@@ -15,7 +16,7 @@ type DockerRunner struct {
 
 func (r *DockerRunner) Prepare(target string) error {
 	log.Get().Debug("Preparing docker")
-	first := exec.Command("bash", "-c", "cd " + target + "/rootfs" + " && tar cf - .")
+	first := exec.Command("bash", "-c", "cd "+target+"/rootfs"+" && tar cf - .")
 	second := exec.Command("docker", "import", "-", "")
 
 	reader, writer := io.Pipe()
@@ -38,7 +39,7 @@ func (r *DockerRunner) Prepare(target string) error {
 }
 
 func (r *DockerRunner) Run(target string, imageName string, command ...string) {
-	log.Get().Debug("Run Docker");
+	log.Get().Debug("Run Docker")
 	cmd := []string{"run", "--name=" + imageName, "-v", target + ":/target", r.imageId, "/target/build.sh"}
 	utils.ExecCmd("docker", "rm", ShortName(cnt.manifest.Name))
 	if err := utils.ExecCmd("docker", cmd...); err != nil {
@@ -47,16 +48,16 @@ func (r *DockerRunner) Run(target string, imageName string, command ...string) {
 }
 
 func (r *DockerRunner) Release(target string, imageName string, noBuildImage bool) {
-	log.Get().Debug("Release Docker");
+	log.Get().Debug("Release Docker")
 	if noBuildImage {
 		os.RemoveAll(target + "/rootfs")
-		os.Mkdir(target + "/rootfs", 0777)
+		os.Mkdir(target+"/rootfs", 0777)
 
-		if err := utils.ExecCmd("docker", "export", "-o", target + "/dockerfs.tar", imageName); err != nil {
+		if err := utils.ExecCmd("docker", "export", "-o", target+"/dockerfs.tar", imageName); err != nil {
 			return err
 		}
 
-		utils.ExecCmd("tar", "xpf", target + "/dockerfs.tar", "-C", target + "/rootfs")
+		utils.ExecCmd("tar", "xpf", target+"/dockerfs.tar", "-C", target+"/rootfs")
 	}
 	if err := utils.ExecCmd("docker", "rm", imageName); err != nil {
 		return err

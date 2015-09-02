@@ -1,15 +1,15 @@
 package runner
+
 import (
-	"github.com/blablacar/cnt/log"
-	"strings"
 	"bytes"
+	"github.com/blablacar/cnt/log"
+	"github.com/blablacar/cnt/utils"
 	"io"
 	"os/exec"
-	"github.com/blablacar/cnt/utils"
+	"strings"
 )
 
 type Runner interface {
-
 	prepare(target string) error
 
 	run(target string) error

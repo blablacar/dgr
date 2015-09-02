@@ -1,10 +1,11 @@
 package utils
+
 import (
 	"github.com/appc/spec/schema"
-	"io/ioutil"
+	"github.com/appc/spec/schema/types"
+	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/spec"
-    "github.com/appc/spec/schema/types"
-    "github.com/blablacar/cnt/log"
+	"io/ioutil"
 )
 
 const IMAGE_MANIFEST = `{
@@ -60,34 +61,34 @@ func BasicImageManifest() *schema.ImageManifest {
 //}
 
 func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName string, version string) {
-    name, _ := types.NewACIdentifier(m.NameAndVersion.Name())
+	name, _ := types.NewACIdentifier(m.NameAndVersion.Name())
 
-    labels := types.Labels{}
-    labels = append(labels, types.Label{Name: "version", Value: m.NameAndVersion.Version()})
+	labels := types.Labels{}
+	labels = append(labels, types.Label{Name: "version", Value: m.NameAndVersion.Version()})
 
-    if m.Aci.App.User == "" {
-        m.Aci.App.User = "0"
-    }
-    if m.Aci.App.Group == "" {
-        m.Aci.App.Group = "0"
-    }
+	if m.Aci.App.User == "" {
+		m.Aci.App.User = "0"
+	}
+	if m.Aci.App.Group == "" {
+		m.Aci.App.Group = "0"
+	}
 
-    im := schema.BlankImageManifest()
+	im := schema.BlankImageManifest()
 	im.Annotations = m.Aci.Annotations
-    im.Dependencies = toAppcDependencies(m.Aci.Dependencies)
-    im.Name = *name
-    im.Labels = labels
-    im.App = &types.App{
-        Exec: m.Aci.App.Exec,
-        EventHandlers: m.Aci.App.EventHandlers,
-        User: m.Aci.App.User,
-        Group: m.Aci.App.Group,
-        WorkingDirectory: m.Aci.App.WorkingDirectory,
-        Environment: m.Aci.App.Environment,
-        MountPoints: m.Aci.App.MountPoints,
-        Ports: m.Aci.App.Ports,
-        Isolators: m.Aci.App.Isolators,
-    }
+	im.Dependencies = toAppcDependencies(m.Aci.Dependencies)
+	im.Name = *name
+	im.Labels = labels
+	im.App = &types.App{
+		Exec:             m.Aci.App.Exec,
+		EventHandlers:    m.Aci.App.EventHandlers,
+		User:             m.Aci.App.User,
+		Group:            m.Aci.App.Group,
+		WorkingDirectory: m.Aci.App.WorkingDirectory,
+		Environment:      m.Aci.App.Environment,
+		MountPoints:      m.Aci.App.MountPoints,
+		Ports:            m.Aci.App.Ports,
+		Isolators:        m.Aci.App.Isolators,
+	}
 
 	buff, err := im.MarshalJSON()
 	if err != nil {
@@ -100,19 +101,19 @@ func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName stri
 }
 
 func toAppcDependencies(dependencies []spec.ACFullname) types.Dependencies {
-    appcDependencies := types.Dependencies{}
-    for _, dep := range dependencies {
-        id, err := types.NewACIdentifier(dep.Name())
-        if err != nil {
-            log.Get().Panic(err)
-        }
-        t := types.Dependency{ImageName: *id}
-        if dep.Version() != "" {
-            t.Labels = types.Labels{}
-            t.Labels = append(t.Labels, types.Label{Name: "version", Value: dep.Version()})
-        }
+	appcDependencies := types.Dependencies{}
+	for _, dep := range dependencies {
+		id, err := types.NewACIdentifier(dep.Name())
+		if err != nil {
+			log.Get().Panic(err)
+		}
+		t := types.Dependency{ImageName: *id}
+		if dep.Version() != "" {
+			t.Labels = types.Labels{}
+			t.Labels = append(t.Labels, types.Label{Name: "version", Value: dep.Version()})
+		}
 
-        appcDependencies = append(appcDependencies, t)
-    }
-    return appcDependencies
+		appcDependencies = append(appcDependencies, t)
+	}
+	return appcDependencies
 }

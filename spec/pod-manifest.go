@@ -1,12 +1,13 @@
 package spec
+
 import (
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
 )
 
 type PodManifest struct {
-	NameAndVersion ACFullname           `json:"name"`
-	Pod            *PodDefinition          `json:"pod"`
+	NameAndVersion ACFullname     `json:"name"`
+	Pod            *PodDefinition `json:"pod"`
 }
 
 type PodDefinition struct {
@@ -18,10 +19,9 @@ type PodDefinition struct {
 }
 
 type RuntimeApp struct {
-	Image       ACFullname               `json:"image"`
-	Name        string					 `json:"name"`
-	App         *CntApp                     `json:"app"`
-	Mounts      []schema.Mount           `json:"mounts"`
-	Annotations types.Annotations        `json:"annotations"`
+	Image       ACFullname        `json:"image"`
+	Name        string            `json:"name"`
+	App         *CntApp           `json:"app"`
+	Mounts      []schema.Mount    `json:"mounts"`
+	Annotations types.Annotations `json:"annotations"`
 }
-

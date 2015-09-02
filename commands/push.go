@@ -1,6 +1,6 @@
 package commands
-import "github.com/spf13/cobra"
 
+import "github.com/spf13/cobra"
 
 var pushCmd = &cobra.Command{
 	Use:   "push",

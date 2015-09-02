@@ -1,8 +1,9 @@
 package bats
+
 import "io/ioutil"
 
 const (
-	bats=`#!/usr/bin/env bash
+	bats = `#!/usr/bin/env bash
 set -e
 
 version() {
@@ -199,7 +200,7 @@ for filename in "$@"; do
 done
 
 exit "$status"`
-	bats_exec_test=`#!/usr/bin/env bash
+	bats_exec_test = `#!/usr/bin/env bash
 set -e
 set -E
 set -T
@@ -765,9 +766,9 @@ done`
 )
 
 func WriteBats(path string) {
-	ioutil.WriteFile(path + "/bats", []byte(bats), 0777)
-	ioutil.WriteFile(path + "/bats-exec-suite", []byte(bats_exec_suite), 0777)
-	ioutil.WriteFile(path + "/bats-exec-test", []byte(bats_exec_test), 0777)
-	ioutil.WriteFile(path + "/bats-format-tap-stream", []byte(bats_format_tap_stream), 0777)
-	ioutil.WriteFile(path + "/bats-preprocess", []byte(bats_preprocess), 0777)
+	ioutil.WriteFile(path+"/bats", []byte(bats), 0777)
+	ioutil.WriteFile(path+"/bats-exec-suite", []byte(bats_exec_suite), 0777)
+	ioutil.WriteFile(path+"/bats-exec-test", []byte(bats_exec_test), 0777)
+	ioutil.WriteFile(path+"/bats-format-tap-stream", []byte(bats_format_tap_stream), 0777)
+	ioutil.WriteFile(path+"/bats-preprocess", []byte(bats_preprocess), 0777)
 }

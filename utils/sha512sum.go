@@ -1,9 +1,10 @@
 package utils
+
 import (
-	"os"
 	"crypto/sha512"
-	"io"
 	"fmt"
+	"io"
+	"os"
 )
 
 const StdinFileName = "-"

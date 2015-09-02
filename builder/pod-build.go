@@ -1,13 +1,13 @@
 package builder
-import (
-	"github.com/blablacar/cnt/log"
-	"os"
-	"github.com/blablacar/cnt/utils"
-	"github.com/appc/spec/schema/types"
-	"github.com/appc/spec/schema"
-	"github.com/blablacar/cnt/spec"
-)
 
+import (
+	"github.com/appc/spec/schema"
+	"github.com/appc/spec/schema/types"
+	"github.com/blablacar/cnt/log"
+	"github.com/blablacar/cnt/spec"
+	"github.com/blablacar/cnt/utils"
+	"os"
+)
 
 func (p *Pod) Build() {
 	log.Get().Info("Building POD : ", p.manifest.NameAndVersion)
@@ -32,7 +32,7 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 		name, _ := types.NewACName(e.Image.ShortName())
 
 		sum, err := utils.Sha512sum(p.path + "/" + e.Name + "/target/image.aci")
-		if (err != nil) {
+		if err != nil {
 			log.Get().Panic(err)
 		}
 
@@ -51,20 +51,20 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 		}
 
 		apps = append(apps, schema.RuntimeApp{
-			Name: *name,
+			Name:  *name,
 			Image: ttmp,
 			App: &types.App{
-				Exec: e.App.Exec,
-				EventHandlers: e.App.EventHandlers,
-				User: e.App.User,
-				Group: e.App.Group,
+				Exec:             e.App.Exec,
+				EventHandlers:    e.App.EventHandlers,
+				User:             e.App.User,
+				Group:            e.App.Group,
 				WorkingDirectory: e.App.WorkingDirectory,
-				Environment: e.App.Environment,
-				MountPoints: e.App.MountPoints,
-				Ports: e.App.Ports,
-				Isolators: e.App.Isolators,
+				Environment:      e.App.Environment,
+				MountPoints:      e.App.MountPoints,
+				Ports:            e.App.Ports,
+				Isolators:        e.App.Isolators,
 			},
-			Mounts: e.Mounts,
+			Mounts:      e.Mounts,
 			Annotations: e.Annotations})
 
 	}
@@ -74,8 +74,8 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 
 func (p *Pod) buildAciIfNeeded(e spec.RuntimeApp) *spec.ACFullname {
 	if dir, err := os.Stat(p.path + "/" + e.Name); err == nil && dir.IsDir() {
-		aci, err := NewAciWithManifest(p.path + "/" + e.Name, p.args, p.toAciManifest(e))
-		if (err != nil) {
+		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e))
+		if err != nil {
 			log.Get().Panic(err)
 		}
 		aci.Build()
@@ -88,12 +88,12 @@ func (p *Pod) writePodManifest(apps []schema.RuntimeApp) {
 	m := p.manifest.Pod
 	ver, _ := types.NewSemVer("0.6.1")
 	manifest := schema.PodManifest{
-		ACKind: "PodManifest",
-		ACVersion: *ver,
-		Apps: apps,
-		Volumes: m.Volumes,
-		Isolators: m.Isolators,
+		ACKind:      "PodManifest",
+		ACVersion:   *ver,
+		Apps:        apps,
+		Volumes:     m.Volumes,
+		Isolators:   m.Isolators,
 		Annotations: m.Annotations,
-		Ports: m.Ports}
-	utils.WritePodManifest(&manifest, p.target + POD_TARGET_MANIFEST)
+		Ports:       m.Ports}
+	utils.WritePodManifest(&manifest, p.target+POD_TARGET_MANIFEST)
 }

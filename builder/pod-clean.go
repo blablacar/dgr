@@ -1,4 +1,5 @@
 package builder
+
 import (
 	"github.com/blablacar/cnt/log"
 	"os"
@@ -12,8 +13,8 @@ func (p *Pod) Clean() {
 	}
 
 	for _, e := range p.manifest.Pod.Apps {
-		aci, err := NewAciWithManifest(p.path + "/" + e.Name, p.args, p.toAciManifest(e))
-		if (err != nil) {
+		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e))
+		if err != nil {
 			log.Get().Panic(err)
 		}
 		aci.Clean()

@@ -1,11 +1,11 @@
 package commands
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/blablacar/cnt/builder"
 	"github.com/blablacar/cnt/config"
 	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/logger"
+	"github.com/spf13/cobra"
 )
 
 var buildArgs = builder.BuildArgs{}
@@ -86,4 +86,3 @@ func discoverAndRunInitType(path string, args builder.BuildArgs) {
 		cnt.Init()
 	}
 }
-

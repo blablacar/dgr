@@ -1,14 +1,14 @@
 package main
+
 import (
 	"github.com/blablacar/cnt/utils"
-	"time"
 	"io/ioutil"
-	"strings"
 	"os"
+	"strings"
+	"time"
 )
 
-
-const info_template=`package application
+const info_template = `package application
 
 func init() {
 	Version = "X.X.X"

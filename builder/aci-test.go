@@ -1,9 +1,10 @@
 package builder
+
 import (
-	"github.com/blablacar/cnt/log"
-	"os"
 	"github.com/blablacar/cnt/bats"
+	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/utils"
+	"os"
 )
 
 func (cnt *Img) Test() {
@@ -20,15 +21,15 @@ func (cnt *Img) Test() {
 	// run tests
 	//
 
-
 	// BATS
-	os.MkdirAll(cnt.target + "/test", 0777)
+	os.MkdirAll(cnt.target+"/test", 0777)
 	bats.WriteBats(cnt.target + "/test")
 
-	if err := utils.ExecCmd("systemd-nspawn", "--directory=" + cnt.rootfs, "--capability=all",
-		"--bind=" + cnt.target + "/:/target", "--share-system", "target/build.sh"); err != nil {
-		log.Get().Panic("Build step did not succeed", err)
-
-
-		utils.ExecCmd("rkt", "--insecure-skip-verify=true", "run", cnt.target + "/image.aci") // TODO missing command override that will arrive in next RKT version
+	//	if err := utils.ExecCmd("systemd-nspawn", "--directory=" + cnt.rootfs, "--capability=all",
+	//		"--bind=" + cnt.target + "/:/target", "--share-system", "target/build.sh"); err != nil {
+	//		log.Get().Panic("Build step did not succeed", err)
+	//
+	//
+	//		utils.ExecCmd("rkt", "--insecure-skip-verify=true", "run", cnt.target + "/image.aci") // TODO missing command override that will arrive in next RKT version
+	//	}
 }

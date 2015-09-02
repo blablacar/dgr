@@ -1,8 +1,9 @@
 package main
+
 import (
+	"github.com/blablacar/cnt/commands"
 	"os"
 	"runtime"
-	"github.com/blablacar/cnt/commands"
 )
 
 //go:generate go run compile/info_generate.go
@@ -14,5 +15,5 @@ func main() {
 	}
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	commands.Execute();
+	commands.Execute()
 }

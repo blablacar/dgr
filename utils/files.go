@@ -1,7 +1,8 @@
 package utils
+
 import (
-	"os"
 	"io"
+	"os"
 )
 
 func IsDirEmpty(name string) (bool, error) {
