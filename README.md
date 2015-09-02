@@ -1,8 +1,10 @@
+# cnt
+
+[![GoDoc](https://godoc.org/blablacar/cnt?status.png)](https://godoc.org/blablacar/cnt)  
 [![Build Status](https://travis-ci.org/blablacar/cnt.svg?branch=master)](https://travis-ci.org/blablacar/cnt)
 
 **Highly experimental and in development**
 
-# cnt
 Tool to build **RKT** ACI and POD in a mixup of Chef, Dockerfile and Packer logic
 
 File templating will be resolved on container start using **confd** in env mode
