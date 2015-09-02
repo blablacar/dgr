@@ -3,7 +3,6 @@ package builder
 import (
 	"github.com/blablacar/cnt/bats"
 	"github.com/blablacar/cnt/log"
-	"github.com/blablacar/cnt/utils"
 	"os"
 )
 
