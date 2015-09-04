@@ -7,6 +7,10 @@ import (
 )
 
 func (cnt *Img) Init() {
+	initPath := cnt.path
+	if cnt.args.Path != "" {
+		initPath = cnt.args.Path
+	}
 	log.Get().Info("Setting up files three")
 	uid := os.Getenv("SUDO_UID")
 	uidInt, err := strconv.Atoi(uid)
@@ -31,7 +35,7 @@ func (cnt *Img) Init() {
 		FILES_PATH,
 	}
 	for _, folder := range folderList {
-		fpath := cnt.path + "/" + folder
+		fpath := initPath + "/" + folder
 		os.MkdirAll(fpath, 0777)
 		os.Lchown(fpath, uidInt, gidInt)
 	}

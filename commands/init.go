@@ -10,3 +10,7 @@ var initCmd = &cobra.Command{
 		discoverAndRunInitType(".", buildArgs)
 	},
 }
+
+func init(){
+	initCmd.Flags().StringVarP(&buildArgs.Path, "path", "p", "", "Specify a path : -p /my/path")
+}
