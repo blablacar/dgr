@@ -4,9 +4,8 @@ type BuildArgs struct {
 	Zip         bool
 	Clean       bool
 	ForceUpdate bool
-	Path 		string
+	Path        string
 }
-
 
 type BuildError struct {
 	Message string
