@@ -12,13 +12,7 @@ import (
 )
 
 const (
-	buildScript = `#!/bin/bash
-set -x
-set -e
-export TARGET=$( dirname $0 )
-export ROOTFS=%%ROOTFS%%
-export TERM=xterm
-
+	execFiles = `
 execute_files() {
   fdir=$1
   [ -d "$fdir" ] || return 0
@@ -31,10 +25,35 @@ execute_files() {
     fi
   done
 }
+	`
+
+	BUILD_SCRIPT = `#!/bin/bash
+set -x
+set -e
+export TARGET=$( dirname $0 )
+export ROOTFS=%%ROOTFS%%
+export TERM=xterm
+
+` + execFiles + `
 
 execute_files "$TARGET/runlevels/inherit-build-early"
 execute_files "$TARGET/runlevels/build"
-execute_files "$TARGET/runlevels/inherit-build-late"`
+`
+)
+
+const (
+	BUILD_SCRIPT_LATE = `#!/bin/bash
+set -x
+set -e
+export TARGET=$( dirname $0 )
+export ROOTFS=%%ROOTFS%%
+export TERM=xterm
+
+` + execFiles + `
+
+execute_files "$TARGET/runlevels/build-late"
+execute_files "$TARGET/runlevels/inherit-build-late"
+`
 )
 
 const IMG_MANIFEST = "/cnt-manifest.yml"
@@ -43,6 +62,7 @@ const RUNLEVELS_PRESTART = RUNLEVELS + "/prestart-early"
 const RUNLEVELS_LATESTART = RUNLEVELS + "/prestart-late"
 const RUNLEVELS_BUILD = RUNLEVELS + "/build"
 const RUNLEVELS_BUILD_SETUP = RUNLEVELS + "/build-setup"
+const RUNLEVELS_BUILD_LATE = RUNLEVELS + "/build-late"
 const RUNLEVELS_BUILD_INHERIT_EARLY = RUNLEVELS + "/inherit-build-early"
 const RUNLEVELS_BUILD_INHERIT_LATE = RUNLEVELS + "/inherit-build-late"
 const CONFD = "/confd"

@@ -1,15 +1,12 @@
 package builder
 
 import (
-	"bytes"
 	"github.com/appc/spec/discovery"
 	"github.com/blablacar/cnt/config"
 	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/utils"
-	"io"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"strings"
 )
 
@@ -19,12 +16,10 @@ func (cnt *Img) Build() error {
 	os.MkdirAll(cnt.rootfs, 0777)
 
 	cnt.processFrom()
+	cnt.copyRunlevelsScripts()
 
 	cnt.runlevelBuildSetup()
-	cnt.copyRunlevelsBuild()
-	//	cnt.copyInstallAndCreatePacker()
 
-	cnt.writeBuildScript()
 	cnt.writeImgManifest()
 	cnt.writeCntManifest() // TODO move that, here because we update the version number to generated version
 
@@ -33,6 +28,7 @@ func (cnt *Img) Build() error {
 	cnt.copyAttributes()
 	cnt.copyConfd()
 	cnt.copyFiles()
+	cnt.runBuildLate()
 
 	cnt.tarAci()
 	//	ExecCmd("chown " + os.Getenv("SUDO_USER") + ": " + target + "/*") //TODO chown
@@ -45,10 +41,47 @@ func (cnt *Img) writeCntManifest() {
 	utils.CopyFile(cnt.path+IMG_MANIFEST, cnt.target+IMG_MANIFEST)
 }
 
+
+func (cnt *Img) runBuildLate() {
+	if res, err := utils.IsDirEmpty(cnt.target + RUNLEVELS_BUILD_LATE); res || err != nil {
+		return
+	}
+
+	{
+		rootfs := "${TARGET}/rootfs"
+		if cnt.manifest.Build.NoBuildImage() {
+			rootfs = ""
+		}
+		build := strings.Replace(BUILD_SCRIPT_LATE, "%%ROOTFS%%", rootfs, 1)
+		ioutil.WriteFile(cnt.target+"/build-late.sh", []byte(build), 0777)
+	}
+
+
+	if err := utils.ExecCmd("systemd-nspawn", "--version"); err == nil {
+		log.Get().Info("Run with systemd-nspawn")
+		if err := utils.ExecCmd("systemd-nspawn", "--directory="+cnt.rootfs, "--capability=all",
+			"--bind="+cnt.target+"/:/target", "--share-system", "target/build-late.sh"); err != nil {
+			log.Get().Panic("Build step did not succeed", err)
+		}
+	} else {
+		log.Get().Panic("systemd-nspawn is required")
+	}
+}
+
 func (cnt *Img) runBuild() {
 	if res, err := utils.IsDirEmpty(cnt.target + RUNLEVELS_BUILD); res || err != nil {
 		return
 	}
+
+	{
+		rootfs := "${TARGET}/rootfs"
+		if cnt.manifest.Build.NoBuildImage() {
+			rootfs = ""
+		}
+		build := strings.Replace(BUILD_SCRIPT, "%%ROOTFS%%", rootfs, 1)
+		ioutil.WriteFile(cnt.target+"/build.sh", []byte(build), 0777)
+	}
+
 	if err := utils.ExecCmd("systemd-nspawn", "--version"); err == nil {
 		log.Get().Info("Run with systemd-nspawn")
 		if err := utils.ExecCmd("systemd-nspawn", "--directory="+cnt.rootfs, "--capability=all",
@@ -56,54 +89,54 @@ func (cnt *Img) runBuild() {
 			log.Get().Panic("Build step did not succeed", err)
 		}
 	} else {
-		log.Get().Info("Run with docker")
-
+		log.Get().Panic("systemd-nspawn is required")
+		//		log.Get().Info("Run with docker")
 		//
-		log.Get().Info("Prepare Docker")
-		first := exec.Command("bash", "-c", "cd "+cnt.rootfs+" && tar cf - .")
-		second := exec.Command("docker", "import", "-", "")
-
-		reader, writer := io.Pipe()
-		first.Stdout = writer
-		second.Stdin = reader
-
-		var buff bytes.Buffer
-		second.Stdout = &buff
-
-		first.Start()
-		second.Start()
-		first.Wait()
-		writer.Close()
-		second.Wait()
-		imgId := strings.TrimSpace(buff.String())
-
+		//		//
+		//		log.Get().Info("Prepare Docker")
+		//		first := exec.Command("bash", "-c", "cd "+cnt.rootfs+" && tar cf - .")
+		//		second := exec.Command("docker", "import", "-", "")
 		//
-		log.Get().Info("Run Docker\n")
-		cmd := []string{"run", "--name=" + cnt.manifest.NameAndVersion.ShortName(), "-v", cnt.target + ":/target", imgId, "/target/build.sh"}
-		utils.ExecCmd("docker", "rm", cnt.manifest.NameAndVersion.ShortName())
-		if err := utils.ExecCmd("docker", cmd...); err != nil {
-			panic(err)
-		}
-
+		//		reader, writer := io.Pipe()
+		//		first.Stdout = writer
+		//		second.Stdin = reader
 		//
-		log.Get().Info("Release Docker")
-		if cnt.manifest.Build.NoBuildImage() {
-			os.RemoveAll(cnt.rootfs)
-			os.Mkdir(cnt.rootfs, 0777)
-
-			if err := utils.ExecCmd("docker", "export", "-o", cnt.target+"/dockerfs.tar", cnt.manifest.NameAndVersion.ShortName()); err != nil {
-				panic(err)
-			}
-
-			utils.ExecCmd("tar", "xpf", cnt.target+"/dockerfs.tar", "-C", cnt.rootfs)
-		}
-		if err := utils.ExecCmd("docker", "rm", cnt.manifest.NameAndVersion.ShortName()); err != nil {
-			panic(err)
-		}
-		if err := utils.ExecCmd("docker", "rmi", imgId); err != nil {
-			panic(err)
-		}
-
+		//		var buff bytes.Buffer
+		//		second.Stdout = &buff
+		//
+		//		first.Start()
+		//		second.Start()
+		//		first.Wait()
+		//		writer.Close()
+		//		second.Wait()
+		//		imgId := strings.TrimSpace(buff.String())
+		//
+		//		//
+		//		log.Get().Info("Run Docker\n")
+		//		cmd := []string{"run", "--name=" + cnt.manifest.NameAndVersion.ShortName(), "-v", cnt.target + ":/target", imgId, "/target/build.sh"}
+		//		utils.ExecCmd("docker", "rm", cnt.manifest.NameAndVersion.ShortName())
+		//		if err := utils.ExecCmd("docker", cmd...); err != nil {
+		//			panic(err)
+		//		}
+		//
+		//		//
+		//		log.Get().Info("Release Docker")
+		//		if cnt.manifest.Build.NoBuildImage() {
+		//			os.RemoveAll(cnt.rootfs)
+		//			os.Mkdir(cnt.rootfs, 0777)
+		//
+		//			if err := utils.ExecCmd("docker", "export", "-o", cnt.target+"/dockerfs.tar", cnt.manifest.NameAndVersion.ShortName()); err != nil {
+		//				panic(err)
+		//			}
+		//
+		//			utils.ExecCmd("tar", "xpf", cnt.target+"/dockerfs.tar", "-C", cnt.rootfs)
+		//		}
+		//		if err := utils.ExecCmd("docker", "rm", cnt.manifest.NameAndVersion.ShortName()); err != nil {
+		//			panic(err)
+		//		}
+		//		if err := utils.ExecCmd("docker", "rmi", imgId); err != nil {
+		//			panic(err)
+		//		}
 	}
 }
 
@@ -148,7 +181,7 @@ func (cnt *Img) processFrom() {
 	}
 }
 
-func (cnt *Img) copyRunlevelsBuild() {
+func (cnt *Img) copyRunlevelsScripts() {
 	if err := os.MkdirAll(cnt.target+RUNLEVELS, 0755); err != nil {
 		log.Get().Panic(err)
 	}
@@ -156,7 +189,7 @@ func (cnt *Img) copyRunlevelsBuild() {
 }
 
 func (cnt *Img) runlevelBuildSetup() {
-	files, err := ioutil.ReadDir(cnt.path + RUNLEVELS_BUILD_SETUP) // already sorted by name
+	files, err := ioutil.ReadDir(cnt.path + RUNLEVELS_BUILD_SETUP)
 	if err != nil {
 		return
 	}
@@ -234,15 +267,6 @@ func (cnt *Img) copyAttributes() {
 		log.Get().Panic(err)
 	}
 	utils.CopyDir(cnt.path+ATTRIBUTES, cnt.rootfs+"/etc/prestart/attributes/"+cnt.manifest.NameAndVersion.ShortNameId())
-}
-
-func (cnt *Img) writeBuildScript() {
-	rootfs := "${TARGET}/rootfs"
-	if cnt.manifest.Build.NoBuildImage() {
-		rootfs = ""
-	}
-	build := strings.Replace(buildScript, "%%ROOTFS%%", rootfs, 1)
-	ioutil.WriteFile(cnt.target+"/build.sh", []byte(build), 0777)
 }
 
 func (cnt *Img) writeImgManifest() {
