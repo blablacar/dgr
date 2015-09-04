@@ -230,10 +230,10 @@ func (cnt *Img) copyFiles() {
 }
 
 func (cnt *Img) copyAttributes() {
-	if err := os.MkdirAll(cnt.rootfs+"/etc/prestart/attributes/"+cnt.manifest.NameAndVersion.ShortNameId(), 0755); err != nil {
+	if err := os.MkdirAll(cnt.rootfs+"/etc/prestart/attributes/"+cnt.manifest.NameAndVersion.ShortName(), 0755); err != nil {
 		log.Get().Panic(err)
 	}
-	utils.CopyDir(cnt.path+ATTRIBUTES, cnt.rootfs+"/etc/prestart/attributes/"+cnt.manifest.NameAndVersion.ShortNameId())
+	utils.CopyDir(cnt.path+ATTRIBUTES, cnt.rootfs+"/etc/prestart/attributes/"+cnt.manifest.NameAndVersion.ShortName())
 }
 
 func (cnt *Img) writeBuildScript() {

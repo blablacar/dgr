@@ -7,7 +7,7 @@ import (
 )
 
 func (cnt *Img) Init() {
-	initPath := cnt.Path
+	initPath := cnt.path
 	if cnt.args.Path != "" {
 		initPath = cnt.args.Path
 	}
