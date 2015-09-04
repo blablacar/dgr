@@ -51,7 +51,6 @@ func (p *Pod) readManifest(manifestPath string) {
 
 	//TODO check that there is no app name conflict
 
-
 	log.Get().Trace("Pod manifest : ", p.manifest.NameAndVersion, p.manifest)
 }
 

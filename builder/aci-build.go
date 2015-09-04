@@ -41,7 +41,6 @@ func (cnt *Img) writeCntManifest() {
 	utils.CopyFile(cnt.path+IMG_MANIFEST, cnt.target+IMG_MANIFEST)
 }
 
-
 func (cnt *Img) runBuildLate() {
 	if res, err := utils.IsDirEmpty(cnt.target + RUNLEVELS_BUILD_LATE); res || err != nil {
 		return
@@ -55,7 +54,6 @@ func (cnt *Img) runBuildLate() {
 		build := strings.Replace(BUILD_SCRIPT_LATE, "%%ROOTFS%%", rootfs, 1)
 		ioutil.WriteFile(cnt.target+"/build-late.sh", []byte(build), 0777)
 	}
-
 
 	if err := utils.ExecCmd("systemd-nspawn", "--version"); err == nil {
 		log.Get().Info("Run with systemd-nspawn")
