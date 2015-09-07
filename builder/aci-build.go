@@ -265,6 +265,20 @@ func (cnt *Img) copyAttributes() {
 		log.Get().Panic(err)
 	}
 	utils.CopyDir(cnt.path+ATTRIBUTES, cnt.rootfs+"/etc/prestart/attributes/"+cnt.manifest.NameAndVersion.ShortName())
+	//	if err := ioutil.WriteFile(cnt.rootfs+"/etc/prestart/attributes/"+cnt.manifest.NameAndVersion.ShortName() + "/pod-info.yml", []byte(`
+	//default:
+	//  pod:
+	//    name: ` + cnt.PodName.ShortName()), 0777); err != nil {
+	//		log.Get().Panic(err)
+	//	}
+	//	//TODO this is a hack
+	serviceName := cnt.manifest.NameAndVersion.ShortName()
+	if cnt.PodName != nil {
+		serviceName = cnt.PodName.ShortName()
+	}
+	if err := ioutil.WriteFile(cnt.rootfs+"/servicename", []byte("SERVICE_NAME="+serviceName), 0777); err != nil {
+		log.Get().Panic(err)
+	}
 }
 
 func (cnt *Img) writeImgManifest() {

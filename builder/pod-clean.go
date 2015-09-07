@@ -6,10 +6,10 @@ import (
 )
 
 func (p *Pod) Clean() {
-	log.Get().Info("Cleaning POD", p.manifest.NameAndVersion)
+	log.Get().Info("Cleaning POD", p.manifest.Name)
 
 	if err := os.RemoveAll(p.target + "/"); err != nil {
-		log.Get().Panic("Cannot clean", p.manifest.NameAndVersion, err)
+		log.Get().Panic("Cannot clean", p.manifest.Name, err)
 	}
 
 	for _, e := range p.manifest.Pod.Apps {

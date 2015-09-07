@@ -10,7 +10,7 @@ import (
 )
 
 func (p *Pod) Build() {
-	log.Get().Info("Building POD : ", p.manifest.NameAndVersion)
+	log.Get().Info("Building POD : ", p.manifest.Name)
 
 	os.MkdirAll(p.target, 0777)
 	os.Remove(p.target + POD_TARGET_MANIFEST)
@@ -79,6 +79,7 @@ func (p *Pod) buildAciIfNeeded(e spec.RuntimeApp) *spec.ACFullname {
 		if err != nil {
 			log.Get().Panic(err)
 		}
+		aci.PodName = &p.manifest.Name
 		aci.Build()
 		return &aci.manifest.NameAndVersion
 	}

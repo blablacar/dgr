@@ -75,6 +75,7 @@ type Img struct {
 	path     string
 	target   string
 	rootfs   string
+	PodName  *spec.ACFullname
 	manifest spec.AciManifest
 	args     BuildArgs
 }

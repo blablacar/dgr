@@ -5,7 +5,7 @@ import (
 )
 
 func (p *Pod) Install() {
-	log.Get().Info("Installing POD", p.manifest.NameAndVersion)
+	log.Get().Info("Installing POD", p.manifest.Name)
 
 	p.Build()
 

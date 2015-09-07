@@ -7,7 +7,7 @@ import (
 )
 
 func (p *Pod) Push() {
-	log.Get().Info("Push POD", p.manifest.NameAndVersion)
+	log.Get().Info("Push POD", p.manifest.Name)
 
 	for _, e := range p.manifest.Pod.Apps {
 		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e))
@@ -23,8 +23,8 @@ func (p *Pod) Push() {
 		"-F", "e=pod",
 		"-F", "g=com.blablacar.aci.linux.amd64",
 		"-F", "p=pod",
-		"-F", "v="+p.manifest.NameAndVersion.Version(),
-		"-F", "a="+p.manifest.NameAndVersion.ShortName(),
+		"-F", "v="+p.manifest.Name.Version(),
+		"-F", "a="+p.manifest.Name.ShortName(),
 		"-F", "file=@"+p.target+POD_TARGET_MANIFEST,
 		"-u", config.GetConfig().Push.Username+":"+config.GetConfig().Push.Password,
 		config.GetConfig().Push.Url+"/service/local/artifact/maven/content")

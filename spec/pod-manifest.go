@@ -6,8 +6,8 @@ import (
 )
 
 type PodManifest struct {
-	NameAndVersion ACFullname     `json:"name"`
-	Pod            *PodDefinition `json:"pod"`
+	Name ACFullname     `json:"name"`
+	Pod  *PodDefinition `json:"pod"`
 }
 
 type PodDefinition struct {

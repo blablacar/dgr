@@ -51,11 +51,11 @@ func (p *Pod) readManifest(manifestPath string) {
 
 	//TODO check that there is no app name conflict
 
-	log.Get().Trace("Pod manifest : ", p.manifest.NameAndVersion, p.manifest)
+	log.Get().Trace("Pod manifest : ", p.manifest.Name, p.manifest)
 }
 
 func (p *Pod) toAciManifest(e spec.RuntimeApp) spec.AciManifest {
-	fullname, _ := spec.NewACFullName(p.manifest.NameAndVersion.Name() + "_" + e.Name + ":" + p.manifest.NameAndVersion.Version())
+	fullname, _ := spec.NewACFullName(p.manifest.Name.Name() + "_" + e.Name + ":" + p.manifest.Name.Version())
 	return spec.AciManifest{
 		Aci: spec.AciDefinition{
 			Annotations:   e.Annotations,

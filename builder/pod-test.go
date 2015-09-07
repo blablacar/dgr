@@ -5,7 +5,7 @@ import (
 )
 
 func (p *Pod) Test() {
-	log.Get().Info("Testing POD", p.manifest.NameAndVersion)
+	log.Get().Info("Testing POD", p.manifest.Name)
 
 	for _, e := range p.manifest.Pod.Apps {
 		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e))
