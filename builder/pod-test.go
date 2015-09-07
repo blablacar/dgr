@@ -12,6 +12,7 @@ func (p *Pod) Test() {
 		if err != nil {
 			log.Get().Panic(err)
 		}
+		aci.PodName = &p.manifest.Name
 		aci.Test()
 	}
 }
