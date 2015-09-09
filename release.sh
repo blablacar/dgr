@@ -50,7 +50,7 @@ for i in ${dir}/dist/*/ ; do
     if [ -d "$i" ]; then
         cd $i
         platform=${PWD##*/}
-        tar cvzf cnt-$platform-$version.tar.gz *
+        tar cvzf cnt-$platform-$version.tar.gz cnt
         cd -
     fi
 done
