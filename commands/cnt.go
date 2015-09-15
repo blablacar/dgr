@@ -17,7 +17,7 @@ func Execute() {
 	buildCmd.Flags().BoolVarP(&buildArgs.Zip, "nozip", "z", false, "Zip final image or not")
 	rootCmd.PersistentFlags().BoolVarP(&buildArgs.Clean, "clean", "c", false, "Clean before doing anything")
 
-	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd)
+	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd,updateCmd)
 
 	config.GetConfig().Load()
 	rootCmd.Execute()
@@ -50,6 +50,16 @@ func discoverAndRunInstallType(path string, args builder.BuildArgs) {
 		cnt.Install()
 	} else if pod, err := builder.OpenPod(path, args); err == nil {
 		pod.Install()
+	} else {
+		log.Get().Panic("Cannot find cnt-manifest.yml")
+	}
+}
+
+func discoverAndRunUpdateType(path string, args builder.BuildArgs) {
+	if cnt, err := builder.NewAci(path, args); err == nil {
+		cnt.UpdateConf()
+	} else if _, err := builder.OpenPod(path, args); err == nil {
+		log.Get().Panic("Not Yet implemented for pods")
 	} else {
 		log.Get().Panic("Cannot find cnt-manifest.yml")
 	}
