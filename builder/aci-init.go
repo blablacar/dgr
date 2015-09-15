@@ -12,9 +12,15 @@ func (cnt *Img) Init() {
 		initPath = cnt.args.Path
 	}
 	log.Get().Info("Setting up files three")
-	uid := os.Getenv("SUDO_UID")
+	uid := "0"
+	gid := "0"
+
+	if os.Getenv("SUDO_UID") != ""  {
+		uid = os.Getenv("SUDO_UID")
+		gid = os.Getenv("SUDO_GID")
+	}
+
 	uidInt, err := strconv.Atoi(uid)
-	gid := os.Getenv("SUDO_GID")
 	gidInt, err := strconv.Atoi(gid)
 
 	if err != nil {
