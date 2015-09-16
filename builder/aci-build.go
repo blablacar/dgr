@@ -43,8 +43,8 @@ func (cnt *Img) writeCntManifest() {
 
 func (cnt *Img) runBuildLate() {
 	res, err := utils.IsDirEmpty(cnt.target + RUNLEVELS_BUILD_LATE)
-	res2, err2 := utils.IsDirEmpty(cnt.target + RUNLEVELS_BUILD_LATE)
-	if res && res2 && err != nil && err2 != nil {
+	res2, err2 := utils.IsDirEmpty(cnt.target + RUNLEVELS_BUILD_INHERIT_LATE)
+	if (res && res2) || (err != nil && err2 != nil) {
 		return
 	}
 
