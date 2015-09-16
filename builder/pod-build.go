@@ -1,15 +1,15 @@
 package builder
 
 import (
+	"errors"
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/spec"
 	"github.com/blablacar/cnt/utils"
 	"os"
-	"text/template"
-	"errors"
 	"strconv"
+	"text/template"
 )
 
 func (p *Pod) Build() {
@@ -129,7 +129,7 @@ func (p *Pod) writeSystemdUnit(apps []schema.RuntimeApp) {
 	acilist := []string{}
 
 	for _, env := range p.manifest.Envs {
-		envs = append(envs, "--set-env=" + env.Name + "='" + env.Value + "'")
+		envs = append(envs, "--set-env="+env.Name+"='"+env.Value+"'")
 	}
 	for _, app := range apps {
 		for _, mount := range app.App.MountPoints {
@@ -138,18 +138,18 @@ func (p *Pod) writeSystemdUnit(apps []schema.RuntimeApp) {
 				log.Get().Panic(err)
 			}
 			volumes = append(volumes,
-				"--volume=" + mount.Name.String() +
-				",kind=" + mountPoint.Kind +
-				",source=" + mountPoint.Source +
-				",read-only=" + strconv.FormatBool(*mountPoint.ReadOnly))
+				"--volume="+mount.Name.String()+
+					",kind="+mountPoint.Kind+
+					",source="+mountPoint.Source+
+					",read-only="+strconv.FormatBool(*mountPoint.ReadOnly))
 		}
 		version, _ := app.Image.Labels.Get("version")
-		acilist = append(acilist, app.Image.Name.String() + ":" + version)
+		acilist = append(acilist, app.Image.Name.String()+":"+version)
 	}
 
 	commands := []string{}
 	if p.manifest.PrivateNet != "" {
-		commands = append(commands, "--private-net=" + p.manifest.PrivateNet)
+		commands = append(commands, "--private-net="+p.manifest.PrivateNet)
 	}
 
 	commands = append(commands, volumes...)

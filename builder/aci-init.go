@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-const INIT_BUILD_FILE=`#!/bin/bash
+const INIT_BUILD_FILE = `#!/bin/bash
 echo "I'm a build script that is run to install applications"
 `
 

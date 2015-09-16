@@ -28,7 +28,7 @@ func (p *Pod) Push() {
 		"-F", "p=service",
 		"-F", "v="+p.manifest.Name.Version(),
 		"-F", "a="+p.manifest.Name.ShortName(),
-		"-F", "file=@"+p.target + "/" + p.manifest.Name.ShortName() + "@.service",
+		"-F", "file=@"+p.target+"/"+p.manifest.Name.ShortName()+"@.service",
 		"-u", config.GetConfig().Push.Username+":"+config.GetConfig().Push.Password,
 		config.GetConfig().Push.Url+"/service/local/artifact/maven/content")
 

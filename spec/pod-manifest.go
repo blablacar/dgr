@@ -8,8 +8,8 @@ import (
 type PodManifest struct {
 	Name       ACFullname     `json:"name"`
 	Pod        *PodDefinition `json:"pod"`
-	Envs       []Env                `json:"envs"`
-	PrivateNet string  `json:"privateNet"`
+	Envs       []Env          `json:"envs"`
+	PrivateNet string         `json:"privateNet"`
 }
 
 type PodDefinition struct {
@@ -30,5 +30,5 @@ type RuntimeApp struct {
 
 type Env struct {
 	Name  string `json:"name"`
-	Value string       `json:"value"`
+	Value string `json:"value"`
 }
