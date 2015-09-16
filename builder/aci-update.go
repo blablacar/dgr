@@ -10,8 +10,6 @@ func (cnt *Img) UpdateConf() error {
 
 	os.MkdirAll(cnt.rootfs, 0777)
 
-	cnt.copyRunlevelsScripts()
-
 	cnt.writeImgManifest()
 	cnt.writeCntManifest() // TODO move that, here because we update the version number to generated version
 
