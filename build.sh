@@ -4,7 +4,7 @@ set -x
 start=`date +%s`
 dir=$( dirname $0 )
 
-rm -Rf $dir/target/
+rm -Rf $dir/dist/
 gofmt -w -s .
 godep go test -cover $dir/...
 
