@@ -7,6 +7,7 @@ import (
 	"github.com/ghodss/yaml"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -121,15 +122,15 @@ func NewAci(path string, args BuildArgs) (*Img, error) {
 	return NewAciWithManifest(path, args, *manifest)
 }
 
-func PrepAci(path string, args BuildArgs) (*Img, error) {
+func PrepAci(aciPath string, args BuildArgs) (*Img, error) {
 	cnt := new(Img)
 	cnt.args = args
 
-	if fullPath, err := filepath.Abs(path); err != nil {
+	if fullPath, err := filepath.Abs(aciPath); err != nil {
 		log.Get().Panic("Cannot get fullpath of project", err)
 	} else {
 		cnt.path = fullPath
-		cnt.target = cnt.path + "/target"
+		cnt.target = path.Join(args.TargetPath, "target")
 		cnt.rootfs = cnt.target + "/rootfs"
 	}
 	return cnt, nil

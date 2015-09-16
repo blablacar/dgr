@@ -5,6 +5,7 @@ type BuildArgs struct {
 	Clean       bool
 	ForceUpdate bool
 	Path        string
+	TargetPath  string
 }
 
 type BuildError struct {
