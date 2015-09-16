@@ -13,7 +13,7 @@ var buildArgs = builder.BuildArgs{}
 func Execute() {
 	log.Set(logger.NewLogger())
 	var rootCmd = &cobra.Command{Use: "cnt"}
-	buildCmd.Flags().BoolVarP(&buildArgs.Zip, "nozip", "z", false, "Zip final image or not")
+	buildCmd.Flags().BoolVarP(&buildArgs.Zip, "nozip", "z", true, "Zip final image or not")
 	rootCmd.PersistentFlags().BoolVarP(&buildArgs.Clean, "clean", "c", false, "Clean before doing anything")
 	rootCmd.PersistentFlags().StringVarP(&buildArgs.TargetPath, "target-path", "t", "", "Set target path")
 
