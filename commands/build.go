@@ -13,5 +13,5 @@ var buildCmd = &cobra.Command{
 }
 
 func init() {
-	buildCmd.Flags().BoolVarP(&buildArgs.ForceUpdate, "force-update", "U", false, "Force update of dependencies")
+	buildCmd.Flags().BoolVarP(&buildArgs.ForceUpdate, "force-update", "U", true, "Force update of dependencies")
 }
