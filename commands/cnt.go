@@ -6,17 +6,21 @@ import (
 	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/logger"
 	"github.com/spf13/cobra"
+	"path/filepath"
 )
 
 var buildArgs = builder.BuildArgs{}
 
 func Execute() {
 	log.Set(logger.NewLogger())
-
+	currentAbsDir , err := filepath.Abs("")
+	if err != nil {
+		log.Get().Panic("Cannot find current absolute directory")
+	}
 	var rootCmd = &cobra.Command{Use: "cnt"}
 	buildCmd.Flags().BoolVarP(&buildArgs.Zip, "nozip", "z", false, "Zip final image or not")
 	rootCmd.PersistentFlags().BoolVarP(&buildArgs.Clean, "clean", "c", false, "Clean before doing anything")
-	rootCmd.PersistentFlags().StringVarP(&buildArgs.TargetPath, "target-path", "t", ".", "Set target path")
+	rootCmd.PersistentFlags().StringVarP(&buildArgs.TargetPath, "target-path", "t", currentAbsDir, "Set target path")
 
 	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, updateCmd)
 
