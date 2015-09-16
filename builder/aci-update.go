@@ -12,8 +12,6 @@ func (cnt *Img) UpdateConf() error {
 
 	cnt.copyRunlevelsScripts()
 
-	cnt.runlevelBuildSetup()
-
 	cnt.writeImgManifest()
 	cnt.writeCntManifest() // TODO move that, here because we update the version number to generated version
 
