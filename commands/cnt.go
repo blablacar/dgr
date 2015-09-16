@@ -13,7 +13,7 @@ var buildArgs = builder.BuildArgs{}
 
 func Execute() {
 	log.Set(logger.NewLogger())
-	currentAbsDir , err := filepath.Abs("")
+	currentAbsDir, err := filepath.Abs("")
 	if err != nil {
 		log.Get().Panic("Cannot find current absolute directory")
 	}
