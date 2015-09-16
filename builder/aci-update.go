@@ -1,7 +1,8 @@
 package builder
+
 import (
-	"os"
 	"github.com/blablacar/cnt/log"
+	"os"
 )
 
 func (cnt *Img) UpdateConf() error {

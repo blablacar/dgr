@@ -15,7 +15,7 @@ func (cnt *Img) Init() {
 	uid := "0"
 	gid := "0"
 
-	if os.Getenv("SUDO_UID") != ""  {
+	if os.Getenv("SUDO_UID") != "" {
 		uid = os.Getenv("SUDO_UID")
 		gid = os.Getenv("SUDO_GID")
 	}
