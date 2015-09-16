@@ -23,12 +23,12 @@ func (p *Pod) Push() {
 	utils.ExecCmd("curl", "-i",
 		"-F", "r=releases",
 		"-F", "hasPom=false",
-		"-F", "e=pod",
+		"-F", "e=service",
 		"-F", "g=com.blablacar.aci.linux.amd64",
-		"-F", "p=pod",
+		"-F", "p=service",
 		"-F", "v="+p.manifest.Name.Version(),
 		"-F", "a="+p.manifest.Name.ShortName(),
-		"-F", "file=@"+p.target+POD_TARGET_MANIFEST,
+		"-F", "file=@"+p.target + "/" + p.manifest.Name.ShortName() + "@.service",
 		"-u", config.GetConfig().Push.Username+":"+config.GetConfig().Push.Password,
 		config.GetConfig().Push.Url+"/service/local/artifact/maven/content")
 

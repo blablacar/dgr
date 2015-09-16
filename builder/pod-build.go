@@ -7,17 +7,20 @@ import (
 	"github.com/blablacar/cnt/spec"
 	"github.com/blablacar/cnt/utils"
 	"os"
+	"text/template"
+	"errors"
+	"strconv"
 )
 
 func (p *Pod) Build() {
 	log.Get().Info("Building POD : ", p.manifest.Name)
 
+	os.RemoveAll(p.target)
 	os.MkdirAll(p.target, 0777)
-	os.Remove(p.target + POD_TARGET_MANIFEST)
 
 	apps := p.processAci()
 
-	p.writePodManifest(apps)
+	p.writeSystemdUnit(apps)
 }
 
 func (p *Pod) processAci() []schema.RuntimeApp {
@@ -86,16 +89,83 @@ func (p *Pod) buildAciIfNeeded(e spec.RuntimeApp) *spec.ACFullname {
 	return nil
 }
 
-func (p *Pod) writePodManifest(apps []schema.RuntimeApp) {
-	m := p.manifest.Pod
-	ver, _ := types.NewSemVer("0.6.1")
-	manifest := schema.PodManifest{
-		ACKind:      "PodManifest",
-		ACVersion:   *ver,
-		Apps:        apps,
-		Volumes:     m.Volumes,
-		Isolators:   m.Isolators,
-		Annotations: m.Annotations,
-		Ports:       m.Ports}
-	utils.WritePodManifest(&manifest, p.target+POD_TARGET_MANIFEST)
+//func (p *Pod) writePodManifest(apps []schema.RuntimeApp) {
+//	m := p.manifest.Pod
+//	ver, _ := types.NewSemVer("0.6.1")
+//	manifest := schema.PodManifest{
+//		ACKind:      "PodManifest",
+//		ACVersion:   *ver,
+//		Apps:        apps,
+//		Volumes:     m.Volumes,
+//		Isolators:   m.Isolators,
+//		Annotations: m.Annotations,
+//		Ports:       m.Ports}
+//	utils.WritePodManifest(&manifest, p.target+POD_TARGET_MANIFEST)
+//}
+
+const SYSTEMD_TEMPLATE = `[Unit]
+Description={{ .Shortname }} %i
+
+[Service]
+ExecStartPre=/opt/bin/rkt gc --grace-period=0s --expire-prepared=0s
+ExecStart=/opt/bin/rkt --insecure-skip-verify run \
+{{range $i, $e := .Commands}}  {{$e}} \
+{{end}}{{range $i, $e := .Acilist}}{{if $i}} \
+{{end}}  {{$e}}{{end}}
+
+[Install]
+WantedBy=multi-user.target
+`
+
+type SystemdUnit struct {
+	Shortname string
+	Commands  []string
+	Acilist   []string
+}
+
+func (p *Pod) writeSystemdUnit(apps []schema.RuntimeApp) {
+	volumes := []string{}
+	envs := []string{}
+	acilist := []string{}
+
+	for _, env := range p.manifest.Envs {
+		envs = append(envs, "--set-env=" + env.Name + "='" + env.Value + "'")
+	}
+	for _, app := range apps {
+		for _, mount := range app.App.MountPoints {
+			mountPoint, err := p.getVolumeMountValue(mount.Name)
+			if err != nil {
+				log.Get().Panic(err)
+			}
+			volumes = append(volumes,
+				"--volume=" + mount.Name.String() +
+				",kind=" + mountPoint.Kind +
+				",source=" + mountPoint.Source +
+				",read-only=" + strconv.FormatBool(*mountPoint.ReadOnly))
+		}
+		version, _ := app.Image.Labels.Get("version")
+		acilist = append(acilist, app.Image.Name.String() + ":" + version)
+	}
+
+	commands := []string{}
+	if p.manifest.PrivateNet != "" {
+		commands = append(commands, "--private-net=" + p.manifest.PrivateNet)
+	}
+
+	commands = append(commands, volumes...)
+	commands = append(commands, envs...)
+
+	info := SystemdUnit{Shortname: p.manifest.Name.ShortName(), Commands: commands, Acilist: acilist}
+	tmpl, _ := template.New("test").Parse(SYSTEMD_TEMPLATE)
+	w, _ := os.Create(p.target + "/" + p.manifest.Name.ShortName() + "@.service")
+	tmpl.Execute(w, info)
+}
+
+func (p *Pod) getVolumeMountValue(mountName types.ACName) (*types.Volume, error) {
+	for _, volume := range p.manifest.Pod.Volumes {
+		if volume.Name.Equals(mountName) {
+			return &volume, nil
+		}
+	}
+	return nil, errors.New("Volume mount point not set :" + mountName.String())
 }

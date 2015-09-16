@@ -6,6 +6,10 @@ import (
 	"strconv"
 )
 
+const INIT_BUILD_FILE=`#!/bin/bash
+echo "I'm a build script that is run to install applications"
+`
+
 func (cnt *Img) Init() {
 	initPath := cnt.path
 	if cnt.args.Path != "" {
@@ -31,6 +35,7 @@ func (cnt *Img) Init() {
 		RUNLEVELS_PRESTART,
 		RUNLEVELS_LATESTART,
 		RUNLEVELS_BUILD,
+		RUNLEVELS_BUILD_LATE,
 		RUNLEVELS_BUILD_SETUP,
 		RUNLEVELS_BUILD_INHERIT_EARLY,
 		RUNLEVELS_BUILD_INHERIT_LATE,

@@ -6,8 +6,10 @@ import (
 )
 
 type PodManifest struct {
-	Name ACFullname     `json:"name"`
-	Pod  *PodDefinition `json:"pod"`
+	Name       ACFullname     `json:"name"`
+	Pod        *PodDefinition `json:"pod"`
+	Envs       []Env                `json:"envs"`
+	PrivateNet string  `json:"privateNet"`
 }
 
 type PodDefinition struct {
@@ -24,4 +26,9 @@ type RuntimeApp struct {
 	App          *CntApp           `json:"app"`
 	Mounts       []schema.Mount    `json:"mounts"`
 	Annotations  types.Annotations `json:"annotations"`
+}
+
+type Env struct {
+	Name  string `json:"name"`
+	Value string       `json:"value"`
 }
