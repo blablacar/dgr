@@ -93,7 +93,9 @@ func (cnt *Img) processFrom() {
 	if err := utils.ExecCmd("bash", "-c", "rkt image list --fields name --no-legend | grep "+cnt.manifest.From.String()); err != nil {
 		utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.manifest.From.String())
 	}
-	utils.ExecCmd("rkt", "image", "render", "--overwrite", cnt.manifest.From.String(), cnt.target)
+	if err := utils.ExecCmd("rkt", "image", "render", "--overwrite", cnt.manifest.From.String(), cnt.target); err != nil {
+		log.Get().Panic("Cannot render from image" + cnt.manifest.From.String(), err)
+	}
 }
 
 func (cnt *Img) copyRunlevelsScripts() {

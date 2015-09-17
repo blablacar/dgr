@@ -33,12 +33,16 @@ echo "I'm a prestart late script that is run after templating"
 	files[PATH_RUNLEVELS+PATH_BUILD+"/10.install.sh"] = `#!/bin/bash
 echo "I'm a build script that is run to install applications"
 `
-	files[PATH_RUNLEVELS+PATH_BUILD_SETUP+"/10.setup.sh"] = `#!/bin/bash -x
+	files[PATH_RUNLEVELS+PATH_BUILD_SETUP+"/10.setup.sh"] = `#!/bin/bash
+set -e
 echo "I'm build setup script file that is run to prepare $TARGET/rootfs before running build scripts"
 mkdir -p $TARGET/rootfs/{bin,lib64,sys,usr,usr/lib,usr/bin/,cnt,cnt/bin}
-curl 'https://github.com/kelseyhightower/confd/releases/download/v0.10.0/confd-0.10.0-linux-amd64' -O $TARGET/rootfs/cnt/bin/confd
-curl 'https://github.com/blablacar/attribute-merger/releases/download/0.1/attributes-merger' -O $TARGET/rootfs/cnt/bin/attributes-merger
+wget "https://github.com/kelseyhightower/confd/releases/download/v0.10.0/confd-0.10.0-linux-amd64" -O $TARGET/rootfs/cnt/bin/confd
+chmod +x $TARGET/rootfs/cnt/bin/confd
+wget "https://github.com/blablacar/attribute-merger/releases/download/0.1/attributes-merger" -O $TARGET/rootfs/cnt/bin/attributes-merger
+chmod +x $TARGET/rootfs/cnt/bin/attributes-merger
 cp /bin/dirname $TARGET/rootfs/bin/
+cp /bin/cat $TARGET/rootfs/bin/
 cp /bin/bash $TARGET/rootfs/bin/
 cp --preserve=links /usr/lib/libc.so.* $TARGET/rootfs/usr/lib
 cp --preserve=links /usr/lib/libreadline.so.* $TARGET/rootfs/usr/lib
@@ -61,15 +65,15 @@ echo "I'm a inherit build late script that is run on this image and all images t
 	files[PATH_ATTRIBUTES+"/attributes.yml"] = `default:
   dummy: world
 `
-	files[PATH_CONFD+PATH_CONFDOTD+"/dummy.toml"] = `[template]
-src = "dummy.tmpl"
-dest = "/dummy"
+	files[PATH_CONFD+PATH_CONFDOTD+"/templated.toml"] = `[template]
+src = "templated.tmpl"
+dest = "/templated"
 uid = 0
 gid = 0
 mode = "0644"
 keys = ["/"]
 `
-	files[PATH_CONFD+PATH_TEMPLATES+"/dummy.tmpl"] = `{{$data := json (getv "/data")}}Hello {{ $data.dummy }}
+	files[PATH_CONFD+PATH_TEMPLATES+"/templated.tmpl"] = `{{$data := json (getv "/data")}}Hello {{ $data.dummy }}
 `
 	files[".gitignore"] = `target/
 `
