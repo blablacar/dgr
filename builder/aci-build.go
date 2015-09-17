@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"compress/gzip"
 	"github.com/appc/spec/discovery"
 	"github.com/blablacar/cnt/config"
 	"github.com/blablacar/cnt/log"
@@ -8,7 +9,6 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-	"compress/gzip"
 )
 
 func (cnt *Img) Build() error {
@@ -173,18 +173,18 @@ func (cnt *Img) processFrom() {
 			log.Get().Info("Image " + cnt.manifest.From + " Already exists locally, will not be downloaded")
 		}
 
-		fromImagePath := aciPath+"/image.aci"
+		fromImagePath := aciPath + "/image.aci"
 		fi, err := os.Open(fromImagePath)
 		if err != nil {
-			log.Get().Panic("Failed to open : "+ fromImagePath)
+			log.Get().Panic("Failed to open : " + fromImagePath)
 		}
 		defer fi.Close()
 
 		tarOpt := "xzpf"
-		log.Get().Info("Checking if "+fromImagePath+" is zipped")
+		log.Get().Info("Checking if " + fromImagePath + " is zipped")
 		fz, err := gzip.NewReader(fi)
 		if err != nil {
-			log.Get().Info("The from file "+ fromImagePath +" is not zipped")
+			log.Get().Info("The from file " + fromImagePath + " is not zipped")
 			tarOpt = "xpf"
 		} else {
 			defer fz.Close()
