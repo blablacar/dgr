@@ -13,11 +13,11 @@ var cntConfig CntConfig
 type CntConfig struct {
 	Path string
 	Push struct {
-			 Type     string `yaml:"type,omitempty"`
-			 Url      string `yaml:"url,omitempty"`
-			 Username string `yaml:"username,omitempty"`
-			 Password string `yaml:"password,omitempty"`
-		 } `yaml:"push,omitempty"`
+		Type     string `yaml:"type,omitempty"`
+		Url      string `yaml:"url,omitempty"`
+		Username string `yaml:"username,omitempty"`
+		Password string `yaml:"password,omitempty"`
+	} `yaml:"push,omitempty"`
 }
 
 func GetConfig() *CntConfig {
@@ -28,14 +28,14 @@ func (c *CntConfig) Load() {
 }
 
 func init() {
-	cntConfig = CntConfig{Path:"/root/.config/cnt"}
+	cntConfig = CntConfig{Path: "/root/.config/cnt"}
 	user := os.Getenv("SUDO_USER")
 	if user != "" {
 		home, err := utils.ExecCmdGetOutput("bash", "-c", "echo ~"+user)
 		if err != nil {
 			log.Get().Panic("Cannot find user home", err)
 		}
-		cntConfig.Path = home+"/.config/cnt"
+		cntConfig.Path = home + "/.config/cnt"
 	}
 	//	switch runtime.GOOS {
 	//	case "windows":

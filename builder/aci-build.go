@@ -39,8 +39,8 @@ func (cnt *Img) writeCntManifest() {
 }
 
 func (cnt *Img) runBuildLate() {
-	res, err := utils.IsDirEmpty(cnt.target+PATH_RUNLEVELS+PATH_BUILD_LATE)
-	res2, err2 := utils.IsDirEmpty(cnt.rootfs+PATH_CNT+PATH_RUNLEVELS+PATH_INHERIT_BUILD_LATE)
+	res, err := utils.IsDirEmpty(cnt.target + PATH_RUNLEVELS + PATH_BUILD_LATE)
+	res2, err2 := utils.IsDirEmpty(cnt.rootfs + PATH_CNT + PATH_RUNLEVELS + PATH_INHERIT_BUILD_LATE)
 	if (res && res2) || (err != nil && err2 != nil) {
 		return
 	}
@@ -66,7 +66,7 @@ func (cnt *Img) runBuildLate() {
 }
 
 func (cnt *Img) runBuild() {
-	if res, err := utils.IsDirEmpty(cnt.target+PATH_RUNLEVELS+PATH_BUILD); res || err != nil {
+	if res, err := utils.IsDirEmpty(cnt.target + PATH_RUNLEVELS + PATH_BUILD); res || err != nil {
 		return
 	}
 	if err := utils.ExecCmd("systemd-nspawn", "--version"); err != nil {
@@ -90,7 +90,7 @@ func (cnt *Img) processFrom() {
 	if cnt.manifest.From == "" {
 		return
 	}
-	if err := utils.ExecCmd("bash", "-c", "rkt image list --fields name --no-legend | grep " + cnt.manifest.From.String()); err != nil {
+	if err := utils.ExecCmd("bash", "-c", "rkt image list --fields name --no-legend | grep "+cnt.manifest.From.String()); err != nil {
 		utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.manifest.From.String())
 	}
 	utils.ExecCmd("rkt", "image", "render", "--overwrite", cnt.manifest.From.String(), cnt.target)
@@ -108,7 +108,7 @@ func (cnt *Img) copyRunlevelsScripts() {
 }
 
 func (cnt *Img) runLevelBuildSetup() {
-	files, err := ioutil.ReadDir(cnt.path+PATH_RUNLEVELS+PATH_BUILD_SETUP)
+	files, err := ioutil.ReadDir(cnt.path + PATH_RUNLEVELS + PATH_BUILD_SETUP)
 	if err != nil {
 		return
 	}
@@ -118,7 +118,7 @@ func (cnt *Img) runLevelBuildSetup() {
 	for _, f := range files {
 		if !f.IsDir() {
 			log.Get().Info("Running Build setup level : ", f.Name())
-			if err := utils.ExecCmd(cnt.path+PATH_RUNLEVELS+PATH_BUILD_SETUP+"/"+f.Name()); err != nil {
+			if err := utils.ExecCmd(cnt.path + PATH_RUNLEVELS + PATH_BUILD_SETUP + "/" + f.Name()); err != nil {
 				log.Get().Panic(err)
 			}
 		}
