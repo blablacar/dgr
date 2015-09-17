@@ -94,7 +94,7 @@ func (cnt *Img) processFrom() {
 		utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.manifest.From.String())
 	}
 	if err := utils.ExecCmd("rkt", "image", "render", "--overwrite", cnt.manifest.From.String(), cnt.target); err != nil {
-		log.Get().Panic("Cannot render from image" + cnt.manifest.From.String(), err)
+		log.Get().Panic("Cannot render from image"+cnt.manifest.From.String(), err)
 	}
 }
 
