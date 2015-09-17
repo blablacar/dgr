@@ -130,8 +130,8 @@ func PrepAci(aciPath string, args BuildArgs) (*Img, error) {
 	} else {
 		cnt.path = fullPath
 		cnt.target = cnt.path + "/target"
-		if args.Path != "" {
-			currentAbsDir, err := filepath.Abs(args.Path)
+		if args.TargetPath != "" {
+			currentAbsDir, err := filepath.Abs(args.TargetPath + "/" + cnt.manifest.NameAndVersion.ShortName() )
 			if err != nil {
 				log.Get().Panic("invalid target path")
 			}
