@@ -2,10 +2,10 @@ package builder
 
 import (
 	"github.com/blablacar/cnt/log"
-	"path/filepath"
-	"os"
 	"github.com/blablacar/cnt/utils"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
 func (cnt *Img) Init() {
@@ -21,7 +21,6 @@ func (cnt *Img) Init() {
 		uid = os.Getenv("SUDO_UID")
 		gid = os.Getenv("SUDO_GID")
 	}
-
 
 	files := make(map[string]string)
 
@@ -113,7 +112,7 @@ log-level = "debug"
 `
 
 	for filePath, data := range files {
-		fpath := initPath+"/"+filePath
+		fpath := initPath + "/" + filePath
 		os.MkdirAll(filepath.Dir(fpath), 0777)
 		ioutil.WriteFile(fpath, []byte(data), 0777)
 	}
