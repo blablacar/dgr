@@ -8,7 +8,7 @@ import (
 
 func (cnt *Img) Test() {
 	log.Get().Info("Testing " + cnt.manifest.NameAndVersion)
-	if _, err := os.Stat(cnt.target + "/image.aci"); os.IsNotExist(err) {
+	if _, err := os.Stat(cnt.target + PATH_IMAGE_ACI); os.IsNotExist(err) {
 		if err := cnt.Build(); err != nil {
 			log.Get().Panic("Cannot Install since build failed")
 		}

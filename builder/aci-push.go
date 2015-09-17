@@ -18,7 +18,7 @@ func (cnt *Img) Push() {
 		log.Get().Panic("Can't push, push is not configured in cnt global configuration file")
 	}
 
-	im := extractManifestFromAci(cnt.target + "/image.aci")
+	im := extractManifestFromAci(cnt.target + PATH_IMAGE_ACI)
 	val, _ := im.Labels.Get("version")
 	utils.ExecCmd("curl", "-i",
 		"-F", "r=releases",
@@ -28,7 +28,7 @@ func (cnt *Img) Push() {
 		"-F", "p=aci",
 		"-F", "v="+val,
 		"-F", "a="+ShortNameId(im.Name),
-		"-F", "file=@"+cnt.target+"/image.aci",
+		"-F", "file=@"+cnt.target+PATH_IMAGE_ACI,
 		"-u", config.GetConfig().Push.Username+":"+config.GetConfig().Push.Password,
 		config.GetConfig().Push.Url+"/service/local/artifact/maven/content")
 }

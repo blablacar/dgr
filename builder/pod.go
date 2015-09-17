@@ -28,7 +28,7 @@ func OpenPod(path string, args BuildArgs) (*Pod, error) {
 		pod.path = fullPath
 	}
 	pod.args = args
-	pod.target = pod.path + "/target"
+	pod.target = pod.path + PATH_TARGET
 	pod.readManifest(pod.path + POD_MANIFEST)
 	return pod, nil
 }

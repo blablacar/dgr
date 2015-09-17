@@ -11,8 +11,7 @@ import (
 	"strings"
 )
 
-const (
-	execFiles = `
+const EXEC_FILES = `
 execute_files() {
   fdir=$1
   [ -d "$fdir" ] || return 0
@@ -24,52 +23,53 @@ execute_files() {
       echo -e "\e[31m$file is not exectuable\e[0m"
     fi
   done
-}
-	`
+}`
 
-	BUILD_SCRIPT = `#!/bin/bash
+const BUILD_SCRIPT = `#!/bin/bash
 set -x
 set -e
 export TARGET=$( dirname $0 )
 export ROOTFS=%%ROOTFS%%
 export TERM=xterm
 
-` + execFiles + `
+` + EXEC_FILES + `
 
-execute_files "$TARGET/runlevels/inherit-build-early"
+execute_files "$ROOTFS/cnt/runlevels/inherit-build-early"
 execute_files "$TARGET/runlevels/build"
 `
-)
 
-const (
-	BUILD_SCRIPT_LATE = `#!/bin/bash
+const BUILD_SCRIPT_LATE = `#!/bin/bash
 set -x
 set -e
 export TARGET=$( dirname $0 )
 export ROOTFS=%%ROOTFS%%
 export TERM=xterm
 
-` + execFiles + `
+` + EXEC_FILES + `
 
 execute_files "$TARGET/runlevels/build-late"
-execute_files "$TARGET/runlevels/inherit-build-late"
+execute_files "$ROOTFS/cnt/runlevels/inherit-build-late"
 `
-)
 
-const IMG_MANIFEST = "/cnt-manifest.yml"
-const RUNLEVELS = "/runlevels"
-const RUNLEVELS_PRESTART = RUNLEVELS + "/prestart-early"
-const RUNLEVELS_LATESTART = RUNLEVELS + "/prestart-late"
-const RUNLEVELS_BUILD = RUNLEVELS + "/build"
-const RUNLEVELS_BUILD_SETUP = RUNLEVELS + "/build-setup"
-const RUNLEVELS_BUILD_LATE = RUNLEVELS + "/build-late"
-const RUNLEVELS_BUILD_INHERIT_EARLY = RUNLEVELS + "/inherit-build-early"
-const RUNLEVELS_BUILD_INHERIT_LATE = RUNLEVELS + "/inherit-build-late"
-const CONFD = "/confd"
-const CONFD_TEMPLATE = CONFD + "/templates"
-const CONFD_CONFIG = CONFD + "/conf.d"
-const ATTRIBUTES = "/attributes"
-const FILES_PATH = "/files"
+const PATH_MANIFEST = "/manifest"
+const PATH_IMAGE_ACI = "/image.aci"
+const PATH_ROOTFS = "/rootfs"
+const PATH_TARGET = "/target"
+const PATH_CNT = "/cnt"
+const PATH_CNT_MANIFEST = "/cnt-manifest.yml"
+const PATH_RUNLEVELS = "/runlevels"
+const PATH_PRESTART_EARLY = "/prestart-early"
+const PATH_PRESTART_LATE = "/prestart-late"
+const PATH_INHERIT_BUILD_LATE = "/inherit-build-late"
+const PATH_INHERIT_BUILD_EARLY = "/inherit-build-early"
+const PATH_ATTRIBUTES = "/attributes"
+const PATH_FILES = "/files"
+const PATH_CONFD = "/confd"
+const PATH_BUILD_LATE = "/build-late"
+const PATH_BUILD_SETUP = "/build-setup"
+const PATH_BUILD = "/build"
+const PATH_CONFDOTD = "/conf.d"
+const PATH_TEMPLATES = "/templates"
 
 type Img struct {
 	path     string
@@ -113,9 +113,9 @@ func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest) 
 }
 
 func NewAci(path string, args BuildArgs) (*Img, error) {
-	manifest, err := readManifest(path + IMG_MANIFEST)
+	manifest, err := readManifest(path + PATH_CNT_MANIFEST)
 	if err != nil {
-		log.Get().Debug(path, IMG_MANIFEST+" does not exists")
+		log.Get().Debug(path, PATH_CNT_MANIFEST+" does not exists")
 		return nil, err
 	}
 	return NewAciWithManifest(path, args, *manifest)
@@ -129,7 +129,7 @@ func PrepAci(aciPath string, args BuildArgs) (*Img, error) {
 		log.Get().Panic("Cannot get fullpath of project", err)
 	} else {
 		cnt.path = fullPath
-		cnt.target = cnt.path + "/target"
+		cnt.target = cnt.path + PATH_TARGET
 		if args.TargetPath != "" {
 			currentAbsDir, err := filepath.Abs(args.TargetPath + "/" + cnt.manifest.NameAndVersion.ShortName())
 			if err != nil {
@@ -137,7 +137,7 @@ func PrepAci(aciPath string, args BuildArgs) (*Img, error) {
 			}
 			cnt.target = currentAbsDir
 		}
-		cnt.rootfs = cnt.target + "/rootfs"
+		cnt.rootfs = cnt.target + PATH_ROOTFS
 	}
 	return cnt, nil
 }
@@ -160,7 +160,7 @@ func readManifest(manifestPath string) (*spec.AciManifest, error) {
 }
 
 func (i *Img) checkBuilt() {
-	if _, err := os.Stat(i.target + "/image.aci"); os.IsNotExist(err) {
+	if _, err := os.Stat(i.target + PATH_IMAGE_ACI); os.IsNotExist(err) {
 		if err := i.Build(); err != nil {
 			log.Get().Panic("Cannot Install since build failed")
 		}

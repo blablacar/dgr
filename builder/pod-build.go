@@ -141,7 +141,7 @@ func (p *Pod) writeSystemdUnit(apps []schema.RuntimeApp) {
 				"--volume="+mount.Name.String()+
 					",kind="+mountPoint.Kind+
 					",source="+mountPoint.Source+
-					",read-only="+strconv.FormatBool(*mountPoint.ReadOnly))
+					",readOnly="+strconv.FormatBool(*mountPoint.ReadOnly))
 		}
 		version, _ := app.Image.Labels.Get("version")
 		acilist = append(acilist, app.Image.Name.String()+":"+version)
