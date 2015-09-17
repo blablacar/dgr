@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"compress/gzip"
 )
 
 func (cnt *Img) Build() error {
@@ -172,7 +173,22 @@ func (cnt *Img) processFrom() {
 			log.Get().Info("Image " + cnt.manifest.From + " Already exists locally, will not be downloaded")
 		}
 
-		utils.ExecCmd("tar", "xpf", aciPath+"/image.aci", "-C", cnt.target)
+		fromImagePath := aciPath+"/image.aci"
+		fi, err := os.Open(fromImagePath)
+		if err != nil {
+			log.Get().Panic("Failed to open : "+ fromImagePath)
+		}
+		defer fi.Close()
+
+		tarOpt := "xzpf"
+		log.Get().Info("Checking if "+fromImagePath+" is zipped")
+		fz, err := gzip.NewReader(fi)
+		if err != nil {
+			log.Get().Info("The from file "+ fromImagePath +" is not zipped")
+			tarOpt = "xpf"
+		}
+		defer fz.Close()
+		utils.ExecCmd("tar", tarOpt, fromImagePath, "-C", cnt.target)
 
 		//		utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.manifest.From)
 		//		utils.ExecCmd("rkt", "image", "export", "--overwrite", cnt.manifest.From, cnt.target + "/from.aci")
