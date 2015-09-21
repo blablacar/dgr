@@ -4,6 +4,7 @@ go:
  - 1.5
 
 install:
+  - sudo apt-get install busybox
   - go get github.com/tools/godep
 
 script:
