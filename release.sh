@@ -46,7 +46,7 @@ ${dir}/build.sh
 require_clean_work_tree
 
 
-for i in ${dir}/dist/*/ ; do
+for i in ${dir}/dist/*-amd64/ ; do
     if [ -d "$i" ]; then
         cd $i
         platform=${PWD##*/}
@@ -62,7 +62,7 @@ sleep 5
 
 posturl=$(curl --data "{\"tag_name\": \"$1\",\"target_commitish\": \"master\",\"name\": \"$1\",\"body\": \"Release of version $1\",\"draft\": false,\"prerelease\": true}" https://api.github.com/repos/blablacar/cnt/releases?access_token=${access_token} | grep "\"upload_url\"" | sed -ne 's/.*\(http[^"]*\).*/\1/p')
 
-for i in ${dir}/dist/*/ ; do
+for i in ${dir}/dist/*-amd64/ ; do
     if [ -d "$i" ]; then
         fullpath=$(ls ${i}/*.tar.gz)
         filename=${fullpath##*/}
