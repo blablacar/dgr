@@ -27,13 +27,13 @@ type AciDefinition struct {
 }
 
 type CntApp struct {
-	Exec             types.Exec           `json:"exec"`
-	EventHandlers    []types.EventHandler `json:"eventHandlers,omitempty"`
-	User             string               `json:"user"`
-	Group            string               `json:"group"`
-	WorkingDirectory string               `json:"workingDirectory,omitempty"`
-	Environment      types.Environment    `json:"environment,omitempty"`
-	MountPoints      []types.MountPoint   `json:"mountPoints,omitempty"`
-	Ports            []types.Port         `json:"ports,omitempty"`
-	Isolators        types.Isolators      `json:"isolators,omitempty"`
+	Exec types.Exec `json:"exec"`
+	//	EventHandlers    []types.EventHandler `json:"eventHandlers,omitempty"`
+	User             string             `json:"user"`
+	Group            string             `json:"group"`
+	WorkingDirectory string             `json:"workingDirectory,omitempty"`
+	Environment      types.Environment  `json:"environment,omitempty"`
+	MountPoints      []types.MountPoint `json:"mountPoints,omitempty"`
+	Ports            []types.Port       `json:"ports,omitempty"`
+	Isolators        types.Isolators    `json:"isolators,omitempty"`
 }

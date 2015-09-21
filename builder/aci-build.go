@@ -120,8 +120,19 @@ func (cnt *Img) copyInternals() {
 		log.Get().Panic(err)
 	}
 
-	//	filename, _ := osext.Executable()
-	//	utils.CopyFile(filename, cnt.rootfs+PATH_CNT+"/bin/cnt")
+	confdFile := `backend = "env"
+confdir = "/cnt"
+prefix = "/confd"
+log-level = "debug"
+`
+	os.MkdirAll(cnt.rootfs+PATH_CNT+"/prestart", 0755)
+	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+"/prestart/confd.toml", []byte(confdFile), 0777); err != nil {
+		log.Get().Panic(err)
+	}
+
+	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+"/bin/prestart", []byte(PRESTART), 0777); err != nil {
+		log.Get().Panic(err)
+	}
 }
 
 func (cnt *Img) copyRunlevelsScripts() {

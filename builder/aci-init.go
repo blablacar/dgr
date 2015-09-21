@@ -70,35 +70,6 @@ aci:
     eventHandlers:
       - { name: pre-start, exec: [ "/cnt/bin/prestart" ] }
 `
-	files[PATH_FILES+PATH_CNT+"/bin/prestart"] = `#!/cnt/bin/busybox sh
-
-BASEDIR=${0%/*}
-CNT_PATH=/cnt
-
-execute_files() {
-  fdir=$1
-  [ -d "$fdir" ] || return 0
-
-  find "$fdir" -mindepth 1 -maxdepth 1 -type f -print0 | sort -z -n |
-  while read -r -d $'\0' file; do
-      echo "$file"
-      [ -x "$file" ] && "$file"
-  done
-}
-
-execute_files ${CNT_PATH}/prestart-early
-
-${BASEDIR}/attributes-merger -i ${CNT_PATH}/attributes -e CONFD_OVERRIDE
-export CONFD_DATA=$(cat attributes.json)
-${BASEDIR}/confd -onetime -config-file=${CNT_PATH}/prestart/confd.toml
-
-execute_files ${CNT_PATH}/prestart-late
-`
-	files[PATH_FILES+PATH_CNT+"/prestart/confd.toml"] = `backend = "env"
-confdir = "/cnt"
-prefix = "/confd"
-log-level = "debug"
-`
 
 	for filePath, data := range files {
 		fpath := initPath + "/" + filePath

@@ -15,7 +15,7 @@ $ cnt build         # build the image
 $ cnt clean         # clean the build
 $ cnt install       # store target image to rkt local store
 $ cnt push          # push target image to remote storage
-$ cnt init          # create the filetree
+$ cnt init          # init a simple project
 ```
 
 # cnt configuration file

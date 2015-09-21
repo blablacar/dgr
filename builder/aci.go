@@ -17,11 +17,9 @@ execute_files() {
   [ -d "$fdir" ] || return 0
 
   for file in $fdir/*; do
-    if [ -x "$file" ]; then
-      $file
-    else
-      echo -e "\e[31m$file is not exectuable\e[0m"
-    fi
+    [ -x "$file" ] || /cnt/bin/busybox chmod +x "$file"
+    echo -e "\e[1m\e[32mRunning script -> $file\e[0m"
+    $file
   done
 }`
 
@@ -49,6 +47,24 @@ export TERM=xterm
 
 execute_files "$TARGET/runlevels/build-late"
 execute_files "$ROOTFS/cnt/runlevels/inherit-build-late"
+`
+
+const PRESTART = `#!/cnt/bin/busybox sh
+set -x
+set -e
+
+BASEDIR=${0%/*}
+CNT_PATH=/cnt
+
+` + EXEC_FILES + `
+
+execute_files ${CNT_PATH}/runlevels/prestart-early
+
+${BASEDIR}/attributes-merger -i ${CNT_PATH}/attributes -e CONFD_OVERRIDE
+export CONFD_DATA=$(cat attributes.json)
+${BASEDIR}/confd -onetime -config-file=${CNT_PATH}/prestart/confd.toml
+
+execute_files ${CNT_PATH}/runlevels/prestart-late
 `
 
 const PATH_MANIFEST = "/manifest"

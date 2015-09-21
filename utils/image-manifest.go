@@ -78,9 +78,10 @@ func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName stri
 	im.Dependencies = toAppcDependencies(m.Aci.Dependencies)
 	im.Name = *name
 	im.Labels = labels
+
 	im.App = &types.App{
 		Exec:             m.Aci.App.Exec,
-		EventHandlers:    m.Aci.App.EventHandlers,
+		EventHandlers:    []types.EventHandler{{Name: "pre-start", Exec: []string{"/cnt/bin/prestart"}}},
 		User:             m.Aci.App.User,
 		Group:            m.Aci.App.Group,
 		WorkingDirectory: m.Aci.App.WorkingDirectory,

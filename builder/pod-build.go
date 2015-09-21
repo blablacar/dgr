@@ -59,7 +59,6 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 			Image: ttmp,
 			App: &types.App{
 				Exec:             e.App.Exec,
-				EventHandlers:    e.App.EventHandlers,
 				User:             e.App.User,
 				Group:            e.App.Group,
 				WorkingDirectory: e.App.WorkingDirectory,
