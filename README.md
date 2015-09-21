@@ -4,7 +4,8 @@
 
 **Highly experimental and in development**
 
-Tool to build **RKT** ACI and POD in a mixup of Chef, Dockerfile and Packer logic
+Tool to build [APPC](https://github.com/appc/spec) ACI and POD in a mixup of Chef, Dockerfile and Packer logic.
+[RKT](https://github.com/coreos/rkt) is required in the path to run cnt
 
 File templating will be resolved on container start using **confd** in env mode
 
@@ -19,10 +20,8 @@ $ cnt init          # create the filetree
 
 # cnt configuration file
 
-cnt global conf is a yaml file located at
-* windows >  $HOME + "/AppData/Local/Cnt/config.yml";
-* darwin > $HOME + "/Library/Cnt/config.yml";
-* linux > $HOME + "/.config/cnt/config.yml";
+Cnt global conf is a yaml file located at `$HOME+/.config/cnt/config.yml`. Home is the home of starting user (The caller user if running with sudo)
+
 
 with content :
 ```yml
