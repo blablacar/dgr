@@ -25,7 +25,7 @@ execute_files() {
   done
 }`
 
-const BUILD_SCRIPT = `#!/bin/bash
+const BUILD_SCRIPT = `#!/cnt/bin/busybox sh
 set -x
 set -e
 export TARGET=$( dirname $0 )
@@ -38,7 +38,7 @@ execute_files "$ROOTFS/cnt/runlevels/inherit-build-early"
 execute_files "$TARGET/runlevels/build"
 `
 
-const BUILD_SCRIPT_LATE = `#!/bin/bash
+const BUILD_SCRIPT_LATE = `#!/cnt/bin/busybox sh
 set -x
 set -e
 export TARGET=$( dirname $0 )

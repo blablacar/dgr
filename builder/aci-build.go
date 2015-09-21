@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"github.com/blablacar/cnt/dist"
 	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/utils"
 	"io/ioutil"
@@ -14,6 +15,7 @@ func (cnt *Img) Build() error {
 	os.MkdirAll(cnt.rootfs, 0777)
 
 	cnt.processFrom()
+	cnt.copyInternals()
 	cnt.copyRunlevelsScripts()
 
 	cnt.runLevelBuildSetup()
@@ -98,7 +100,32 @@ func (cnt *Img) processFrom() {
 	}
 }
 
+func (cnt *Img) copyInternals() {
+	log.Get().Info("Copy internals")
+	os.MkdirAll(cnt.rootfs+PATH_CNT+"/bin", 0755)
+	os.MkdirAll(cnt.rootfs+"/usr/bin", 0755) // this is required by systemd-nspawn
+
+	busybox, _ := dist.Asset("dist/bindata/busybox")
+	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+"/bin/busybox", busybox, 0777); err != nil {
+		log.Get().Panic(err)
+	}
+
+	confd, _ := dist.Asset("dist/bindata/confd")
+	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+"/bin/confd", confd, 0777); err != nil {
+		log.Get().Panic(err)
+	}
+
+	attributeMerger, _ := dist.Asset("dist/bindata/attributes-merger")
+	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+"/bin/attributes-merger", attributeMerger, 0777); err != nil {
+		log.Get().Panic(err)
+	}
+
+	//	filename, _ := osext.Executable()
+	//	utils.CopyFile(filename, cnt.rootfs+PATH_CNT+"/bin/cnt")
+}
+
 func (cnt *Img) copyRunlevelsScripts() {
+	log.Get().Info("Copy Runlevels scripts")
 	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_BUILD, cnt.target+PATH_RUNLEVELS+PATH_BUILD)
 	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_BUILD_LATE, cnt.target+PATH_RUNLEVELS+PATH_BUILD_LATE)
 	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_BUILD_SETUP, cnt.target+PATH_RUNLEVELS+PATH_BUILD_SETUP)

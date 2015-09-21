@@ -24,40 +24,25 @@ func (cnt *Img) Init() {
 
 	files := make(map[string]string)
 
-	files[PATH_RUNLEVELS+PATH_PRESTART_EARLY+"/10.prestart-early.sh"] = `#!/bin/bash
+	files[PATH_RUNLEVELS+PATH_PRESTART_EARLY+"/10.prestart-early.sh"] = `#!/cnt/bin/busybox sh
 echo "I'm a prestart early script that is run before templating"
 `
-	files[PATH_RUNLEVELS+PATH_PRESTART_LATE+"/10.prestart-late.sh"] = `#!/bin/bash
+	files[PATH_RUNLEVELS+PATH_PRESTART_LATE+"/10.prestart-late.sh"] = `#!/cnt/bin/busybox sh
 echo "I'm a prestart late script that is run after templating"
 `
-	files[PATH_RUNLEVELS+PATH_BUILD+"/10.install.sh"] = `#!/bin/bash
+	files[PATH_RUNLEVELS+PATH_BUILD+"/10.install.sh"] = `#!/cnt/bin/busybox sh
 echo "I'm a build script that is run to install applications"
 `
-	files[PATH_RUNLEVELS+PATH_BUILD_SETUP+"/10.setup.sh"] = `#!/bin/bash
-set -e
+	files[PATH_RUNLEVELS+PATH_BUILD_SETUP+"/10.setup.sh"] = `#!/bin/sh
 echo "I'm build setup script file that is run to prepare $TARGET/rootfs before running build scripts"
-mkdir -p $TARGET/rootfs/{bin,lib64,sys,usr,usr/lib,usr/bin/,cnt,cnt/bin}
-wget "https://github.com/kelseyhightower/confd/releases/download/v0.10.0/confd-0.10.0-linux-amd64" -O $TARGET/rootfs/cnt/bin/confd
-chmod +x $TARGET/rootfs/cnt/bin/confd
-wget "https://github.com/blablacar/attribute-merger/releases/download/0.1/attributes-merger" -O $TARGET/rootfs/cnt/bin/attributes-merger
-chmod +x $TARGET/rootfs/cnt/bin/attributes-merger
-cp /bin/dirname $TARGET/rootfs/bin/
-cp /bin/cat $TARGET/rootfs/bin/
-cp /bin/bash $TARGET/rootfs/bin/
-cp --preserve=links /usr/lib/libc.so.* $TARGET/rootfs/usr/lib
-cp --preserve=links /usr/lib/libreadline.so.* $TARGET/rootfs/usr/lib
-cp --preserve=links /usr/lib/libncursesw.so.* $TARGET/rootfs/usr/lib
-cp --preserve=links /usr/lib/libdl.so.* $TARGET/rootfs/usr/lib
-cp --preserve=links /usr/lib/libc.so.* $TARGET/rootfs/usr/lib
-cp --preserve=links /lib64/ld-linux-x86-64.so.* $TARGET/rootfs/lib64
 `
-	files[PATH_RUNLEVELS+PATH_BUILD_LATE+"/10.setup.sh"] = `#!/bin/bash
+	files[PATH_RUNLEVELS+PATH_BUILD_LATE+"/10.setup.sh"] = `#!/cnt/bin/busybox sh
 echo "I'm a build late script that is run to install applications after the copy of files,template,etc..."
 `
-	files[PATH_RUNLEVELS+PATH_INHERIT_BUILD_EARLY+"/10.inherit-build-early.sh"] = `#!/bin/bash
+	files[PATH_RUNLEVELS+PATH_INHERIT_BUILD_EARLY+"/10.inherit-build-early.sh"] = `#!/cnt/bin/busybox sh
 echo "I'm a inherit build early script that is run on this image and all images that have me as From during build"
 `
-	files[PATH_RUNLEVELS+PATH_INHERIT_BUILD_LATE+"/10.inherit-build-early.sh"] = `#!/bin/bash
+	files[PATH_RUNLEVELS+PATH_INHERIT_BUILD_LATE+"/10.inherit-build-early.sh"] = `#!/cnt/bin/busybox sh
 echo "I'm a inherit build late script that is run on this image and all images that have me as From during build"
 `
 	files[PATH_FILES+"/dummy"] = `Dummy file
@@ -81,11 +66,11 @@ keys = ["/"]
 name: aci.example.com/aci-dummy:1
 aci:
   app:
-    exec: [ "/bin/bash" ]
+    exec: [ "/cnt/bin/busybox", "sh" ]
     eventHandlers:
       - { name: pre-start, exec: [ "/cnt/bin/prestart" ] }
 `
-	files[PATH_FILES+PATH_CNT+"/bin/prestart"] = `#!/bin/bash
+	files[PATH_FILES+PATH_CNT+"/bin/prestart"] = `#!/cnt/bin/busybox sh
 
 BASEDIR=${0%/*}
 CNT_PATH=/cnt
