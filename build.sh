@@ -6,10 +6,13 @@ dir=$( dirname $0 )
 
 [ -f /bin/busybox ] || (echo "/bin/busybox is required to build cnt" && exit 1)
 
+[ -f $GOPATH/bin/godep ] || go get github.com/tools/godep
+
 # clean
 rm -Rf $dir/dist/*-amd64
 
 # binary
+[ -f $GOPATH/bin/go-bindata ] || go get -u github.com/jteeuwen/go-bindata/...
 mkdir -p $dir/dist/bindata
 [ -f $dir/dist/bindata/busybox ] || cp /bin/busybox $dir/dist/bindata/busybox
 [ -f $dir/dist/bindata/attributes-merger ] || wget "https://github.com/blablacar/attributes-merger/releases/download/0.1/attributes-merger" -O $dir/dist/bindata/attributes-merger
