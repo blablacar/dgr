@@ -16,8 +16,10 @@ execute_files() {
   fdir=$1
   [ -d "$fdir" ] || return 0
 
-  for file in $fdir/*; do
-    [ -x "$file" ] || /cnt/bin/busybox chmod +x "$file"
+  for file in $fdir; do
+    [ -e "$file" ] && {
+     [ -x "$file" ] || /cnt/bin/busybox chmod +x "$file"
+    }
     echo -e "\e[1m\e[32mRunning script -> $file\e[0m"
     $file
   done
