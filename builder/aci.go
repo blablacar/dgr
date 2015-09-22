@@ -16,7 +16,7 @@ execute_files() {
   fdir=$1
   [ -d "$fdir" ] || return 0
 
-  for file in $fdir; do
+  for file in $fdir/*; do
     [ -e "$file" ] && {
      [ -x "$file" ] || /cnt/bin/busybox chmod +x "$file"
     }
