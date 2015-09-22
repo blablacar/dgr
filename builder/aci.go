@@ -18,10 +18,10 @@ execute_files() {
 
   for file in $fdir/*; do
     [ -e "$file" ] && {
-     [ -x "$file" ] || /cnt/bin/busybox chmod +x "$file"
+     	[ -x "$file" ] || /cnt/bin/busybox chmod +x "$file"
+     	echo -e "\e[1m\e[32mRunning script -> $file\e[0m"
+     	$file
     }
-    echo -e "\e[1m\e[32mRunning script -> $file\e[0m"
-    $file
   done
 }`
 
