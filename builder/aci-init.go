@@ -34,7 +34,7 @@ echo "I'm a prestart late script that is run after templating"
 echo "I'm a build script that is run to install applications"
 `
 	files[PATH_RUNLEVELS+PATH_BUILD_SETUP+"/10.setup.sh"] = `#!/bin/sh
-echo "I'm build setup script file that is run to prepare $TARGET/rootfs before running build scripts"
+echo "I'm build setup script file that is run from $BASEDIR to prepare $TARGET/rootfs before running build scripts"
 `
 	files[PATH_RUNLEVELS+PATH_BUILD_LATE+"/10.setup.sh"] = `#!/cnt/bin/busybox sh
 echo "I'm a build late script that is run to install applications after the copy of files,template,etc..."

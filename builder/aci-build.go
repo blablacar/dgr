@@ -34,6 +34,14 @@ func (cnt *Img) Build() error {
 	return nil
 }
 
+func (i *Img) CheckBuilt() {
+	if _, err := os.Stat(i.target + PATH_IMAGE_ACI); os.IsNotExist(err) {
+		if err := i.Build(); err != nil {
+			log.Get().Panic("Cannot continue since build failed")
+		}
+	}
+}
+
 ///////////////////////////////////////////////////////
 
 func (cnt *Img) writeCntManifest() {
@@ -102,21 +110,21 @@ func (cnt *Img) processFrom() {
 
 func (cnt *Img) copyInternals() {
 	log.Get().Info("Copy internals")
-	os.MkdirAll(cnt.rootfs+PATH_CNT+"/bin", 0755)
+	os.MkdirAll(cnt.rootfs+PATH_CNT+PATH_BIN, 0755)
 	os.MkdirAll(cnt.rootfs+"/usr/bin", 0755) // this is required by systemd-nspawn
 
 	busybox, _ := dist.Asset("dist/bindata/busybox")
-	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+"/bin/busybox", busybox, 0777); err != nil {
+	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+PATH_BIN+"/busybox", busybox, 0777); err != nil {
 		log.Get().Panic(err)
 	}
 
 	confd, _ := dist.Asset("dist/bindata/confd")
-	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+"/bin/confd", confd, 0777); err != nil {
+	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+PATH_BIN+"/confd", confd, 0777); err != nil {
 		log.Get().Panic(err)
 	}
 
 	attributeMerger, _ := dist.Asset("dist/bindata/attributes-merger")
-	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+"/bin/attributes-merger", attributeMerger, 0777); err != nil {
+	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+PATH_BIN+"/attributes-merger", attributeMerger, 0777); err != nil {
 		log.Get().Panic(err)
 	}
 
@@ -130,7 +138,7 @@ log-level = "debug"
 		log.Get().Panic(err)
 	}
 
-	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+"/bin/prestart", []byte(PRESTART), 0777); err != nil {
+	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+PATH_BIN+"/prestart", []byte(PRESTART), 0777); err != nil {
 		log.Get().Panic(err)
 	}
 }

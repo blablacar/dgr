@@ -66,5 +66,4 @@ func (p *Pod) toAciManifest(e spec.RuntimeApp) spec.AciManifest {
 		},
 		NameAndVersion: *fullname,
 	}
-
 }

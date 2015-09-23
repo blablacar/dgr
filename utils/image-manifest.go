@@ -61,7 +61,10 @@ func BasicImageManifest() *schema.ImageManifest {
 //}
 
 func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName string, version string) {
-	name, _ := types.NewACIdentifier(m.NameAndVersion.Name())
+	name, err := types.NewACIdentifier(m.NameAndVersion.Name())
+	if err != nil {
+		log.Get().Panic(err)
+	}
 
 	labels := types.Labels{}
 	labels = append(labels, types.Label{Name: "version", Value: m.NameAndVersion.Version()})

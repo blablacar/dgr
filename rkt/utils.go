@@ -1,0 +1,5 @@
+package rkt
+
+func ImageExists() {
+
+}

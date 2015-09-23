@@ -6,7 +6,6 @@ import (
 	"github.com/blablacar/cnt/spec"
 	"github.com/ghodss/yaml"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
 )
@@ -68,7 +67,9 @@ ${BASEDIR}/confd -onetime -config-file=${CNT_PATH}/prestart/confd.toml
 
 execute_files ${CNT_PATH}/runlevels/prestart-late
 `
-
+const PATH_BIN = "/bin"
+const PATH_TEST = "/tests"
+const PATH_INSTALLED = "/installed"
 const PATH_MANIFEST = "/manifest"
 const PATH_IMAGE_ACI = "/image.aci"
 const PATH_ROOTFS = "/rootfs"
@@ -175,12 +176,4 @@ func readManifest(manifestPath string) (*spec.AciManifest, error) {
 	}
 
 	return &manifest, nil
-}
-
-func (i *Img) checkBuilt() {
-	if _, err := os.Stat(i.target + PATH_IMAGE_ACI); os.IsNotExist(err) {
-		if err := i.Build(); err != nil {
-			log.Get().Panic("Cannot Install since build failed")
-		}
-	}
 }
