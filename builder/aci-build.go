@@ -111,6 +111,7 @@ func (cnt *Img) processFrom() {
 func (cnt *Img) copyInternals() {
 	log.Get().Info("Copy internals")
 	os.MkdirAll(cnt.rootfs+PATH_CNT+PATH_BIN, 0755)
+	os.MkdirAll(cnt.rootfs+"/bin", 0755)     // this is required or systemd-nspawn will create symlink on it
 	os.MkdirAll(cnt.rootfs+"/usr/bin", 0755) // this is required by systemd-nspawn
 
 	busybox, _ := dist.Asset("dist/bindata/busybox")

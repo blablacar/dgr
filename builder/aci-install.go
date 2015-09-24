@@ -18,14 +18,3 @@ func (aci *Img) Install() string {
 	ioutil.WriteFile(aci.target+PATH_INSTALLED, []byte(hash), 0644)
 	return hash
 }
-
-func (aci *Img) checkInstalled() string {
-	if _, err := os.Stat(aci.target + PATH_INSTALLED); os.IsNotExist(err) {
-		return aci.Install()
-	}
-	content, err := ioutil.ReadFile(aci.target + PATH_INSTALLED)
-	if err != nil {
-		log.Get().Panic("Cannot get content of "+PATH_INSTALLED, err)
-	}
-	return string(content)
-}
