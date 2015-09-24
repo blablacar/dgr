@@ -83,6 +83,8 @@ aci:
 }
 `
 
+	files[PATH_TEST+"/wait.sh"] = `exit 0`
+
 	for filePath, data := range files {
 		fpath := initPath + "/" + filePath
 		os.MkdirAll(filepath.Dir(fpath), 0777)
