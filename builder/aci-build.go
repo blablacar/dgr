@@ -29,7 +29,7 @@ func (cnt *Img) Build() error {
 	cnt.copyFiles()
 	cnt.runBuildLate()
 
-	cnt.tarAci()
+	cnt.tarAci(false)
 	//	ExecCmd("chown " + os.Getenv("SUDO_USER") + ": " + target + "/*") //TODO chown
 	return nil
 }
@@ -174,15 +174,6 @@ func (cnt *Img) runLevelBuildSetup() {
 			}
 		}
 	}
-}
-
-func (cnt *Img) tarAci() {
-	dir, _ := os.Getwd()
-	log.Get().Debug("chdir to", cnt.target)
-	os.Chdir(cnt.target)
-	utils.Tar(cnt.args.Zip, PATH_IMAGE_ACI[1:], PATH_MANIFEST[1:], PATH_ROOTFS[1:])
-	log.Get().Debug("chdir to", dir)
-	os.Chdir(dir)
 }
 
 func (cnt *Img) copyConfd() {

@@ -18,7 +18,7 @@ func (cnt *Img) UpdateConf() error {
 	cnt.copyConfd()
 	cnt.copyFiles()
 
-	cnt.tarAci()
+	cnt.tarAci(false)
 
 	return nil
 }

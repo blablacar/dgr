@@ -4,8 +4,10 @@ import (
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/spec"
+	"github.com/blablacar/cnt/utils"
 	"github.com/ghodss/yaml"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -72,6 +74,7 @@ const PATH_TEST = "/tests"
 const PATH_INSTALLED = "/installed"
 const PATH_MANIFEST = "/manifest"
 const PATH_IMAGE_ACI = "/image.aci"
+const PATH_IMAGE_ACI_ZIP = "/image-zip.aci"
 const PATH_ROOTFS = "/rootfs"
 const PATH_TARGET = "/target"
 const PATH_CNT = "/cnt"
@@ -176,4 +179,17 @@ func readManifest(manifestPath string) (*spec.AciManifest, error) {
 	}
 
 	return &manifest, nil
+}
+
+func (cnt *Img) tarAci(zip bool) {
+	target := PATH_IMAGE_ACI[1:]
+	if zip {
+		target = PATH_IMAGE_ACI_ZIP[1:]
+	}
+	dir, _ := os.Getwd()
+	log.Get().Debug("chdir to", cnt.target)
+	os.Chdir(cnt.target)
+	utils.Tar(zip, target, PATH_MANIFEST[1:], PATH_ROOTFS[1:])
+	log.Get().Debug("chdir to", dir)
+	os.Chdir(dir)
 }

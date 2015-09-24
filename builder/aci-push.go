@@ -13,22 +13,24 @@ import (
 )
 
 func (cnt *Img) Push() {
-	cnt.CheckBuilt()
 	if config.GetConfig().Push.Type == "" {
 		log.Get().Panic("Can't push, push is not configured in cnt global configuration file")
 	}
 
-	im := extractManifestFromAci(cnt.target + PATH_IMAGE_ACI)
+	cnt.CheckBuilt()
+	cnt.tarAci(true)
+
+	im := extractManifestFromAci(cnt.target + PATH_IMAGE_ACI_ZIP)
 	val, _ := im.Labels.Get("version")
 	utils.ExecCmd("curl", "-i",
 		"-F", "r=releases",
 		"-F", "hasPom=false",
 		"-F", "e=aci",
-		"-F", "g=com.blablacar.aci.linux.amd64",
+		"-F", "g=com.blabla car.aci.linux.amd64",
 		"-F", "p=aci",
 		"-F", "v="+val,
 		"-F", "a="+ShortNameId(im.Name),
-		"-F", "file=@"+cnt.target+PATH_IMAGE_ACI,
+		"-F", "file=@"+cnt.target+PATH_IMAGE_ACI_ZIP,
 		"-u", config.GetConfig().Push.Username+":"+config.GetConfig().Push.Password,
 		config.GetConfig().Push.Url+"/service/local/artifact/maven/content")
 }

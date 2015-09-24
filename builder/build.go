@@ -1,7 +1,6 @@
 package builder
 
 type BuildArgs struct {
-	Zip         bool
 	Clean       bool
 	ForceUpdate bool
 	Path        string
