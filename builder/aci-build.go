@@ -100,7 +100,7 @@ func (cnt *Img) processFrom() {
 	if cnt.manifest.From == "" {
 		return
 	}
-	if err := utils.ExecCmd("bash", "-c", "rkt image list --fields name --no-legend | grep "+cnt.manifest.From.String()); err != nil {
+	if err := utils.ExecCmd("bash", "-c", "rkt image list --fields name --no-legend | grep -q "+cnt.manifest.From.String()); err != nil {
 		utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.manifest.From.String())
 	}
 	if err := utils.ExecCmd("rkt", "image", "render", "--overwrite", cnt.manifest.From.String(), cnt.target); err != nil {
