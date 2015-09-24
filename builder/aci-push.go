@@ -13,7 +13,7 @@ import (
 )
 
 func (cnt *Img) Push() {
-	cnt.checkBuilt()
+	cnt.CheckBuilt()
 	if config.GetConfig().Push.Type == "" {
 		log.Get().Panic("Can't push, push is not configured in cnt global configuration file")
 	}
