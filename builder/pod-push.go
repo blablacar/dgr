@@ -20,7 +20,7 @@ func (p *Pod) Push() {
 		aci.Push()
 	}
 
-	utils.ExecCmd("curl", "-i",
+	if err := utils.ExecCmd("curl", "-i",
 		"-F", "r=releases",
 		"-F", "hasPom=false",
 		"-F", "e=service",
@@ -30,6 +30,8 @@ func (p *Pod) Push() {
 		"-F", "a="+p.manifest.Name.ShortName(),
 		"-F", "file=@"+p.target+"/"+p.manifest.Name.ShortName()+"@.service",
 		"-u", config.GetConfig().Push.Username+":"+config.GetConfig().Push.Password,
-		config.GetConfig().Push.Url+"/service/local/artifact/maven/content")
+		config.GetConfig().Push.Url+"/service/local/artifact/maven/content"); err != nil {
+		log.Get().Panic("Cannot push pod", err)
+	}
 
 }
