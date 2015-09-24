@@ -22,7 +22,7 @@ func (cnt *Img) Push() {
 
 	im := extractManifestFromAci(cnt.target + PATH_IMAGE_ACI_ZIP)
 	val, _ := im.Labels.Get("version")
-	utils.ExecCmd("curl", "-i",
+	if err := utils.ExecCmd("curl", "-i",
 		"-F", "r=releases",
 		"-F", "hasPom=false",
 		"-F", "e=aci",
@@ -32,7 +32,9 @@ func (cnt *Img) Push() {
 		"-F", "a="+ShortNameId(im.Name),
 		"-F", "file=@"+cnt.target+PATH_IMAGE_ACI_ZIP,
 		"-u", config.GetConfig().Push.Username+":"+config.GetConfig().Push.Password,
-		config.GetConfig().Push.Url+"/service/local/artifact/maven/content")
+		config.GetConfig().Push.Url+"/service/local/artifact/maven/content"); err != nil {
+		log.Get().Panic("Cannot push aci", err)
+	}
 }
 
 func extractManifestFromAci(aciPath string) schema.ImageManifest {
