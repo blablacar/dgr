@@ -86,7 +86,7 @@ func (cnt *Img) checkResult() {
 }
 
 func (cnt *Img) importAciBats() {
-	if err := utils.ExecCmd("bash", "-c", "rkt image list --fields name --no-legend | grep "+BATS_ACI); err != nil {
+	if err := utils.ExecCmd("bash", "-c", "rkt image list --fields name --no-legend | grep -q "+BATS_ACI); err != nil {
 		content, _ := dist.Asset("dist/bindata/aci-bats.aci")
 		if err := ioutil.WriteFile("/tmp/aci-bats.aci", content, 0644); err != nil {
 			log.Get().Panic(err)
