@@ -1,14 +1,18 @@
 package builder
 
 import (
+	"errors"
+	"github.com/appc/spec/discovery"
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/spec"
 	"github.com/blablacar/cnt/utils"
 	"github.com/ghodss/yaml"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -131,6 +135,9 @@ func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest) 
 		return nil, err
 	}
 	cnt.manifest = manifest
+
+	cnt.checkLatestVersions()
+
 	return cnt, nil
 }
 
@@ -192,4 +199,78 @@ func (cnt *Img) tarAci(zip bool) {
 	utils.Tar(zip, target, PATH_MANIFEST[1:], PATH_ROOTFS[1:])
 	log.Get().Debug("chdir to", dir)
 	os.Chdir(dir)
+}
+
+func (cnt *Img) checkLatestVersions() {
+	if cnt.manifest.From != "" {
+		version := getLatestVersion(cnt.manifest.From)
+		log.Get().Debug("latest version of from : " + cnt.manifest.NameAndVersion.Name() + ":" + version)
+		if version != "" && utils.Version(cnt.manifest.From.Version()).LessThan(utils.Version(version)) {
+			log.Get().Warn("---------------------------------")
+			log.Get().Warn("From has newer version : " + cnt.manifest.From.Name() + ":" + version)
+			log.Get().Warn("---------------------------------")
+		}
+	}
+	for _, dep := range cnt.manifest.Aci.Dependencies {
+		version := getLatestVersion(dep)
+		if version != "" && utils.Version(cnt.manifest.From.Version()).LessThan(utils.Version(version)) {
+			log.Get().Warn("---------------------------------")
+			log.Get().Warn("Newer dependency version : " + dep.Name() + ":" + version)
+			log.Get().Warn("---------------------------------")
+		}
+	}
+}
+
+func getLatestVersion(name spec.ACFullname) string {
+	app, err := discovery.NewAppFromString(name.Name() + ":latest")
+	if app.Labels["os"] == "" {
+		app.Labels["os"] = "linux"
+	}
+	if app.Labels["arch"] == "" {
+		app.Labels["arch"] = "amd64"
+	}
+
+	endpoint, _, err := discovery.DiscoverEndpoints(*app, false)
+	if err != nil {
+		return ""
+	}
+
+	r, _ := regexp.Compile(`^(\d+\.)?(\d+\.)?(\*|\d+)$`)
+
+	url := getRedirectForLatest(endpoint.ACIEndpoints[0].ACI)
+	log.Get().Debug("latest version url is ", url)
+
+	for _, part := range strings.Split(url, "/") {
+		if r.Match([]byte(part)) {
+			return part
+		}
+	}
+	return ""
+}
+
+func getRedirectForLatest(url string) string {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return ""
+	}
+	transport := http.DefaultTransport
+	//	if insecureSkipVerify {
+	//		transport = &http.Transport{
+	//			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	//		}
+	//	}
+	client := &http.Client{Transport: transport}
+	myurl := ""
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		myurl = req.URL.Path
+		return errors.New("do not want to get the file")
+	}
+	_, err2 := client.Do(req)
+	if err2 != nil {
+		if myurl != "" {
+			return myurl
+		}
+		return ""
+	}
+	return myurl
 }
