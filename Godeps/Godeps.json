@@ -1,14 +1,9 @@
 {
 	"ImportPath": "github.com/blablacar/cnt",
-	"GoVersion": "go1.5",
+	"GoVersion": "go1.5.1",
 	"Deps": [
 		{
 			"ImportPath": "github.com/appc/spec/aci",
-			"Comment": "v0.6.1-42-g2981bdf",
-			"Rev": "2981bdf7017cc2cd04fcaf0caf6342e552fa176e"
-		},
-		{
-			"ImportPath": "github.com/appc/spec/discovery",
 			"Comment": "v0.6.1-42-g2981bdf",
 			"Rev": "2981bdf7017cc2cd04fcaf0caf6342e552fa176e"
 		},
@@ -50,10 +45,6 @@
 		{
 			"ImportPath": "github.com/spf13/pflag",
 			"Rev": "67cbc198fd11dab704b214c1e629a97af392c085"
-		},
-		{
-			"ImportPath": "golang.org/x/net/html",
-			"Rev": "ea47fc708ee3e20177f3ca3716217c4ab75942cb"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
