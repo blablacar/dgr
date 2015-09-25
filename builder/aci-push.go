@@ -26,7 +26,7 @@ func (cnt *Img) Push() {
 		"-F", "r=releases",
 		"-F", "hasPom=false",
 		"-F", "e=aci",
-		"-F", "g=com.blabla car.aci.linux.amd64",
+		"-F", "g=com.blablacar.aci.linux.amd64",
 		"-F", "p=aci",
 		"-F", "v="+val,
 		"-F", "a="+ShortNameId(im.Name),
