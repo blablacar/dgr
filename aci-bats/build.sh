@@ -9,10 +9,10 @@ mkdir -p $ROOTFS/{bin,usr,usr/bin,usr/lib,lib64,cnt,cnt/bin}
 cp -R $DIR/files/* $ROOTFS/
 
 cp /bin/bash $ROOTFS/bin/
-cp --preserve=links /usr/lib/libreadline.so.* $ROOTFS/usr/lib
-cp --preserve=links /usr/lib/libncursesw.so.* $ROOTFS/usr/lib
-cp --preserve=links /usr/lib/libdl.so.* $ROOTFS/usr/lib
-cp --preserve=links /usr/lib/libc.so.* $ROOTFS/usr/lib || cp --preserve=links /lib/x86_64-linux-gnu/libc.so.* $ROOTFS/usr/lib
+cp --preserve=links /usr/lib/libreadline.so.* $ROOTFS/usr/lib ||  cp --preserve=links /lib/x86_64-linux-gnu/libreadline.so.* $ROOTFS/usr/lib
+cp --preserve=links /usr/lib/libncursesw.so.* $ROOTFS/usr/lib ||  cp --preserve=links /lib/x86_64-linux-gnu/libncursesw.so.* $ROOTFS/usr/lib
+cp --preserve=links /usr/lib/libdl.so.* $ROOTFS/usr/lib  ||  cp --preserve=links /lib/x86_64-linux-gnu/libdl.so.* $ROOTFS/usr/lib
+cp --preserve=links /usr/lib/libc.so.* $ROOTFS/usr/lib ||  cp --preserve=links /lib/x86_64-linux-gnu/libc.so.* $ROOTFS/usr/lib
 cp --preserve=links /lib64/ld-linux-x86-64.so.* $ROOTFS/lib64
 
 
