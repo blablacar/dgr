@@ -22,7 +22,7 @@ func (cnt *Img) Push() {
 
 	im := extractManifestFromAci(cnt.target + PATH_IMAGE_ACI_ZIP)
 	val, _ := im.Labels.Get("version")
-	if err := utils.ExecCmd("curl", "-i",
+	if err := utils.ExecCmd("curl", "-f", "-i",
 		"-F", "r=releases",
 		"-F", "hasPom=false",
 		"-F", "e=aci",
