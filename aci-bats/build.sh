@@ -9,7 +9,6 @@ mkdir -p $ROOTFS/{bin,usr,usr/bin,usr/lib,lib64,cnt,cnt/bin}
 cp -R $DIR/files/* $ROOTFS/
 
 cp /bin/bash $ROOTFS/bin/
-cp --preserve=links /usr/lib/libc.so.* $ROOTFS/usr/lib
 cp --preserve=links /usr/lib/libreadline.so.* $ROOTFS/usr/lib
 cp --preserve=links /usr/lib/libncursesw.so.* $ROOTFS/usr/lib
 cp --preserve=links /usr/lib/libdl.so.* $ROOTFS/usr/lib

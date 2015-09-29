@@ -67,8 +67,10 @@ CNT_PATH=/cnt
 
 execute_files ${CNT_PATH}/runlevels/prestart-early
 
-${BASEDIR}/attributes-merger -i ${CNT_PATH}/attributes -e CONFD_OVERRIDE
-export CONFD_DATA=$(cat attributes.json)
+if [ -d ${CNT_PATH}/attributes ]; then
+    ${BASEDIR}/attributes-merger -i ${CNT_PATH}/attributes -e CONFD_OVERRIDE
+    export CONFD_DATA=$(cat attributes.json)
+fi
 ${BASEDIR}/confd -onetime -config-file=${CNT_PATH}/prestart/confd.toml
 
 execute_files ${CNT_PATH}/runlevels/prestart-late
