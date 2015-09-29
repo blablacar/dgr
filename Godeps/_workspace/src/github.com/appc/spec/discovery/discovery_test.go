@@ -88,11 +88,11 @@ func TestDiscoverEndpoints(t *testing.T) {
 				},
 			},
 			[]ACIEndpoint{
-				ACIEndpoint{
+				{
 					ACI: "https://storage.example.com/example.com/myapp-1.0.0.aci?torrent",
 					ASC: "https://storage.example.com/example.com/myapp-1.0.0.aci.asc?torrent",
 				},
-				ACIEndpoint{
+				{
 					ACI: "hdfs://storage.example.com/example.com/myapp-1.0.0.aci",
 					ASC: "hdfs://storage.example.com/example.com/myapp-1.0.0.aci.asc",
 				},
@@ -111,11 +111,11 @@ func TestDiscoverEndpoints(t *testing.T) {
 				},
 			},
 			[]ACIEndpoint{
-				ACIEndpoint{
+				{
 					ACI: "https://storage.example.com/example.com/myapp/foobar-1.0.0.aci?torrent",
 					ASC: "https://storage.example.com/example.com/myapp/foobar-1.0.0.aci.asc?torrent",
 				},
-				ACIEndpoint{
+				{
 					ACI: "hdfs://storage.example.com/example.com/myapp/foobar-1.0.0.aci",
 					ASC: "hdfs://storage.example.com/example.com/myapp/foobar-1.0.0.aci.asc",
 				},
@@ -149,7 +149,7 @@ func TestDiscoverEndpoints(t *testing.T) {
 				},
 			},
 			[]ACIEndpoint{
-				ACIEndpoint{
+				{
 					ACI: "https://storage.example.com/example.com/myapp-1.0.0.aci",
 					ASC: "https://storage.example.com/example.com/myapp-1.0.0.aci.asc",
 				},
@@ -166,7 +166,7 @@ func TestDiscoverEndpoints(t *testing.T) {
 				Labels: map[types.ACIdentifier]string{},
 			},
 			[]ACIEndpoint{
-				ACIEndpoint{
+				{
 					ACI: "https://storage.example.com/example.com/myapp-latest.aci",
 					ASC: "https://storage.example.com/example.com/myapp-latest.aci.asc",
 				},
@@ -185,7 +185,7 @@ func TestDiscoverEndpoints(t *testing.T) {
 				},
 			},
 			[]ACIEndpoint{
-				ACIEndpoint{
+				{
 					ACI: "https://storage.example.com/example.com/myapp-1.0.0.aci",
 					ASC: "https://storage.example.com/example.com/myapp-1.0.0.aci.asc",
 				},
@@ -207,7 +207,7 @@ func TestDiscoverEndpoints(t *testing.T) {
 		if len(de.ACIEndpoints) != len(tt.expectedACIEndpoints) {
 			t.Errorf("ACIEndpoints array is wrong length want %d got %d", len(tt.expectedACIEndpoints), len(de.ACIEndpoints))
 		} else {
-			for n, _ := range de.ACIEndpoints {
+			for n := range de.ACIEndpoints {
 				if de.ACIEndpoints[n] != tt.expectedACIEndpoints[n] {
 					t.Errorf("#%d ACIEndpoints[%d] mismatch: want %v got %v", i, n, tt.expectedACIEndpoints[n], de.ACIEndpoints[n])
 				}
@@ -217,7 +217,7 @@ func TestDiscoverEndpoints(t *testing.T) {
 		if len(de.Keys) != len(tt.expectedKeys) {
 			t.Errorf("Keys array is wrong length want %d got %d", len(tt.expectedKeys), len(de.Keys))
 		} else {
-			for n, _ := range de.Keys {
+			for n := range de.Keys {
 				if de.Keys[n] != tt.expectedKeys[n] {
 					t.Errorf("#%d sig[%d] mismatch: want %v got %v", i, n, tt.expectedKeys[n], de.Keys[n])
 				}
