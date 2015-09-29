@@ -68,6 +68,8 @@ func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName stri
 
 	labels := types.Labels{}
 	labels = append(labels, types.Label{Name: "version", Value: m.NameAndVersion.Version()})
+	labels = append(labels, types.Label{Name: "os", Value: "linux"})
+	labels = append(labels, types.Label{Name: "arch",Value: "amd64"})
 
 	if m.Aci.App.User == "" {
 		m.Aci.App.User = "0"
