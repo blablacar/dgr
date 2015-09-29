@@ -28,10 +28,6 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 	for _, e := range p.manifest.Pod.Apps {
 
 		aciName := p.buildAciIfNeeded(e)
-		// TODO: support not FS override by only storing info pod manifest
-		//		if aciName == nil {
-		//			aciName = &e.Image
-		//		}
 
 		name, _ := types.NewACName(e.Name)
 
@@ -69,7 +65,6 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 			},
 			Mounts:      e.Mounts,
 			Annotations: e.Annotations})
-
 	}
 
 	return apps
@@ -85,6 +80,7 @@ func (p *Pod) buildAciIfNeeded(e spec.RuntimeApp) *spec.ACFullname {
 		aci.Build()
 		return &aci.manifest.NameAndVersion
 	}
+	log.Get().Panic("Cannot found Pod's aci directory :" + p.path + "/" + e.Name)
 	return nil
 }
 
