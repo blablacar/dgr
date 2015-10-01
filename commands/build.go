@@ -1,6 +1,10 @@
 package commands
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/blablacar/cnt/builder"
+	"github.com/blablacar/cnt/log"
+	"github.com/spf13/cobra"
+)
 
 var buildCmd = &cobra.Command{
 	Use:   "build",
@@ -10,6 +14,16 @@ var buildCmd = &cobra.Command{
 		runCleanIfRequested(".", buildArgs)
 		discoverAndRunBuildType(".", buildArgs)
 	},
+}
+
+func discoverAndRunBuildType(path string, args builder.BuildArgs) {
+	if cnt, err := builder.NewAci(path, args); err == nil {
+		cnt.Build()
+	} else if pod, err := builder.OpenPod(path, args); err == nil {
+		pod.Build()
+	} else {
+		log.Get().Panic("Cannot find cnt-manifest.yml")
+	}
 }
 
 func init() {

@@ -10,8 +10,6 @@ import (
 
 const POD_MANIFEST = "/cnt-pod-manifest.yml"
 
-//const POD_TARGET_MANIFEST = "/pod-manifest.json"
-
 type Pod struct {
 	path     string
 	args     BuildArgs

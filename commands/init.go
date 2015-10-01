@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"github.com/blablacar/cnt/builder"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -16,4 +17,10 @@ var initCmd = &cobra.Command{
 		}
 		discoverAndRunInitType(".", buildArgs)
 	},
+}
+
+func discoverAndRunInitType(path string, args builder.BuildArgs) {
+	if cnt, err := builder.PrepAci(path, args); err == nil {
+		cnt.Init()
+	}
 }
