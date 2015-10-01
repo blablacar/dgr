@@ -215,7 +215,7 @@ func (cnt *Img) checkLatestVersions() {
 	}
 	for _, dep := range cnt.manifest.Aci.Dependencies {
 		version := getLatestVersion(dep)
-		if version != "" && utils.Version(cnt.manifest.From.Version()).LessThan(utils.Version(version)) {
+		if version != "" && utils.Version(dep.Version()).LessThan(utils.Version(version)) {
 			log.Get().Warn("---------------------------------")
 			log.Get().Warn("Newer dependency version : " + dep.Name() + ":" + version)
 			log.Get().Warn("---------------------------------")
