@@ -76,7 +76,7 @@ ${BASEDIR}/confd -onetime -config-file=${CNT_PATH}/prestart/confd.toml
 execute_files ${CNT_PATH}/runlevels/prestart-late
 `
 const PATH_BIN = "/bin"
-const PATH_TEST = "/tests"
+const PATH_TESTS = "/tests"
 const PATH_INSTALLED = "/installed"
 const PATH_MANIFEST = "/manifest"
 const PATH_IMAGE_ACI = "/image.aci"

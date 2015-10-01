@@ -70,7 +70,7 @@ aci:
     eventHandlers:
       - { name: pre-start, exec: [ "/cnt/bin/prestart" ] }
 `
-	files[PATH_TEST+"/dummy.bats"] = `#!/cnt/bin/bats -x
+	files[PATH_TESTS+"/dummy.bats"] = `#!/cnt/bin/bats -x
 
 @test "Prestart should template" {
   result="$(cat /templated)"
@@ -83,7 +83,7 @@ aci:
 }
 `
 
-	files[PATH_TEST+"/wait.sh"] = `exit 0`
+	files[PATH_TESTS+"/wait.sh"] = `exit 0`
 
 	for filePath, data := range files {
 		fpath := initPath + "/" + filePath

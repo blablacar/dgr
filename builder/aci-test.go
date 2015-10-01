@@ -45,6 +45,12 @@ fi
 func (cnt *Img) Test() {
 	cnt.Install()
 	log.Get().Info("Testing " + cnt.manifest.NameAndVersion)
+
+	if _, err := os.Stat(cnt.path + PATH_TESTS); err != nil {
+		log.Get().Warn("Tests directory does not exists")
+		return
+	}
+
 	cnt.importAciBats()
 
 	testAci, err := cnt.prepareTestAci()
@@ -53,14 +59,14 @@ func (cnt *Img) Test() {
 	}
 	testAci.Build()
 
-	os.MkdirAll(cnt.target+PATH_TEST+PATH_TARGET+PATH_RESULT, 0777)
+	os.MkdirAll(cnt.target+PATH_TESTS+PATH_TARGET+PATH_RESULT, 0777)
 
 	if err := utils.ExecCmd("rkt",
 		"--insecure-skip-verify=true",
 		"run",
 		"--local",
-		"--volume=result,kind=host,source="+cnt.target+PATH_TEST+PATH_TARGET+PATH_RESULT,
-		cnt.target+PATH_TEST+PATH_TARGET+"/image.aci"); err != nil {
+		"--volume=result,kind=host,source="+cnt.target+PATH_TESTS+PATH_TARGET+PATH_RESULT,
+		cnt.target+PATH_TESTS+PATH_TARGET+"/image.aci"); err != nil {
 		// rkt+systemd cannot exit with fail status yet
 		log.Get().Panic(err)
 	}
@@ -69,12 +75,12 @@ func (cnt *Img) Test() {
 }
 
 func (cnt *Img) checkResult() {
-	files, err := ioutil.ReadDir(cnt.target + PATH_TEST + PATH_TARGET + PATH_RESULT)
+	files, err := ioutil.ReadDir(cnt.target + PATH_TESTS + PATH_TARGET + PATH_RESULT)
 	if err != nil {
 		log.Get().Panic("Cannot read test result directory", err)
 	}
 	for _, f := range files {
-		content, err := ioutil.ReadFile(cnt.target + PATH_TEST + PATH_TARGET + PATH_RESULT + "/" + f.Name())
+		content, err := ioutil.ReadFile(cnt.target + PATH_TESTS + PATH_TARGET + PATH_RESULT + "/" + f.Name())
 		if err != nil {
 			log.Get().Panic("Cannot read result file", f.Name(), err)
 		}
@@ -97,20 +103,20 @@ func (cnt *Img) importAciBats() {
 }
 
 func (cnt *Img) prepareTestAci() (*Img, error) {
-	files, err := ioutil.ReadDir(cnt.path + PATH_TEST)
+	files, err := ioutil.ReadDir(cnt.path + PATH_TESTS)
 	if err != nil {
 		return nil, err
 	}
 
-	utils.CopyDir(cnt.path+PATH_TEST+PATH_FILES, cnt.target+PATH_TEST+PATH_FILES)
-	utils.CopyDir(cnt.path+PATH_TEST+PATH_ATTRIBUTES, cnt.target+PATH_TEST+PATH_ATTRIBUTES)
-	utils.CopyDir(cnt.path+PATH_TEST+PATH_CONFD, cnt.target+PATH_TEST+PATH_CONFD)
-	utils.CopyDir(cnt.path+PATH_TEST+PATH_RUNLEVELS, cnt.target+PATH_TEST+PATH_RUNLEVELS)
+	utils.CopyDir(cnt.path+PATH_TESTS+PATH_FILES, cnt.target+PATH_TESTS+PATH_FILES)
+	utils.CopyDir(cnt.path+PATH_TESTS+PATH_ATTRIBUTES, cnt.target+PATH_TESTS+PATH_ATTRIBUTES)
+	utils.CopyDir(cnt.path+PATH_TESTS+PATH_CONFD, cnt.target+PATH_TESTS+PATH_CONFD)
+	utils.CopyDir(cnt.path+PATH_TESTS+PATH_RUNLEVELS, cnt.target+PATH_TESTS+PATH_RUNLEVELS)
 
-	os.MkdirAll(cnt.target+PATH_TEST+PATH_FILES+PATH_TEST, 0777)
+	os.MkdirAll(cnt.target+PATH_TESTS+PATH_FILES+PATH_TESTS, 0777)
 	for _, f := range files {
 		if !f.IsDir() {
-			if err := utils.CopyFile(cnt.path+PATH_TEST+"/"+f.Name(), cnt.target+PATH_TEST+PATH_FILES+PATH_TEST+"/"+f.Name()); err != nil {
+			if err := utils.CopyFile(cnt.path+PATH_TESTS+"/"+f.Name(), cnt.target+PATH_TESTS+PATH_FILES+PATH_TESTS+"/"+f.Name()); err != nil {
 				log.Get().Panic(err)
 			}
 		}
@@ -118,7 +124,7 @@ func (cnt *Img) prepareTestAci() (*Img, error) {
 
 	ExecScript := strings.Replace(TEST_INIT_SCRIPT, "%%COMMAND%%", "'"+strings.Join(cnt.manifest.Aci.App.Exec, "' '")+"'", 1)
 
-	ioutil.WriteFile(cnt.target+PATH_TEST+PATH_FILES+"/init.sh", []byte(ExecScript), 0777)
+	ioutil.WriteFile(cnt.target+PATH_TESTS+PATH_FILES+"/init.sh", []byte(ExecScript), 0777)
 
 	fullname, err := spec.NewACFullName(cnt.manifest.NameAndVersion.Name() + "_test:" + cnt.manifest.NameAndVersion.Version())
 	if err != nil {
@@ -126,7 +132,7 @@ func (cnt *Img) prepareTestAci() (*Img, error) {
 	}
 
 	resultMountName, _ := types.NewACName("result")
-	testAci, err := NewAciWithManifest(cnt.target+PATH_TEST, cnt.args, spec.AciManifest{
+	testAci, err := NewAciWithManifest(cnt.target+PATH_TESTS, cnt.args, spec.AciManifest{
 		Aci: spec.AciDefinition{
 			App: &spec.CntApp{
 				Exec:        []string{"/init.sh"},
