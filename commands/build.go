@@ -27,5 +27,5 @@ func discoverAndRunBuildType(path string, args builder.BuildArgs) {
 }
 
 func init() {
-	buildCmd.Flags().BoolVarP(&buildArgs.ForceUpdate, "force-update", "U", false, "Force update of dependencies")
+	//	buildCmd.Flags().BoolVarP(&buildArgs.ForceUpdate, "force-update", "U", false, "Force update of dependencies")
 }

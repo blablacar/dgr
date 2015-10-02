@@ -48,6 +48,9 @@ func (cnt *Img) Test() {
 	log.Get().Info("Testing " + cnt.manifest.NameAndVersion)
 
 	if _, err := os.Stat(cnt.path + PATH_TESTS); err != nil {
+		if cnt.args.NoTestFail {
+			log.Get().Panic("Test directory does not exists but tests are mandatory")
+		}
 		log.Get().Warn("Tests directory does not exists")
 		return
 	}
@@ -79,18 +82,27 @@ func (cnt *Img) checkResult() {
 	if err != nil {
 		log.Get().Panic("Cannot read test result directory", err)
 	}
+	testFound := false
 	for _, f := range files {
-		if !strings.HasSuffix(f.Name(), STATUS_SUFFIX) {
-			continue
-		}
-		content, err := ioutil.ReadFile(cnt.target + PATH_TESTS + PATH_TARGET + PATH_RESULT + "/" + f.Name())
+		fullPath := cnt.target + PATH_TESTS + PATH_TARGET + PATH_RESULT + "/" + f.Name()
+		content, err := ioutil.ReadFile(fullPath)
 		if err != nil {
 			log.Get().Panic("Cannot read result file", f.Name(), err)
+		}
+		if !strings.HasSuffix(f.Name(), STATUS_SUFFIX) {
+			if testFound == false && string(content) != "1..0\n" {
+				testFound = true
+			}
+			continue
 		}
 		if string(content) != "0\n" {
 			log.Get().Error("Failed test file : ", f.Name())
 			os.Exit(2)
 		}
+	}
+
+	if cnt.args.NoTestFail && !testFound {
+		log.Get().Panic("No tests found")
 	}
 }
 

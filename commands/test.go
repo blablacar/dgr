@@ -25,3 +25,7 @@ func discoverAndRunTestType(path string, args builder.BuildArgs) {
 		log.Get().Panic("Cannot find cnt-manifest.yml")
 	}
 }
+
+func init() {
+	testCmd.Flags().BoolVarP(&buildArgs.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")
+}
