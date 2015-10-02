@@ -4,8 +4,15 @@ export TARGET=$( dirname $0 )
 export ROOTFS=%%ROOTFS%%
 export TERM=xterm
 
-export PATH=/cnt/bin:$PATH
+echo_red() {
+  echo -e "\033[0;31m${1}\033[0m"
+}
 
+echo_green() {
+  echo -e "\033[0;32m${1}\033[0m"
+}
+
+export PATH=/cnt/bin:$PATH
 busybox --install &> /dev/null
 
 execute_tests() {
@@ -14,9 +21,19 @@ execute_tests() {
 
   for file in $fdir/*; do
     filename=$(basename $file)
+    [ "$filename" == "wait.sh" ] && continue
+
     echo -e "\e[1m\e[32mRunning test file -> $filename\e[0m"
-    /cnt/bin/bats $file
-    echo $? > /result/$filename
+    res=$(/cnt/bin/bats -t $file)
+    res_code=$?
+    echo "$res" > /result/${filename}
+    echo "$res_code" > /result/${filename}_status
+
+    if [ "$res_code" == "0" ]; then
+      echo_green "$res"
+    else
+      echo_red "$res"
+    fi
   done
 }
 

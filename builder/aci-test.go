@@ -11,8 +11,9 @@ import (
 	"strings"
 )
 
-const BATS_ACI = "aci.blablacar.com/aci-bats:1"
+const BATS_ACI = "aci.blablacar.com/aci-bats:2"
 const PATH_RESULT = "/result"
+const STATUS_SUFFIX = "_status"
 const TEST_INIT_SCRIPT = `#!/bin/bash
 set -x
 
@@ -79,6 +80,9 @@ func (cnt *Img) checkResult() {
 		log.Get().Panic("Cannot read test result directory", err)
 	}
 	for _, f := range files {
+		if !strings.HasSuffix(f.Name(), STATUS_SUFFIX) {
+			continue
+		}
 		content, err := ioutil.ReadFile(cnt.target + PATH_TESTS + PATH_TARGET + PATH_RESULT + "/" + f.Name())
 		if err != nil {
 			log.Get().Panic("Cannot read result file", f.Name(), err)
