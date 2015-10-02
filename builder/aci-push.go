@@ -12,15 +12,20 @@ import (
 	"path/filepath"
 )
 
-func (cnt *Img) Push() {
+func (aci *Img) Push() {
 	if config.GetConfig().Push.Type == "" {
 		log.Get().Panic("Can't push, push is not configured in cnt global configuration file")
 	}
 
-	cnt.CheckBuilt()
-	cnt.tarAci(true)
+	aci.CheckBuilt()
+	if aci.args.Test {
+		aci.args.Test = false
+		aci.Test()
+	}
 
-	im := extractManifestFromAci(cnt.target + PATH_IMAGE_ACI_ZIP)
+	aci.tarAci(true)
+
+	im := extractManifestFromAci(aci.target + PATH_IMAGE_ACI_ZIP)
 	val, _ := im.Labels.Get("version")
 	if err := utils.ExecCmd("curl", "-f", "-i",
 		"-F", "r=releases",
@@ -30,7 +35,7 @@ func (cnt *Img) Push() {
 		"-F", "p=aci",
 		"-F", "v="+val,
 		"-F", "a="+ShortNameId(im.Name),
-		"-F", "file=@"+cnt.target+PATH_IMAGE_ACI_ZIP,
+		"-F", "file=@"+aci.target+PATH_IMAGE_ACI_ZIP,
 		"-u", config.GetConfig().Push.Username+":"+config.GetConfig().Push.Password,
 		config.GetConfig().Push.Url+"/service/local/artifact/maven/content"); err != nil {
 		log.Get().Panic("Cannot push aci", err)

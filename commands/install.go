@@ -28,4 +28,6 @@ func discoverAndRunInstallType(path string, args builder.BuildArgs) {
 
 func init() {
 	installCmd.Flags().BoolVarP(&buildArgs.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")
+	installCmd.Flags().BoolVarP(&buildArgs.Test, "test", "t", false, "Run tests before install")
+
 }

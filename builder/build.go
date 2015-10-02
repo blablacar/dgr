@@ -2,6 +2,7 @@ package builder
 
 type BuildArgs struct {
 	Clean      bool
+	Test       bool
 	NoTestFail bool
 	Path       string
 	TargetPath string

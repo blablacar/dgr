@@ -22,7 +22,7 @@ func Execute() {
 
 	var rootCmd = &cobra.Command{Use: "cnt"}
 	rootCmd.PersistentFlags().BoolVarP(&buildArgs.Clean, "clean", "c", false, "Clean before doing anything")
-	rootCmd.PersistentFlags().StringVarP(&buildArgs.TargetPath, "target-path", "t", "", "Set target path")
+	rootCmd.PersistentFlags().StringVarP(&buildArgs.TargetPath, "target-path", "p", "", "Set target path")
 
 	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, updateCmd, graphCmd)
 

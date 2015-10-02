@@ -28,4 +28,5 @@ func discoverAndRunPushType(path string, args builder.BuildArgs) {
 
 func init() {
 	pushCmd.Flags().BoolVarP(&buildArgs.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")
+	pushCmd.Flags().BoolVarP(&buildArgs.Test, "test", "t", false, "Run tests before push")
 }

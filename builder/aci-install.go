@@ -9,7 +9,10 @@ import (
 
 func (aci *Img) Install() string {
 	aci.CheckBuilt()
-	//TODO remove old installed for rkt ??
+	if aci.args.Test {
+		aci.args.Test = false
+		aci.Test()
+	}
 	os.Remove(aci.target + PATH_INSTALLED)
 	hash, err := utils.ExecCmdGetOutput("rkt", "--insecure-skip-verify=true", "fetch", aci.target+PATH_IMAGE_ACI)
 	if err != nil {
