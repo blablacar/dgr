@@ -138,7 +138,7 @@ func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest) 
 	}
 	cnt.manifest = manifest
 
-	cnt.checkLatestVersions()
+	go cnt.checkLatestVersions()
 
 	return cnt, nil
 }
