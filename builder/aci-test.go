@@ -68,6 +68,7 @@ func (cnt *Img) Test() {
 	if err := utils.ExecCmd("rkt",
 		"--insecure-skip-verify=true",
 		"run",
+		"--mds-register=false",
 		"--volume=result,kind=host,source="+cnt.target+PATH_TESTS+PATH_TARGET+PATH_RESULT,
 		cnt.target+PATH_TESTS+PATH_TARGET+"/image.aci"); err != nil {
 		// rkt+systemd cannot exit with fail status yet
