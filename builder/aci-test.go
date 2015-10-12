@@ -143,9 +143,8 @@ func (cnt *Img) prepareTestAci() (*Img, error) {
 		}
 	}
 
-
 	ExecScript := strings.Replace(TEST_INIT_SCRIPT, "%%COMMAND%%", "'"+strings.Join(cnt.manifest.Aci.App.Exec, "' '")+"'", 1)
-	ExecScript = strings.Replace(ExecScript, "%%CWD%%", "'" + cnt.manifest.Aci.App.WorkingDirectory + "'", 2)
+	ExecScript = strings.Replace(ExecScript, "%%CWD%%", "'"+cnt.manifest.Aci.App.WorkingDirectory+"'", 2)
 
 	ioutil.WriteFile(cnt.target+PATH_TESTS+PATH_FILES+"/init.sh", []byte(ExecScript), 0777)
 
