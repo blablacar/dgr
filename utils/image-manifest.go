@@ -60,14 +60,19 @@ func BasicImageManifest() *schema.ImageManifest {
 //    return im
 //}
 
-func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName string, version string) {
+func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName string) {
 	name, err := types.NewACIdentifier(m.NameAndVersion.Name())
 	if err != nil {
 		log.Get().Panic(err)
 	}
 
+	version := m.NameAndVersion.Version()
+	if version == "" {
+		version = GenerateVersion()
+	}
+
 	labels := types.Labels{}
-	labels = append(labels, types.Label{Name: "version", Value: m.NameAndVersion.Version()})
+	labels = append(labels, types.Label{Name: "version", Value: version})
 	labels = append(labels, types.Label{Name: "os", Value: "linux"})
 	labels = append(labels, types.Label{Name: "arch", Value: "amd64"})
 

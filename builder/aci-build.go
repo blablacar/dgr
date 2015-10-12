@@ -191,9 +191,5 @@ func (cnt *Img) copyAttributes() {
 
 func (cnt *Img) writeImgManifest() {
 	log.Get().Debug("Writing aci manifest")
-	version := cnt.manifest.NameAndVersion.Version()
-	if version == "" {
-		version = utils.GenerateVersion()
-	}
-	utils.WriteImageManifest(&cnt.manifest, cnt.target+PATH_MANIFEST, cnt.manifest.NameAndVersion.Name(), version)
+	utils.WriteImageManifest(&cnt.manifest, cnt.target+PATH_MANIFEST, cnt.manifest.NameAndVersion.Name())
 }
