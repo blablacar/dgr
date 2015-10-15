@@ -72,7 +72,7 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 
 func (p *Pod) buildAciIfNeeded(e spec.RuntimeApp) *spec.ACFullname {
 	if dir, err := os.Stat(p.path + "/" + e.Name); err == nil && dir.IsDir() {
-		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e))
+		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e), nil)
 		if err != nil {
 			log.Get().Panic(err)
 		}

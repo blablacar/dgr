@@ -130,7 +130,7 @@ func Name(nameAndVersion string) string {
 
 ////////////////////////////////////////////
 
-func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest) (*Img, error) {
+func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest, checked *chan bool) (*Img, error) {
 	log.Get().Debug("New aci", path, args, manifest)
 	cnt, err := PrepAci(path, args)
 	if err != nil {
@@ -138,7 +138,7 @@ func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest) 
 	}
 	cnt.manifest = manifest
 
-	go cnt.checkLatestVersions()
+	go cnt.checkLatestVersions(checked)
 
 	return cnt, nil
 }
@@ -149,7 +149,7 @@ func NewAci(path string, args BuildArgs) (*Img, error) {
 		log.Get().Debug(path, PATH_CNT_MANIFEST+" does not exists")
 		return nil, err
 	}
-	return NewAciWithManifest(path, args, *manifest)
+	return NewAciWithManifest(path, args, *manifest, nil)
 }
 
 func PrepAci(aciPath string, args BuildArgs) (*Img, error) {
@@ -203,7 +203,7 @@ func (cnt *Img) tarAci(zip bool) {
 	os.Chdir(dir)
 }
 
-func (cnt *Img) checkLatestVersions() {
+func (cnt *Img) checkLatestVersions(checked *chan bool) {
 	if cnt.manifest.From != "" {
 		version := getLatestVersion(cnt.manifest.From)
 		log.Get().Debug("latest version of from : " + cnt.manifest.NameAndVersion.Name() + ":" + version)
@@ -220,6 +220,9 @@ func (cnt *Img) checkLatestVersions() {
 			log.Get().Warn("Newer dependency version : " + dep.Name() + ":" + version)
 			log.Get().Warn("---------------------------------")
 		}
+	}
+	if checked != nil {
+		*checked <- true
 	}
 }
 
