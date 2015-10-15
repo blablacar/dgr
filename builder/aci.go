@@ -130,7 +130,7 @@ func Name(nameAndVersion string) string {
 
 ////////////////////////////////////////////
 
-func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest, checked chan bool) (*Img, error) {
+func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest, checked *chan bool) (*Img, error) {
 	log.Get().Debug("New aci", path, args, manifest)
 	cnt, err := PrepAci(path, args)
 	if err != nil {
@@ -203,7 +203,7 @@ func (cnt *Img) tarAci(zip bool) {
 	os.Chdir(dir)
 }
 
-func (cnt *Img) checkLatestVersions(checked chan bool) {
+func (cnt *Img) checkLatestVersions(checked *chan bool) {
 	if cnt.manifest.From != "" {
 		version := getLatestVersion(cnt.manifest.From)
 		log.Get().Debug("latest version of from : " + cnt.manifest.NameAndVersion.Name() + ":" + version)
@@ -222,7 +222,7 @@ func (cnt *Img) checkLatestVersions(checked chan bool) {
 		}
 	}
 	if checked != nil {
-		checked <- true
+		*checked <- true
 	}
 }
 
