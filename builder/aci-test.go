@@ -163,7 +163,7 @@ func (cnt *Img) prepareTestAci() (*Img, error) {
 			Dependencies: []spec.ACFullname{BATS_ACI, cnt.manifest.NameAndVersion},
 		},
 		NameAndVersion: *fullname,
-	})
+	}, nil)
 	if err != nil {
 		log.Get().Panic("Cannot build test aci", err)
 	}
