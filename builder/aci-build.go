@@ -91,7 +91,7 @@ func (cnt *Img) runBuild() {
 	ioutil.WriteFile(cnt.target+"/build.sh", []byte(build), 0777)
 
 	if err := utils.ExecCmd("systemd-nspawn", "--directory="+cnt.rootfs, "--capability=all",
-		"--bind="+cnt.target+"/:/target", "--share-system", "target/build.sh"); err != nil {
+		"--bind="+cnt.target+"/:/target", "target/build.sh"); err != nil {
 		log.Get().Panic("Build step did not succeed", err)
 	}
 }
