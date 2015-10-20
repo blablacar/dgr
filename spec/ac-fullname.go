@@ -70,10 +70,11 @@ func NewACFullName(s string) (*ACFullname, error) {
 
 func (n ACFullname) FullyResolved() (*ACFullname, error) {
 	version := n.Version()
+	log.Get().Error("Version:" + version)
 	if version != "" {
 		return &n, nil
 	}
-	return NewACFullName(n.Name() + n.LatestVersion())
+	return NewACFullName(n.Name() + ":" +  n.LatestVersion())
 }
 
 /* 1 */
