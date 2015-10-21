@@ -2,9 +2,9 @@ package spec
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/appc/spec/discovery"
 	"github.com/blablacar/cnt/log"
+	"github.com/juju/errors"
 	"net/http"
 	"regexp"
 	"strings"
@@ -15,19 +15,17 @@ type ACFullname string
 func (n *ACFullname) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
-		log.Get().Panic(err)
 		return err
 	}
 	nn, err := NewACFullName(s)
 	if err != nil {
-		log.Get().Panic(err)
-		return err
+		return errors.Annotate(err, "Construction of AcFullname failed for : "+s)
 	}
 	*n = *nn
 	return nil
 }
 
-func (n ACFullname) LatestVersion() string {
+func (n ACFullname) LatestVersion() (string, error) {
 	app, err := discovery.NewAppFromString(n.Name() + ":latest")
 	if app.Labels["os"] == "" {
 		app.Labels["os"] = "linux"
@@ -38,20 +36,20 @@ func (n ACFullname) LatestVersion() string {
 
 	endpoint, _, err := discovery.DiscoverEndpoints(*app, false)
 	if err != nil {
-		return ""
+		return "", errors.Annotate(err, "Latest discovery fail")
 	}
 
 	r, _ := regexp.Compile(`^(\d+\.)?(\d+\.)?(\*|\d+)$`)
 
 	url := getRedirectForLatest(endpoint.ACIEndpoints[0].ACI)
-	log.Get().Debug("latest version url is ", url)
+	log.Debug("latest version url is ", url)
 
 	for _, part := range strings.Split(url, "/") {
 		if r.Match([]byte(part)) {
-			return part
+			return part, nil
 		}
 	}
-	return ""
+	return "", errors.New("No latest version found")
 }
 
 func (n ACFullname) MarshalJSON() ([]byte, error) {
@@ -70,11 +68,14 @@ func NewACFullName(s string) (*ACFullname, error) {
 
 func (n ACFullname) FullyResolved() (*ACFullname, error) {
 	version := n.Version()
-	log.Get().Error("Version:" + version)
 	if version != "" {
 		return &n, nil
 	}
-	return NewACFullName(n.Name() + ":" +  n.LatestVersion())
+	version, err := n.LatestVersion()
+	if err != nil {
+		return nil, errors.Annotate(err, "Cannot fully resolve AcFullname")
+	}
+	return NewACFullName(n.Name() + ":" + version)
 }
 
 /* 1 */

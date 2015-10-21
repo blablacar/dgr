@@ -21,7 +21,7 @@ func OpenPod(path string, args BuildArgs) (*Pod, error) {
 	pod := new(Pod)
 
 	if fullPath, err := filepath.Abs(path); err != nil {
-		log.Get().Panic("Cannot get fullpath of project", err)
+		panic("Cannot get fullpath of project" + err.Error())
 	} else {
 		pod.path = fullPath
 	}
@@ -34,12 +34,12 @@ func OpenPod(path string, args BuildArgs) (*Pod, error) {
 func (p *Pod) readManifest(manifestPath string) {
 	source, err := ioutil.ReadFile(manifestPath)
 	if err != nil {
-		log.Get().Panic(err)
+		panic(err)
 	}
 
 	err = yaml.Unmarshal([]byte(source), &p.manifest)
 	if err != nil {
-		log.Get().Panic(err)
+		panic(err)
 	}
 
 	for i, app := range p.manifest.Pod.Apps {
@@ -50,7 +50,7 @@ func (p *Pod) readManifest(manifestPath string) {
 
 	//TODO check that there is no app name conflict
 
-	log.Get().Trace("Pod manifest : ", p.manifest.Name, p.manifest)
+	log.Trace("Pod manifest : ", p.manifest.Name, p.manifest)
 }
 
 func (p *Pod) toAciManifest(e spec.RuntimeApp) spec.AciManifest {

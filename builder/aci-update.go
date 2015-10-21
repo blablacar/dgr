@@ -6,7 +6,7 @@ import (
 )
 
 func (cnt *Img) UpdateConf() error {
-	log.Get().Info("Updating Image : ", cnt.manifest.NameAndVersion)
+	log.Info("Updating Image : ", cnt.manifest.NameAndVersion)
 
 	os.MkdirAll(cnt.rootfs, 0777)
 

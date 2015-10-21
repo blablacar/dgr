@@ -17,7 +17,7 @@ var buildArgs = builder.BuildArgs{}
 const RKT_SUPPORTED_VERSION = "0.8.1"
 
 func Execute() {
-	log.Set(logger.NewLogger())
+	log.Logger = logger.NewLogger()
 	checkRktVersion()
 
 	var rootCmd = &cobra.Command{Use: "cnt"}
@@ -29,13 +29,13 @@ func Execute() {
 	config.GetConfig().Load()
 	rootCmd.Execute()
 
-	log.Get().Info("Victory !")
+	log.Info("Victory !")
 }
 
 func checkRktVersion() {
 	output, err := utils.ExecCmdGetOutput("rkt")
 	if err != nil {
-		log.Get().Panic("rkt is required in PATH")
+		panic("rkt is required in PATH")
 	}
 
 	scanner := bufio.NewScanner(strings.NewReader(output))
@@ -46,11 +46,11 @@ func checkRktVersion() {
 			versionString := strings.TrimSpace(scanner.Text())
 			version, err := semver.NewVersion(versionString)
 			if err != nil {
-				log.Get().Panic("Cannot parse version of rkt", versionString)
+				panic("Cannot parse version of rkt" + versionString)
 			}
 			supported, _ := semver.NewVersion(RKT_SUPPORTED_VERSION)
 			if version.LessThan(*supported) {
-				log.Get().Panic("rkt version in your path is too old. Require >= " + RKT_SUPPORTED_VERSION)
+				panic("rkt version in your path is too old. Require >= " + RKT_SUPPORTED_VERSION)
 			}
 			break
 		}

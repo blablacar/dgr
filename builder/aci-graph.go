@@ -8,7 +8,7 @@ import (
 )
 
 func (cnt *Img) Graph() {
-	log.Get().Info("Graph " + cnt.manifest.NameAndVersion)
+	log.Info("Graph " + cnt.manifest.NameAndVersion)
 
 	os.MkdirAll(cnt.target, 0777)
 

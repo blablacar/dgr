@@ -5,7 +5,7 @@ import (
 )
 
 func (p *Pod) Install() {
-	log.Get().Info("Installing POD", p.manifest.Name)
+	log.Info("Installing POD", p.manifest.Name)
 
 	p.Build()
 
@@ -14,7 +14,7 @@ func (p *Pod) Install() {
 	for _, e := range p.manifest.Pod.Apps {
 		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e), &checkVersion)
 		if err != nil {
-			log.Get().Panic(err)
+			panic(err)
 		}
 		aci.PodName = &p.manifest.Name
 		aci.Install()

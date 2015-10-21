@@ -2,7 +2,6 @@ package commands
 
 import (
 	"github.com/blablacar/cnt/builder"
-	"github.com/blablacar/cnt/log"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -26,6 +25,6 @@ func discoverAndRunGraphType(path string, args builder.BuildArgs) {
 	} else if pod, err2 := builder.OpenPod(path, args); err2 == nil {
 		pod.Graph()
 	} else {
-		log.Get().Panic("Cannot find cnt-manifest.yml or cnt-pod-manifest.yml", err, err2)
+		panic("Cannot find cnt-manifest.yml or cnt-pod-manifest.yml" + err.Error() + err2.Error())
 	}
 }

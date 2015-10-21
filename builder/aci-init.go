@@ -13,7 +13,7 @@ func (cnt *Img) Init() {
 	if cnt.args.Path != "" {
 		initPath = cnt.args.Path
 	}
-	log.Get().Info("Setting up files three")
+	log.Info("Setting up files three")
 	uid := "0"
 	gid := "0"
 

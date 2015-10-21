@@ -33,7 +33,7 @@ func init() {
 	if user != "" {
 		home, err := utils.ExecCmdGetOutput("bash", "-c", "echo ~"+user)
 		if err != nil {
-			log.Get().Panic("Cannot find user home", err)
+			panic("Cannot find user home" + err.Error())
 		}
 		cntConfig.Path = home + "/.config/cnt"
 	}
@@ -55,5 +55,5 @@ func init() {
 		}
 	}
 
-	log.Get().Debug("Home folder is " + cntConfig.Path)
+	log.Debug("Home folder is " + cntConfig.Path)
 }

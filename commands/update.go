@@ -2,7 +2,6 @@ package commands
 
 import (
 	"github.com/blablacar/cnt/builder"
-	"github.com/blablacar/cnt/log"
 	"github.com/spf13/cobra"
 )
 
@@ -20,8 +19,8 @@ func discoverAndRunUpdateType(path string, args builder.BuildArgs) {
 	if cnt, err := builder.NewAci(path, args); err == nil {
 		cnt.UpdateConf()
 	} else if _, err := builder.OpenPod(path, args); err == nil {
-		log.Get().Panic("Not Yet implemented for pods")
+		panic("Not Yet implemented for pods")
 	} else {
-		log.Get().Panic("Cannot find cnt-manifest.yml")
+		panic("Cannot find cnt-manifest.yml")
 	}
 }

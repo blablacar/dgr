@@ -4,7 +4,6 @@ import (
 	"github.com/appc/spec/aci"
 	"github.com/appc/spec/schema"
 	"github.com/blablacar/cnt/config"
-	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/utils"
 	"io"
 	"io/ioutil"
@@ -14,7 +13,7 @@ import (
 
 func (aci *Img) Push() {
 	if config.GetConfig().Push.Type == "" {
-		log.Get().Panic("Can't push, push is not configured in cnt global configuration file")
+		panic("Can't push, push is not configured in cnt global configuration file")
 	}
 
 	aci.CheckBuilt()
@@ -38,20 +37,20 @@ func (aci *Img) Push() {
 		"-F", "file=@"+aci.target+PATH_IMAGE_ACI_ZIP,
 		"-u", config.GetConfig().Push.Username+":"+config.GetConfig().Push.Password,
 		config.GetConfig().Push.Url+"/service/local/artifact/maven/content"); err != nil {
-		log.Get().Panic("Cannot push aci", err)
+		panic("Cannot push aci" + err.Error())
 	}
 }
 
 func extractManifestFromAci(aciPath string) schema.ImageManifest {
 	input, err := os.Open(aciPath)
 	if err != nil {
-		log.Get().Panic("cat-manifest: Cannot open %s: %v", aciPath, err)
+		panic("cat-manifest: Cannot open %s: %v" + aciPath + err.Error())
 	}
 	defer input.Close()
 
 	tr, err := aci.NewCompressedTarReader(input)
 	if err != nil {
-		log.Get().Panic("cat-manifest: Cannot open tar %s: %v", aciPath, err)
+		panic("cat-manifest: Cannot open tar %s: %v" + aciPath + err.Error())
 	}
 
 	im := schema.ImageManifest{}
@@ -66,19 +65,19 @@ Tar:
 			if filepath.Clean(hdr.Name) == aci.ManifestFile {
 				bytes, err := ioutil.ReadAll(tr)
 				if err != nil {
-					log.Get().Panic(err)
+					panic(err)
 				}
 
 				err = im.UnmarshalJSON(bytes)
 				if err != nil {
-					log.Get().Panic(err)
+					panic(err)
 				}
 				return im
 			}
 		default:
-			log.Get().Panic("error reading tarball: %v", err)
+			panic("error reading tarball: %v" + err.Error())
 		}
 	}
-	log.Get().Panic("Cannot found manifest if aci")
+	panic("Cannot found manifest if aci")
 	return im
 }

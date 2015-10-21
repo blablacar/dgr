@@ -13,7 +13,7 @@ import (
 )
 
 func (p *Pod) Build() {
-	log.Get().Info("Building POD : ", p.manifest.Name)
+	log.Info("Building POD : ", p.manifest.Name)
 
 	os.RemoveAll(p.target)
 	os.MkdirAll(p.target, 0777)
@@ -33,7 +33,7 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 
 		sum, err := utils.Sha512sum(p.path + "/" + e.Name + "/target/image.aci")
 		if err != nil {
-			log.Get().Panic(err)
+			panic(err)
 		}
 
 		tmp, _ := types.NewHash("sha512-" + sum)
@@ -74,13 +74,13 @@ func (p *Pod) buildAciIfNeeded(e spec.RuntimeApp) *spec.ACFullname {
 	if dir, err := os.Stat(p.path + "/" + e.Name); err == nil && dir.IsDir() {
 		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e), nil)
 		if err != nil {
-			log.Get().Panic(err)
+			panic(err)
 		}
 		aci.PodName = &p.manifest.Name
 		aci.Build()
 		return &aci.manifest.NameAndVersion
 	}
-	log.Get().Panic("Cannot found Pod's aci directory :" + p.path + "/" + e.Name)
+	panic("Cannot found Pod's aci directory :" + p.path + "/" + e.Name)
 	return nil
 }
 
@@ -130,7 +130,7 @@ func (p *Pod) writeSystemdUnit(apps []schema.RuntimeApp) {
 		for _, mount := range app.App.MountPoints {
 			mountPoint, err := p.getVolumeMountValue(mount.Name)
 			if err != nil {
-				log.Get().Panic(err)
+				panic(err)
 			}
 			volumes = append(volumes,
 				"--volume="+mount.Name.String()+

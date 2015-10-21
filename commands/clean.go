@@ -2,7 +2,6 @@ package commands
 
 import (
 	"github.com/blablacar/cnt/builder"
-	"github.com/blablacar/cnt/log"
 	"github.com/spf13/cobra"
 )
 
@@ -21,6 +20,6 @@ func discoverAndRunCleanType(path string, args builder.BuildArgs) {
 	} else if pod, err := builder.OpenPod(path, args); err == nil {
 		pod.Clean()
 	} else {
-		log.Get().Panic("Cannot find cnt-manifest.yml")
+		panic("Cannot find cnt-manifest.yml")
 	}
 }

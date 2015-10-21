@@ -49,13 +49,13 @@ fi
 
 func (cnt *Img) Test() {
 	cnt.Install()
-	log.Get().Info("Testing " + cnt.manifest.NameAndVersion)
+	log.Info("Testing " + cnt.manifest.NameAndVersion)
 
 	if _, err := os.Stat(cnt.path + PATH_TESTS); err != nil {
 		if cnt.args.NoTestFail {
-			log.Get().Panic("Test directory does not exists but tests are mandatory")
+			panic("Test directory does not exists but tests are mandatory")
 		}
-		log.Get().Warn("Tests directory does not exists")
+		log.Warn("Tests directory does not exists")
 		return
 	}
 
@@ -63,7 +63,7 @@ func (cnt *Img) Test() {
 
 	testAci, err := cnt.prepareTestAci()
 	if err != nil {
-		log.Get().Panic(err)
+		panic(err)
 	}
 	testAci.Build()
 
@@ -77,7 +77,7 @@ func (cnt *Img) Test() {
 		"--volume=result,kind=host,source="+cnt.target+PATH_TESTS+PATH_TARGET+PATH_RESULT,
 		cnt.target+PATH_TESTS+PATH_TARGET+"/image.aci"); err != nil {
 		// rkt+systemd cannot exit with fail status yet
-		log.Get().Panic(err)
+		panic(err)
 	}
 
 	cnt.checkResult()
@@ -86,14 +86,14 @@ func (cnt *Img) Test() {
 func (cnt *Img) checkResult() {
 	files, err := ioutil.ReadDir(cnt.target + PATH_TESTS + PATH_TARGET + PATH_RESULT)
 	if err != nil {
-		log.Get().Panic("Cannot read test result directory", err)
+		panic("Cannot read test result directory" + err.Error())
 	}
 	testFound := false
 	for _, f := range files {
 		fullPath := cnt.target + PATH_TESTS + PATH_TARGET + PATH_RESULT + "/" + f.Name()
 		content, err := ioutil.ReadFile(fullPath)
 		if err != nil {
-			log.Get().Panic("Cannot read result file", f.Name(), err)
+			panic("Cannot read result file" + f.Name() + err.Error())
 		}
 		if !strings.HasSuffix(f.Name(), STATUS_SUFFIX) {
 			if testFound == false && string(content) != "1..0\n" {
@@ -102,13 +102,13 @@ func (cnt *Img) checkResult() {
 			continue
 		}
 		if string(content) != "0\n" {
-			log.Get().Error("Failed test file : ", f.Name())
+			log.Error("Failed test file : ", f.Name())
 			os.Exit(2)
 		}
 	}
 
 	if cnt.args.NoTestFail && !testFound {
-		log.Get().Panic("No tests found")
+		panic("No tests found")
 	}
 }
 
@@ -116,7 +116,7 @@ func (cnt *Img) importAciBats() {
 	if err := utils.ExecCmd("bash", "-c", "rkt image list --fields name --no-legend | grep -q "+BATS_ACI); err != nil {
 		content, _ := dist.Asset("dist/bindata/aci-bats.aci")
 		if err := ioutil.WriteFile("/tmp/aci-bats.aci", content, 0644); err != nil {
-			log.Get().Panic(err)
+			panic(err)
 		}
 		utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", "/tmp/aci-bats.aci")
 		os.Remove("/tmp/aci-bats.aci")
@@ -138,7 +138,7 @@ func (cnt *Img) prepareTestAci() (*Img, error) {
 	for _, f := range files {
 		if !f.IsDir() {
 			if err := utils.CopyFile(cnt.path+PATH_TESTS+"/"+f.Name(), cnt.target+PATH_TESTS+PATH_FILES+PATH_TESTS+"/"+f.Name()); err != nil {
-				log.Get().Panic(err)
+				panic(err)
 			}
 		}
 	}
@@ -150,7 +150,7 @@ func (cnt *Img) prepareTestAci() (*Img, error) {
 
 	fullname, err := spec.NewACFullName(cnt.manifest.NameAndVersion.Name() + "_test:" + cnt.manifest.NameAndVersion.Version())
 	if err != nil {
-		log.Get().Panic(err)
+		panic(err)
 	}
 
 	resultMountName, _ := types.NewACName("result")
@@ -165,7 +165,7 @@ func (cnt *Img) prepareTestAci() (*Img, error) {
 		NameAndVersion: *fullname,
 	}, nil)
 	if err != nil {
-		log.Get().Panic("Cannot build test aci", err)
+		panic("Cannot build test aci" + err.Error())
 	}
 	return testAci, nil
 }

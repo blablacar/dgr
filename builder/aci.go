@@ -127,7 +127,7 @@ func Name(nameAndVersion string) string {
 ////////////////////////////////////////////
 
 func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest, checked *chan bool) (*Img, error) {
-	log.Get().Debug("New aci", path, args, manifest)
+	log.Debug("New aci", path, args, manifest)
 	cnt, err := PrepAci(path, args)
 	if err != nil {
 		return nil, err
@@ -142,7 +142,7 @@ func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest, 
 func NewAci(path string, args BuildArgs) (*Img, error) {
 	manifest, err := readManifest(path + PATH_CNT_MANIFEST)
 	if err != nil {
-		log.Get().Debug(path, PATH_CNT_MANIFEST+" does not exists")
+		log.Debug(path, PATH_CNT_MANIFEST+" does not exists")
 		return nil, err
 	}
 	return NewAciWithManifest(path, args, *manifest, nil)
@@ -153,14 +153,14 @@ func PrepAci(aciPath string, args BuildArgs) (*Img, error) {
 	cnt.args = args
 
 	if fullPath, err := filepath.Abs(aciPath); err != nil {
-		log.Get().Panic("Cannot get fullpath of project", err)
+		panic("Cannot get fullpath of project" + err.Error())
 	} else {
 		cnt.path = fullPath
 		cnt.target = cnt.path + PATH_TARGET
 		if args.TargetPath != "" {
 			currentAbsDir, err := filepath.Abs(args.TargetPath + "/" + cnt.manifest.NameAndVersion.ShortName())
 			if err != nil {
-				log.Get().Panic("invalid target path")
+				panic("invalid target path")
 			}
 			cnt.target = currentAbsDir
 		}
@@ -180,7 +180,7 @@ func readManifest(manifestPath string) (*spec.AciManifest, error) {
 	}
 	err = yaml.Unmarshal([]byte(source), &manifest)
 	if err != nil {
-		log.Get().Panic(err)
+		panic(err)
 	}
 
 	return &manifest, nil
@@ -192,29 +192,29 @@ func (cnt *Img) tarAci(zip bool) {
 		target = PATH_IMAGE_ACI_ZIP[1:]
 	}
 	dir, _ := os.Getwd()
-	log.Get().Debug("chdir to", cnt.target)
+	log.Debug("chdir to", cnt.target)
 	os.Chdir(cnt.target)
 	utils.Tar(zip, target, PATH_MANIFEST[1:], PATH_ROOTFS[1:])
-	log.Get().Debug("chdir to", dir)
+	log.Debug("chdir to", dir)
 	os.Chdir(dir)
 }
 
 func (cnt *Img) checkLatestVersions(checked *chan bool) {
 	if cnt.manifest.From != "" {
-		version := cnt.manifest.From.LatestVersion()
-		log.Get().Debug("latest version of from : " + cnt.manifest.NameAndVersion.Name() + ":" + version)
+		version, _ := cnt.manifest.From.LatestVersion()
+		log.Debug("latest version of from : " + cnt.manifest.NameAndVersion.Name() + ":" + version)
 		if version != "" && utils.Version(cnt.manifest.From.Version()).LessThan(utils.Version(version)) {
-			log.Get().Warn("---------------------------------")
-			log.Get().Warn("From has newer version : " + cnt.manifest.From.Name() + ":" + version)
-			log.Get().Warn("---------------------------------")
+			log.Warn("---------------------------------")
+			log.Warn("From has newer version : " + cnt.manifest.From.Name() + ":" + version)
+			log.Warn("---------------------------------")
 		}
 	}
 	for _, dep := range cnt.manifest.Aci.Dependencies {
-		version := dep.LatestVersion()
+		version, _ := dep.LatestVersion()
 		if version != "" && utils.Version(dep.Version()).LessThan(utils.Version(version)) {
-			log.Get().Warn("---------------------------------")
-			log.Get().Warn("Newer dependency version : " + dep.Name() + ":" + version)
-			log.Get().Warn("---------------------------------")
+			log.Warn("---------------------------------")
+			log.Warn("Newer dependency version : " + dep.Name() + ":" + version)
+			log.Warn("---------------------------------")
 		}
 	}
 	if checked != nil {

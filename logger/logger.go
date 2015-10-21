@@ -3,8 +3,9 @@ package logger
 import (
 	"bytes"
 	"fmt"
+	"github.com/blablacar/cnt/log"
 	"io"
-	"log"
+	golog "log"
 	"os"
 	"runtime"
 	"sync/atomic"
@@ -28,7 +29,7 @@ const (
 )
 
 type Worker struct {
-	Minion *log.Logger
+	Minion *golog.Logger
 	Color  int
 }
 
@@ -44,6 +45,7 @@ type Info struct {
 }
 
 type Logger struct {
+	Level  log.Level
 	Module string
 	worker *Worker
 }
@@ -54,7 +56,7 @@ func (r *Info) Output() string {
 }
 
 func NewWorker(prefix string, flag int, color int, out io.Writer) *Worker {
-	return &Worker{Minion: log.New(out, prefix, flag), Color: color}
+	return &Worker{Minion: golog.New(out, prefix, flag), Color: color}
 }
 
 func (w *Worker) Log(level string, calldepth int, info *Info) error {
@@ -75,13 +77,13 @@ func colorString(color int) string {
 
 func initColors() {
 	colors = map[string]string{
-		"PANIC":   colorString(Magenta),
+		//		"PANIC":   colorString(Magenta),
 		"ERROR":   colorString(Red),
 		"WARNING": colorString(Yellow),
 		"INFO":    colorString(Green),
-		"NOTICE":  colorString(White),
-		"DEBUG":   colorString(Cyan),
-		"TRACE":   colorString(Blue),
+		//		"NOTICE":  colorString(White),
+		"DEBUG": colorString(Cyan),
+		"TRACE": colorString(Blue),
 	}
 }
 
@@ -108,7 +110,7 @@ func NewLogger(args ...interface{}) *Logger {
 	return &Logger{Module: module, worker: newWorker}
 }
 
-func (l *Logger) Log(lvl string, message string) {
+func (l *Logger) Log(lvl log.Level, message string) {
 	_, file, line, _ := runtime.Caller(2)
 
 	var formatString string = "#%d %s %s:%d ▶ %.5s %s"
@@ -118,69 +120,31 @@ func (l *Logger) Log(lvl string, message string) {
 		File:    file,
 		Line:    line,
 		Module:  l.Module,
-		Level:   lvl,
+		Level:   lvl.Name,
 		Message: message,
 		format:  formatString,
 	}
-	l.worker.Log(lvl, 2, info)
+	l.worker.Log(lvl.Name, 2, info)
 }
 
-func (l *Logger) Panic(args ...interface{}) {
-	l.Log("PANIC", fmt.Sprint(args...))
-	panic(args)
-	os.Exit(1)
-}
-
-func (l *Logger) Error(args ...interface{}) {
-	l.Log("ERROR", fmt.Sprint(args...))
-}
-
-func (l *Logger) Warn(args ...interface{}) {
-	l.Log("WARNING", fmt.Sprint(args...))
-}
-
-func (l *Logger) Info(args ...interface{}) {
-	l.Log("INFO", fmt.Sprint(args...))
-}
-
-func (l *Logger) Debug(args ...interface{}) {
-	l.Log("DEBUG", fmt.Sprint(args...))
-}
-
-func (l *Logger) Trace(args ...interface{}) {
-	l.Log("TRACE", fmt.Sprint(args...))
-}
-
-func (l *Logger) Notice(args ...interface{}) {
-	l.Log("NOTICE", fmt.Sprint(args...))
-}
-
-func (l *Logger) Panicf(format string, args ...interface{}) {
-	l.Log("PANIC", fmt.Sprintf(format, args...))
-	panic(fmt.Sprintf(format, args...))
-	os.Exit(1)
-}
+func (l *Logger) Error(args ...interface{}) { l.Log(log.ERROR, fmt.Sprint(args...)) }
+func (l *Logger) Warn(args ...interface{})  { l.Log(log.WARN, fmt.Sprint(args...)) }
+func (l *Logger) Info(args ...interface{})  { l.Log(log.INFO, fmt.Sprint(args...)) }
+func (l *Logger) Debug(args ...interface{}) { l.Log(log.DEBUG, fmt.Sprint(args...)) }
+func (l *Logger) Trace(args ...interface{}) { l.Log(log.TRACE, fmt.Sprint(args...)) }
 
 func (l *Logger) Errorf(format string, args ...interface{}) {
-	l.Log("ERROR", fmt.Sprintf(format, args...))
+	l.Log(log.ERROR, fmt.Sprintf(format, args...))
 }
-
 func (l *Logger) Warnf(format string, args ...interface{}) {
-	l.Log("WARNING", fmt.Sprintf(format, args...))
+	l.Log(log.WARN, fmt.Sprintf(format, args...))
 }
-
 func (l *Logger) Infof(format string, args ...interface{}) {
-	l.Log("INFO", fmt.Sprintf(format, args...))
+	l.Log(log.INFO, fmt.Sprintf(format, args...))
 }
-
 func (l *Logger) Debugf(format string, args ...interface{}) {
-	l.Log("DEBUG", fmt.Sprintf(format, args...))
+	l.Log(log.DEBUG, fmt.Sprintf(format, args...))
 }
-
 func (l *Logger) Tracef(format string, args ...interface{}) {
-	l.Log("TRACE", fmt.Sprintf(format, args...))
-}
-
-func (l *Logger) Noticef(format string, args ...interface{}) {
-	l.Log("NOTICE", fmt.Sprintf(format, args...))
+	l.Log(log.TRACE, fmt.Sprintf(format, args...))
 }

@@ -6,10 +6,10 @@ import (
 )
 
 func (p *Pod) Clean() {
-	log.Get().Info("Cleaning POD", p.manifest.Name)
+	log.Info("Cleaning POD", p.manifest.Name)
 
 	if err := os.RemoveAll(p.target + "/"); err != nil {
-		log.Get().Panic("Cannot clean", p.manifest.Name, err)
+		panic("Cannot clean" + p.manifest.Name.String() + err.Error())
 	}
 
 	checkVersion := make(chan bool, 1)
@@ -17,7 +17,7 @@ func (p *Pod) Clean() {
 	for _, e := range p.manifest.Pod.Apps {
 		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e), &checkVersion)
 		if err != nil {
-			log.Get().Panic(err)
+			panic(err)
 		}
 		aci.PodName = &p.manifest.Name
 		aci.Clean()

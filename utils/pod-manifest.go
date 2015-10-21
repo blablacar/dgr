@@ -2,7 +2,6 @@ package utils
 
 import (
 	"github.com/appc/spec/schema"
-	"github.com/blablacar/cnt/log"
 	"io/ioutil"
 )
 
@@ -20,10 +19,10 @@ func BasicPodManifest() *schema.PodManifest {
 func WritePodManifest(im *schema.PodManifest, targetFile string) {
 	buff, err := im.MarshalJSON()
 	if err != nil {
-		log.Get().Panic(err)
+		panic(err)
 	}
 	err = ioutil.WriteFile(targetFile, []byte(buff), 0644)
 	if err != nil {
-		log.Get().Panic(err)
+		panic(err)
 	}
 }

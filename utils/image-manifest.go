@@ -3,7 +3,6 @@ package utils
 import (
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
-	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/spec"
 	"io/ioutil"
 )
@@ -63,7 +62,7 @@ func BasicImageManifest() *schema.ImageManifest {
 func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName string) {
 	name, err := types.NewACIdentifier(m.NameAndVersion.Name())
 	if err != nil {
-		log.Get().Panic(err)
+		panic(err)
 	}
 
 	version := m.NameAndVersion.Version()
@@ -103,11 +102,11 @@ func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName stri
 
 	buff, err := im.MarshalJSON()
 	if err != nil {
-		log.Get().Panic(err)
+		panic(err)
 	}
 	err = ioutil.WriteFile(targetFile, buff, 0644)
 	if err != nil {
-		log.Get().Panic(err)
+		panic(err)
 	}
 }
 
@@ -116,7 +115,7 @@ func toAppcDependencies(dependencies []spec.ACFullname) types.Dependencies {
 	for _, dep := range dependencies {
 		id, err := types.NewACIdentifier(dep.Name())
 		if err != nil {
-			log.Get().Panic(err)
+			panic(err)
 		}
 		t := types.Dependency{ImageName: *id}
 		if dep.Version() != "" {

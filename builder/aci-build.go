@@ -10,7 +10,7 @@ import (
 )
 
 func (cnt *Img) Build() error {
-	log.Get().Info("Building Image : ", cnt.manifest.NameAndVersion)
+	log.Info("Building Image : ", cnt.manifest.NameAndVersion)
 
 	os.MkdirAll(cnt.rootfs, 0777)
 
@@ -37,7 +37,7 @@ func (cnt *Img) Build() error {
 func (i *Img) CheckBuilt() {
 	if _, err := os.Stat(i.target + PATH_IMAGE_ACI); os.IsNotExist(err) {
 		if err := i.Build(); err != nil {
-			log.Get().Panic("Cannot continue since build failed")
+			panic("Cannot continue since build failed")
 		}
 	}
 }
@@ -65,13 +65,13 @@ func (cnt *Img) runBuildLate() {
 	}
 
 	if err := utils.ExecCmd("systemd-nspawn", "--version"); err == nil {
-		log.Get().Info("Run with systemd-nspawn")
+		log.Info("Run with systemd-nspawn")
 		if err := utils.ExecCmd("systemd-nspawn", "--directory="+cnt.rootfs, "--capability=all",
 			"--bind="+cnt.target+"/:/target", "target/build-late.sh"); err != nil {
-			log.Get().Panic("Build step did not succeed", err)
+			panic("Build step did not succeed" + err.Error())
 		}
 	} else {
-		log.Get().Panic("systemd-nspawn is required")
+		panic("systemd-nspawn is required")
 	}
 }
 
@@ -80,7 +80,7 @@ func (cnt *Img) runBuild() {
 		return
 	}
 	if err := utils.ExecCmd("systemd-nspawn", "--version"); err != nil {
-		log.Get().Panic("systemd-nspawn is required")
+		panic("systemd-nspawn is required")
 	}
 
 	rootfs := "${TARGET}/rootfs"
@@ -92,7 +92,7 @@ func (cnt *Img) runBuild() {
 
 	if err := utils.ExecCmd("systemd-nspawn", "--directory="+cnt.rootfs, "--capability=all",
 		"--bind="+cnt.target+"/:/target", "target/build.sh"); err != nil {
-		log.Get().Panic("Build step did not succeed", err)
+		panic("Build step did not succeed" + err.Error())
 	}
 }
 
@@ -104,29 +104,29 @@ func (cnt *Img) processFrom() {
 		utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.manifest.From.String())
 	}
 	if err := utils.ExecCmd("rkt", "image", "render", "--overwrite", cnt.manifest.From.String(), cnt.target); err != nil {
-		log.Get().Panic("Cannot render from image"+cnt.manifest.From.String(), err)
+		panic("Cannot render from image" + cnt.manifest.From.String() + err.Error())
 	}
 }
 
 func (cnt *Img) copyInternals() {
-	log.Get().Info("Copy internals")
+	log.Info("Copy internals")
 	os.MkdirAll(cnt.rootfs+PATH_CNT+PATH_BIN, 0755)
 	os.MkdirAll(cnt.rootfs+"/bin", 0755)     // this is required or systemd-nspawn will create symlink on it
 	os.MkdirAll(cnt.rootfs+"/usr/bin", 0755) // this is required by systemd-nspawn
 
 	busybox, _ := dist.Asset("dist/bindata/busybox")
 	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+PATH_BIN+"/busybox", busybox, 0777); err != nil {
-		log.Get().Panic(err)
+		panic(err)
 	}
 
 	confd, _ := dist.Asset("dist/bindata/confd")
 	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+PATH_BIN+"/confd", confd, 0777); err != nil {
-		log.Get().Panic(err)
+		panic(err)
 	}
 
 	attributeMerger, _ := dist.Asset("dist/bindata/attributes-merger")
 	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+PATH_BIN+"/attributes-merger", attributeMerger, 0777); err != nil {
-		log.Get().Panic(err)
+		panic(err)
 	}
 
 	confdFile := `backend = "env"
@@ -136,16 +136,16 @@ log-level = "debug"
 `
 	os.MkdirAll(cnt.rootfs+PATH_CNT+"/prestart", 0755)
 	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+"/prestart/confd.toml", []byte(confdFile), 0777); err != nil {
-		log.Get().Panic(err)
+		panic(err)
 	}
 
 	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+PATH_BIN+"/prestart", []byte(PRESTART), 0777); err != nil {
-		log.Get().Panic(err)
+		panic(err)
 	}
 }
 
 func (cnt *Img) copyRunlevelsScripts() {
-	log.Get().Info("Copy Runlevels scripts")
+	log.Info("Copy Runlevels scripts")
 	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_BUILD, cnt.target+PATH_RUNLEVELS+PATH_BUILD)
 	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_BUILD_LATE, cnt.target+PATH_RUNLEVELS+PATH_BUILD_LATE)
 	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_BUILD_SETUP, cnt.target+PATH_RUNLEVELS+PATH_BUILD_SETUP)
@@ -168,9 +168,9 @@ func (cnt *Img) runLevelBuildSetup() {
 	os.Setenv("TARGET", cnt.target)
 	for _, f := range files {
 		if !f.IsDir() {
-			log.Get().Info("Running Build setup level : ", f.Name())
+			log.Info("Running Build setup level : ", f.Name())
 			if err := utils.ExecCmd(cnt.path + PATH_RUNLEVELS + PATH_BUILD_SETUP + "/" + f.Name()); err != nil {
-				log.Get().Panic(err)
+				panic(err)
 			}
 		}
 	}
@@ -190,6 +190,6 @@ func (cnt *Img) copyAttributes() {
 }
 
 func (cnt *Img) writeImgManifest() {
-	log.Get().Debug("Writing aci manifest")
+	log.Debug("Writing aci manifest")
 	utils.WriteImageManifest(&cnt.manifest, cnt.target+PATH_MANIFEST, cnt.manifest.NameAndVersion.Name())
 }

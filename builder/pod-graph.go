@@ -8,7 +8,7 @@ import (
 )
 
 func (p *Pod) Graph() {
-	log.Get().Info("Graph POD", p.manifest.Name)
+	log.Info("Graph POD", p.manifest.Name)
 	os.MkdirAll(p.target, 0777)
 
 	var buffer bytes.Buffer
