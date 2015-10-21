@@ -25,7 +25,7 @@ var levels = []Level{
 }
 
 func (l *Level) IsEnableFor(level Level) bool {
-	return level.value <= l.value
+	return level.value >= l.value
 }
 
 func LogLevel(level string) (*Level, error) {
