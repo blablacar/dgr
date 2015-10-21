@@ -19,7 +19,7 @@ type Log interface {
 	Tracef(format string, args ...interface{})
 }
 
-var Logger Log = dummyLog{out: os.Stdout}
+var Logger Log = &dummyLog{out: os.Stdout}
 
 func Error(args ...interface{}) { Logger.Error(args...) }
 func Warn(args ...interface{})  { Logger.Warn(args...) }

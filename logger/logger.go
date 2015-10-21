@@ -111,7 +111,7 @@ func NewLogger(args ...interface{}) *Logger {
 }
 
 func (l *Logger) Log(lvl log.Level, message string) {
-	if ! lvl.IsEnableFor(l.Level) {
+	if !lvl.IsEnableFor(l.Level) {
 		return
 	}
 	_, file, line, _ := runtime.Caller(2)
