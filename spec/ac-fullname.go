@@ -2,8 +2,8 @@ package spec
 
 import (
 	"encoding/json"
+	log "github.com/Sirupsen/logrus"
 	"github.com/appc/spec/discovery"
-	"github.com/blablacar/cnt/log"
 	"github.com/juju/errors"
 	"net/http"
 	"regexp"

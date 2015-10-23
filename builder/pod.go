@@ -1,7 +1,7 @@
 package builder
 
 import (
-	"github.com/blablacar/cnt/log"
+	log "github.com/Sirupsen/logrus"
 	"github.com/blablacar/cnt/spec"
 	"github.com/ghodss/yaml"
 	"io/ioutil"
@@ -50,7 +50,7 @@ func (p *Pod) readManifest(manifestPath string) {
 
 	//TODO check that there is no app name conflict
 
-	log.Trace("Pod manifest : ", p.manifest.Name, p.manifest)
+	log.Debug("Pod manifest : ", p.manifest.Name, p.manifest)
 }
 
 func (p *Pod) toAciManifest(e spec.RuntimeApp) spec.AciManifest {

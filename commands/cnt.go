@@ -2,13 +2,14 @@ package commands
 
 import (
 	"bufio"
+	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/blablacar/cnt/builder"
 	"github.com/blablacar/cnt/config"
-	"github.com/blablacar/cnt/log"
-	"github.com/blablacar/cnt/logger"
 	"github.com/blablacar/cnt/utils"
 	"github.com/coreos/go-semver/semver"
 	"github.com/spf13/cobra"
+	"os"
 	"strings"
 )
 
@@ -17,12 +18,23 @@ var buildArgs = builder.BuildArgs{}
 const RKT_SUPPORTED_VERSION = "0.8.1"
 
 func Execute() {
-	log.Logger = logger.NewLogger()
 	checkRktVersion()
 
-	var rootCmd = &cobra.Command{Use: "cnt"}
+	var logLevel string
+	var rootCmd = &cobra.Command{
+		Use: "cnt",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			level, err := log.ParseLevel(logLevel)
+			if err != nil {
+				fmt.Printf("Unknown log level : %s", logLevel)
+				os.Exit(1)
+			}
+			log.SetLevel(level)
+		},
+	}
 	rootCmd.PersistentFlags().BoolVarP(&buildArgs.Clean, "clean", "c", false, "Clean before doing anything")
 	rootCmd.PersistentFlags().StringVarP(&buildArgs.TargetPath, "target-path", "p", "", "Set target path")
+	rootCmd.PersistentFlags().StringVarP(&logLevel, "loglevel", "L", "debug", "Set log level")
 
 	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, updateCmd, graphCmd)
 

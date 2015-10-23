@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/blablacar/cnt/log"
+	log "github.com/Sirupsen/logrus"
 	"github.com/blablacar/cnt/utils"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"

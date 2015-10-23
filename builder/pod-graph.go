@@ -2,7 +2,7 @@ package builder
 
 import (
 	"bytes"
-	"github.com/blablacar/cnt/log"
+	log "github.com/Sirupsen/logrus"
 	"io/ioutil"
 	"os"
 )

@@ -1,8 +1,8 @@
 package builder
 
 import (
+	log "github.com/Sirupsen/logrus"
 	"github.com/blablacar/cnt/config"
-	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/utils"
 )
 
@@ -24,6 +24,20 @@ func (p *Pod) Push() {
 
 	for range p.manifest.Pod.Apps {
 		<-checkVersion
+	}
+
+	if err := utils.ExecCmd("curl", "-i",
+		"-F", "r=releases",
+		"-F", "hasPom=false",
+		"-F", "e=pod",
+		"-F", "g=com.blablacar.aci.linux.amd64",
+		"-F", "p=pod",
+		"-F", "v="+p.manifest.Name.Version(),
+		"-F", "a="+p.manifest.Name.ShortName(),
+		"-F", "file=@"+p.target+"/pod-manifest.json",
+		"-u", config.GetConfig().Push.Username+":"+config.GetConfig().Push.Password,
+		config.GetConfig().Push.Url+"/service/local/artifact/maven/content"); err != nil {
+		panic("Cannot push pod" + err.Error())
 	}
 
 	if err := utils.ExecCmd("curl", "-i",

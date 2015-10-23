@@ -3,7 +3,7 @@ package utils
 import (
 	"bytes"
 	"fmt"
-	"github.com/blablacar/cnt/log"
+	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/go-homedir"
 	"io"
 	"math/rand"

@@ -1,8 +1,8 @@
 package builder
 
 import (
+	log "github.com/Sirupsen/logrus"
 	"github.com/blablacar/cnt/dist"
-	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/utils"
 	"io/ioutil"
 	"os"

@@ -1,7 +1,7 @@
 package builder
 
 import (
-	"github.com/blablacar/cnt/log"
+	log "github.com/Sirupsen/logrus"
 	"github.com/blablacar/cnt/utils"
 	"io/ioutil"
 	"os"

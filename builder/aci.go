@@ -1,8 +1,8 @@
 package builder
 
 import (
+	log "github.com/Sirupsen/logrus"
 	"github.com/appc/spec/schema/types"
-	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/spec"
 	"github.com/blablacar/cnt/utils"
 	"github.com/ghodss/yaml"

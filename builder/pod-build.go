@@ -2,15 +2,17 @@ package builder
 
 import (
 	"errors"
+	log "github.com/Sirupsen/logrus"
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
-	"github.com/blablacar/cnt/log"
 	"github.com/blablacar/cnt/spec"
 	"github.com/blablacar/cnt/utils"
 	"os"
 	"strconv"
 	"text/template"
 )
+
+const PATH_POD_MANIFEST = "/pod-manifest.json"
 
 func (p *Pod) Build() {
 	log.Info("Building POD : ", p.manifest.Name)
@@ -21,6 +23,7 @@ func (p *Pod) Build() {
 	apps := p.processAci()
 
 	p.writeSystemdUnit(apps)
+	p.writePodManifest(apps)
 }
 
 func (p *Pod) processAci() []schema.RuntimeApp {
@@ -84,19 +87,19 @@ func (p *Pod) buildAciIfNeeded(e spec.RuntimeApp) *spec.ACFullname {
 	return nil
 }
 
-//func (p *Pod) writePodManifest(apps []schema.RuntimeApp) {
-//	m := p.manifest.Pod
-//	ver, _ := types.NewSemVer("0.6.1")
-//	manifest := schema.PodManifest{
-//		ACKind:      "PodManifest",
-//		ACVersion:   *ver,
-//		Apps:        apps,
-//		Volumes:     m.Volumes,
-//		Isolators:   m.Isolators,
-//		Annotations: m.Annotations,
-//		Ports:       m.Ports}
-//	utils.WritePodManifest(&manifest, p.target+POD_TARGET_MANIFEST)
-//}
+func (p *Pod) writePodManifest(apps []schema.RuntimeApp) {
+	m := p.manifest.Pod
+	ver, _ := types.NewSemVer("0.6.1")
+	manifest := schema.PodManifest{
+		ACKind:      "PodManifest",
+		ACVersion:   *ver,
+		Apps:        apps,
+		Volumes:     m.Volumes,
+		Isolators:   m.Isolators,
+		Annotations: m.Annotations,
+		Ports:       m.Ports}
+	utils.WritePodManifest(&manifest, p.target+PATH_POD_MANIFEST)
+}
 
 const SYSTEMD_TEMPLATE = `[Unit]
 Description={{ .Shortname }} %i
