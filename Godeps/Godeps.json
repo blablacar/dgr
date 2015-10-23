@@ -3,6 +3,11 @@
 	"GoVersion": "go1.5.1",
 	"Deps": [
 		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.8.7",
+			"Rev": "418b41d23a1bf978c06faea5313ba194650ac088"
+		},
+		{
 			"ImportPath": "github.com/appc/spec/aci",
 			"Comment": "v0.6.1-42-g2981bdf",
 			"Rev": "2981bdf7017cc2cd04fcaf0caf6342e552fa176e"
@@ -38,6 +43,14 @@
 		{
 			"ImportPath": "github.com/inconshreveable/mousetrap",
 			"Rev": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
+		},
+		{
+			"ImportPath": "github.com/juju/errors",
+			"Rev": "1b5e39b83d1835fa480e0c2ddefb040ee82d58b3"
+		},
+		{
+			"ImportPath": "github.com/mgutz/ansi",
+			"Rev": "c286dcecd19ff979eeb73ea444e479b903f2cfcb"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/go-homedir",
