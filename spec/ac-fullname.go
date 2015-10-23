@@ -17,10 +17,7 @@ func (n *ACFullname) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
-	nn, err := NewACFullName(s)
-	if err != nil {
-		return errors.Annotate(err, "Construction of AcFullname failed for : "+s)
-	}
+	nn := NewACFullName(s)
 	*n = *nn
 	return nil
 }
@@ -61,9 +58,9 @@ func (n ACFullname) String() string {
 }
 
 /* example.com/yopla:1 */
-func NewACFullName(s string) (*ACFullname, error) {
+func NewACFullName(s string) *ACFullname {
 	n := ACFullname(s)
-	return &n, nil
+	return &n
 }
 
 func (n ACFullname) FullyResolved() (*ACFullname, error) {
@@ -75,7 +72,7 @@ func (n ACFullname) FullyResolved() (*ACFullname, error) {
 	if err != nil {
 		return nil, errors.Annotate(err, "Cannot fully resolve AcFullname")
 	}
-	return NewACFullName(n.Name() + ":" + version)
+	return NewACFullName(n.Name() + ":" + version), nil
 }
 
 /* 1 */
