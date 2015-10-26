@@ -64,6 +64,7 @@ CNT_PATH=/cnt
 execute_files ${CNT_PATH}/runlevels/prestart-early
 
 if [ -d ${CNT_PATH}/attributes ]; then
+	echo "$CONFD_OVERRIDE"
     ${BASEDIR}/attributes-merger -i ${CNT_PATH}/attributes -e CONFD_OVERRIDE
     export CONFD_DATA=$(cat attributes.json)
 fi

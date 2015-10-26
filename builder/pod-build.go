@@ -8,8 +8,6 @@ import (
 	"github.com/blablacar/cnt/spec"
 	"github.com/blablacar/cnt/utils"
 	"os"
-	"strconv"
-	"text/template"
 )
 
 const PATH_POD_MANIFEST = "/pod-manifest.json"
@@ -22,7 +20,6 @@ func (p *Pod) Build() {
 
 	apps := p.processAci()
 
-	p.writeSystemdUnit(apps)
 	p.writePodManifest(apps)
 }
 
@@ -119,44 +116,6 @@ type SystemdUnit struct {
 	Shortname string
 	Commands  []string
 	Acilist   []string
-}
-
-func (p *Pod) writeSystemdUnit(apps []schema.RuntimeApp) {
-	volumes := []string{}
-	envs := []string{}
-	acilist := []string{}
-
-	for _, env := range p.manifest.Envs {
-		envs = append(envs, "--set-env="+env.Name+"='"+env.Value+"'")
-	}
-	for _, app := range apps {
-		for _, mount := range app.App.MountPoints {
-			mountPoint, err := p.getVolumeMountValue(mount.Name)
-			if err != nil {
-				panic(err)
-			}
-			volumes = append(volumes,
-				"--volume="+mount.Name.String()+
-					",kind="+mountPoint.Kind+
-					",source="+mountPoint.Source+
-					",readOnly="+strconv.FormatBool(*mountPoint.ReadOnly))
-		}
-		version, _ := app.Image.Labels.Get("version")
-		acilist = append(acilist, app.Image.Name.String()+":"+version)
-	}
-
-	commands := []string{}
-	if p.manifest.PrivateNet != "" {
-		commands = append(commands, "--private-net="+p.manifest.PrivateNet)
-	}
-
-	commands = append(commands, volumes...)
-	commands = append(commands, envs...)
-
-	info := SystemdUnit{Shortname: p.manifest.Name.ShortName(), Commands: commands, Acilist: acilist}
-	tmpl, _ := template.New("test").Parse(SYSTEMD_TEMPLATE)
-	w, _ := os.Create(p.target + "/" + p.manifest.Name.ShortName() + "@.service")
-	tmpl.Execute(w, info)
 }
 
 func (p *Pod) getVolumeMountValue(mountName types.ACName) (*types.Volume, error) {

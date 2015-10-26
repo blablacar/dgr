@@ -54,7 +54,7 @@ func (p *Pod) readManifest(manifestPath string) {
 }
 
 func (p *Pod) toAciManifest(e spec.RuntimeApp) spec.AciManifest {
-	fullname, _ := spec.NewACFullName(p.manifest.Name.Name() + "_" + e.Name + ":" + p.manifest.Name.Version())
+	fullname := spec.NewACFullName(p.manifest.Name.Name() + "_" + e.Name + ":" + p.manifest.Name.Version())
 	return spec.AciManifest{
 		Aci: spec.AciDefinition{
 			Annotations:   e.Annotations,

@@ -6,10 +6,8 @@ import (
 )
 
 type PodManifest struct {
-	Name       ACFullname     `json:"name"`
-	Pod        *PodDefinition `json:"pod"`
-	Envs       []Env          `json:"envs"`
-	PrivateNet string         `json:"privateNet"`
+	Name ACFullname     `json:"name"`
+	Pod  *PodDefinition `json:"pod"`
 }
 
 type PodDefinition struct {

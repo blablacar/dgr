@@ -148,10 +148,7 @@ func (cnt *Img) prepareTestAci() (*Img, error) {
 
 	ioutil.WriteFile(cnt.target+PATH_TESTS+PATH_FILES+"/init.sh", []byte(ExecScript), 0777)
 
-	fullname, err := spec.NewACFullName(cnt.manifest.NameAndVersion.Name() + "_test:" + cnt.manifest.NameAndVersion.Version())
-	if err != nil {
-		panic(err)
-	}
+	fullname := spec.NewACFullName(cnt.manifest.NameAndVersion.Name() + "_test:" + cnt.manifest.NameAndVersion.Version())
 
 	resultMountName, _ := types.NewACName("result")
 	testAci, err := NewAciWithManifest(cnt.target+PATH_TESTS, cnt.args, spec.AciManifest{
