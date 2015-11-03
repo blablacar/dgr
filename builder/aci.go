@@ -201,7 +201,7 @@ func (cnt *Img) tarAci(zip bool) {
 }
 
 func (cnt *Img) checkLatestVersions(checked *chan bool) {
-	if cnt.manifest.From != "" {
+	if cnt.manifest.From != "" && cnt.manifest.From.Version() != "" {
 		version, _ := cnt.manifest.From.LatestVersion()
 		log.Debug("latest version of from : " + cnt.manifest.NameAndVersion.Name() + ":" + version)
 		if version != "" && utils.Version(cnt.manifest.From.Version()).LessThan(utils.Version(version)) {
@@ -211,6 +211,9 @@ func (cnt *Img) checkLatestVersions(checked *chan bool) {
 		}
 	}
 	for _, dep := range cnt.manifest.Aci.Dependencies {
+		if dep.Version() == "" {
+			continue
+		}
 		version, _ := dep.LatestVersion()
 		if version != "" && utils.Version(dep.Version()).LessThan(utils.Version(version)) {
 			log.Warn("---------------------------------")
