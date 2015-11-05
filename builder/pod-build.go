@@ -18,9 +18,16 @@ func (p *Pod) Build() {
 	os.RemoveAll(p.target)
 	os.MkdirAll(p.target, 0777)
 
+	p.preparePodVersion()
 	apps := p.processAci()
 
 	p.writePodManifest(apps)
+}
+
+func (p *Pod) preparePodVersion() {
+	if p.manifest.Name.Version() == "" {
+		p.manifest.Name = *spec.NewACFullName(p.manifest.Name.Name() + ":" + utils.GenerateVersion())
+	}
 }
 
 func (p *Pod) processAci() []schema.RuntimeApp {
