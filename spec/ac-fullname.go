@@ -94,6 +94,11 @@ func (n ACFullname) ShortName() string {
 	return strings.Split(n.Name(), "/")[1]
 }
 
+/* example.com */
+func (n ACFullname) DomainName() string {
+	return strings.Split(n.Name(), "/")[0]
+}
+
 /* example.com/yopla */
 func (n ACFullname) Name() string {
 	return strings.Split(string(n), ":")[0]
