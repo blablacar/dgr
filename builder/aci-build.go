@@ -14,6 +14,7 @@ func (cnt *Img) Build() error {
 
 	os.MkdirAll(cnt.rootfs, 0777)
 
+	cnt.fullyResolveDependencies()
 	cnt.processFrom()
 	cnt.copyInternals()
 	cnt.copyRunlevelsScripts()
@@ -43,6 +44,16 @@ func (i *Img) CheckBuilt() {
 }
 
 ///////////////////////////////////////////////////////
+
+func (cnt *Img) fullyResolveDependencies() {
+	for i, dep := range cnt.manifest.Aci.Dependencies {
+		resolved, err := dep.FullyResolved()
+		if err != nil {
+			log.WithField("dependency", dep).WithError(err).Fatal("Cannot fully resolve dependency")
+		}
+		cnt.manifest.Aci.Dependencies[i] = *resolved
+	}
+}
 
 func (cnt *Img) writeCntManifest() {
 	utils.CopyFile(cnt.path+PATH_CNT_MANIFEST, cnt.target+PATH_CNT_MANIFEST)
