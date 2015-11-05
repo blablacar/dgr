@@ -36,7 +36,7 @@ func (n ACFullname) LatestVersion() (string, error) {
 		return "", errors.Annotate(err, "Latest discovery fail")
 	}
 
-	r, _ := regexp.Compile(`^(\d+\.)?(\d+\.)?(\*|\d+)$`)
+	r, _ := regexp.Compile(`^(\d+\.)?(\d+\.)?(\*|\d+)(\-[\dA-Za-z]+){0,1}$`)
 
 	url := getRedirectForLatest(endpoint.ACIEndpoints[0].ACI)
 	log.Debug("latest version url is ", url)
