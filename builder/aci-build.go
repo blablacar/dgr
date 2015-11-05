@@ -106,6 +106,7 @@ func (cnt *Img) processFrom() {
 	if err := utils.ExecCmd("rkt", "image", "render", "--overwrite", cnt.manifest.From.String(), cnt.target); err != nil {
 		panic("Cannot render from image" + cnt.manifest.From.String() + err.Error())
 	}
+	os.Remove(cnt.target + PATH_MANIFEST)
 }
 
 func (cnt *Img) copyInternals() {
