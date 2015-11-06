@@ -203,7 +203,7 @@ func (cnt *Img) tarAci(zip bool) {
 func (cnt *Img) checkLatestVersions(checked *chan bool) {
 	if cnt.manifest.From != "" && cnt.manifest.From.Version() != "" {
 		version, _ := cnt.manifest.From.LatestVersion()
-		log.Debug("latest version of from : " + cnt.manifest.NameAndVersion.Name() + ":" + version)
+		log.Debug("latest version of from : " + cnt.manifest.From.Name() + ":" + version)
 		if version != "" && utils.Version(cnt.manifest.From.Version()).LessThan(utils.Version(version)) {
 			log.Warn("---------------------------------")
 			log.Warn("From has newer version : " + cnt.manifest.From.Name() + ":" + version)
