@@ -39,19 +39,5 @@ func (p *Pod) Push() {
 		config.GetConfig().Push.Url+"/service/local/artifact/maven/content"); err != nil {
 		panic("Cannot push pod" + err.Error())
 	}
-
-	if err := utils.ExecCmd("curl", "-i",
-		"-F", "r=releases",
-		"-F", "hasPom=false",
-		"-F", "e=service",
-		"-F", "g=com.blablacar.aci.linux.amd64",
-		"-F", "p=service",
-		"-F", "v="+p.manifest.Name.Version(),
-		"-F", "a="+p.manifest.Name.ShortName(),
-		"-F", "file=@"+p.target+"/"+p.manifest.Name.ShortName()+"@.service",
-		"-u", config.GetConfig().Push.Username+":"+config.GetConfig().Push.Password,
-		config.GetConfig().Push.Url+"/service/local/artifact/maven/content"); err != nil {
-		panic("Cannot push pod" + err.Error())
-	}
-
+	
 }
