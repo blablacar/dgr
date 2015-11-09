@@ -39,5 +39,5 @@ func (p *Pod) Push() {
 		config.GetConfig().Push.Url+"/service/local/artifact/maven/content"); err != nil {
 		panic("Cannot push pod" + err.Error())
 	}
-	
+
 }
