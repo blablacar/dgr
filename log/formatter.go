@@ -53,13 +53,13 @@ func (f *BlaFormatter) Format(entry *log.Entry) ([]byte, error) {
 	paths := strings.SplitN(file, "/", pathSkip + 1)
 
 	b := &bytes.Buffer{}
-	fmt.Fprintf(b, "%s %s%-5s%s %s%40s:%-3d%s %s%-44s%s",
+	fmt.Fprintf(b, "%s %s%-5s%s %s%30s:%-3d%s %s%-44s%s",
 		f.timeColor(entry.Level)(time),
 		f.levelColor(entry.Level),
 		level,
 		reset,
 		f.fileColor(entry.Level),
-		f.reduceFilePath(paths[pathSkip], 40),
+		f.reduceFilePath(paths[pathSkip], 30),
 		line,
 		reset,
 		f.textColor(entry.Level),
