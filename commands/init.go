@@ -76,8 +76,6 @@ name: aci.example.com/aci-dummy:1
 aci:
   app:
     exec: [ "/cnt/bin/busybox", "sh" ]
-    eventHandlers:
-      - { name: pre-start, exec: [ "/cnt/bin/prestart" ] }
 `
 	files[builder.PATH_TESTS+"/dummy.bats"] = `#!/cnt/bin/bats -x
 
