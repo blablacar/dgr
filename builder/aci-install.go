@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func (aci *Img) Install() string {
+func (aci *Aci) Install() string {
 	aci.CheckBuilt()
 	if aci.args.Test {
 		aci.args.Test = false

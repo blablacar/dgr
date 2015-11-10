@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func (cnt *Img) Clean() {
+func (cnt *Aci) Clean() {
 	log.Info("Cleaning " + cnt.manifest.NameAndVersion)
 	checkVersion := make(chan bool, 1)
 	go cnt.checkLatestVersions(&checkVersion)

@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func (cnt *Img) Build() error {
+func (cnt *Aci) Build() error {
 	log.Info("Building Image : ", cnt.manifest.NameAndVersion)
 
 	os.MkdirAll(cnt.rootfs, 0777)
@@ -35,7 +35,7 @@ func (cnt *Img) Build() error {
 	return nil
 }
 
-func (i *Img) CheckBuilt() {
+func (i *Aci) CheckBuilt() {
 	if _, err := os.Stat(i.target + PATH_IMAGE_ACI); os.IsNotExist(err) {
 		if err := i.Build(); err != nil {
 			panic("Cannot continue since build failed")
@@ -45,7 +45,7 @@ func (i *Img) CheckBuilt() {
 
 ///////////////////////////////////////////////////////
 
-func (cnt *Img) fullyResolveDependencies() {
+func (cnt *Aci) fullyResolveDependencies() {
 	for i, dep := range cnt.manifest.Aci.Dependencies {
 		resolved, err := dep.FullyResolved()
 		if err != nil {
@@ -55,11 +55,11 @@ func (cnt *Img) fullyResolveDependencies() {
 	}
 }
 
-func (cnt *Img) writeCntManifest() {
+func (cnt *Aci) writeCntManifest() {
 	utils.CopyFile(cnt.path+PATH_CNT_MANIFEST, cnt.target+PATH_CNT_MANIFEST)
 }
 
-func (cnt *Img) runBuildLate() {
+func (cnt *Aci) runBuildLate() {
 	res, err := utils.IsDirEmpty(cnt.target + PATH_RUNLEVELS + PATH_BUILD_LATE)
 	res2, err2 := utils.IsDirEmpty(cnt.rootfs + PATH_CNT + PATH_RUNLEVELS + PATH_INHERIT_BUILD_LATE)
 	if (res && res2) || (err != nil && err2 != nil) {
@@ -86,7 +86,7 @@ func (cnt *Img) runBuildLate() {
 	}
 }
 
-func (cnt *Img) runBuild() {
+func (cnt *Aci) runBuild() {
 	if res, err := utils.IsDirEmpty(cnt.target + PATH_RUNLEVELS + PATH_BUILD); res || err != nil {
 		return
 	}
@@ -107,7 +107,7 @@ func (cnt *Img) runBuild() {
 	}
 }
 
-func (cnt *Img) processFrom() {
+func (cnt *Aci) processFrom() {
 	if cnt.manifest.From == "" {
 		return
 	}
@@ -120,7 +120,7 @@ func (cnt *Img) processFrom() {
 	os.Remove(cnt.target + PATH_MANIFEST)
 }
 
-func (cnt *Img) copyInternals() {
+func (cnt *Aci) copyInternals() {
 	log.Info("Copy internals")
 	os.MkdirAll(cnt.rootfs+PATH_CNT+PATH_BIN, 0755)
 	os.MkdirAll(cnt.rootfs+"/bin", 0755)     // this is required or systemd-nspawn will create symlink on it
@@ -156,7 +156,7 @@ log-level = "debug"
 	}
 }
 
-func (cnt *Img) copyRunlevelsScripts() {
+func (cnt *Aci) copyRunlevelsScripts() {
 	log.Info("Copy Runlevels scripts")
 	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_BUILD, cnt.target+PATH_RUNLEVELS+PATH_BUILD)
 	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_BUILD_LATE, cnt.target+PATH_RUNLEVELS+PATH_BUILD_LATE)
@@ -170,7 +170,7 @@ func (cnt *Img) copyRunlevelsScripts() {
 	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_INHERIT_BUILD_LATE, cnt.target+PATH_ROOTFS+PATH_CNT+PATH_RUNLEVELS+PATH_INHERIT_BUILD_LATE)
 }
 
-func (cnt *Img) runLevelBuildSetup() {
+func (cnt *Aci) runLevelBuildSetup() {
 	files, err := ioutil.ReadDir(cnt.path + PATH_RUNLEVELS + PATH_BUILD_SETUP)
 	if err != nil {
 		return
@@ -188,20 +188,20 @@ func (cnt *Img) runLevelBuildSetup() {
 	}
 }
 
-func (cnt *Img) copyConfd() {
+func (cnt *Aci) copyConfd() {
 	utils.CopyDir(cnt.path+PATH_CONFD+PATH_CONFDOTD, cnt.rootfs+PATH_CNT+PATH_CONFDOTD)
 	utils.CopyDir(cnt.path+PATH_CONFD+PATH_TEMPLATES, cnt.rootfs+PATH_CNT+PATH_TEMPLATES)
 }
 
-func (cnt *Img) copyFiles() {
+func (cnt *Aci) copyFiles() {
 	utils.CopyDir(cnt.path+PATH_FILES, cnt.rootfs)
 }
 
-func (cnt *Img) copyAttributes() {
+func (cnt *Aci) copyAttributes() {
 	utils.CopyDir(cnt.path+PATH_ATTRIBUTES, cnt.rootfs+PATH_CNT+PATH_ATTRIBUTES+"/"+cnt.manifest.NameAndVersion.ShortName())
 }
 
-func (cnt *Img) writeImgManifest() {
+func (cnt *Aci) writeImgManifest() {
 	log.Debug("Writing aci manifest")
 	utils.WriteImageManifest(&cnt.manifest, cnt.target+PATH_MANIFEST, cnt.manifest.NameAndVersion.Name())
 }

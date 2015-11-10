@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func (cnt *Img) Graph() {
+func (cnt *Aci) Graph() {
 	log.Info("Graph " + cnt.manifest.NameAndVersion)
 
 	os.MkdirAll(cnt.target, 0777)

@@ -26,6 +26,7 @@ Cnt global conf is a yaml file located at `$HOME+/.config/cnt/config.yml`. Home 
 
 with content :
 ```yml
+targetWorkDir: /tmp/target          # if you want to use another directory for all builds
 push:
   type: maven
   url: https://localhost/nexus

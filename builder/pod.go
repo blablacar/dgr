@@ -11,46 +11,61 @@ import (
 const POD_MANIFEST = "/cnt-pod-manifest.yml"
 
 type Pod struct {
+	log      log.Entry
 	path     string
 	args     BuildArgs
 	target   string
 	manifest spec.PodManifest
 }
 
-func OpenPod(path string, args BuildArgs) (*Pod, error) {
-	pod := new(Pod)
-
-	if fullPath, err := filepath.Abs(path); err != nil {
+func NewPod(path string, args BuildArgs) (*Pod, error) {
+	fullPath, err := filepath.Abs(path)
+	if err != nil {
 		panic("Cannot get fullpath of project" + err.Error())
-	} else {
-		pod.path = fullPath
 	}
-	pod.args = args
-	pod.target = pod.path + PATH_TARGET
-	pod.readManifest(pod.path + POD_MANIFEST)
+
+	manifest := readPodManifest(fullPath + POD_MANIFEST)
+	podLog := log.WithField("pod", manifest.Name.String())
+
+	target := path + PATH_TARGET
+	if args.TargetsRootPath != "" {
+		currentAbsDir, err := filepath.Abs(args.TargetsRootPath + "/" + manifest.Name.ShortName())
+		if err != nil {
+			podLog.WithError(err).Panic("invalid target path")
+		}
+		target = currentAbsDir
+	}
+
+	pod := &Pod{
+		log:      *podLog,
+		path:     fullPath,
+		args:     args,
+		target:   target,
+		manifest: *manifest,
+	}
+
 	return pod, nil
 }
 
-func (p *Pod) readManifest(manifestPath string) {
+func readPodManifest(manifestPath string) *spec.PodManifest {
 	source, err := ioutil.ReadFile(manifestPath)
 	if err != nil {
 		panic(err)
 	}
 
-	err = yaml.Unmarshal([]byte(source), &p.manifest)
+	manifest := &spec.PodManifest{}
+	err = yaml.Unmarshal([]byte(source), manifest)
 	if err != nil {
 		panic(err)
 	}
 
-	for i, app := range p.manifest.Pod.Apps {
+	for i, app := range manifest.Pod.Apps {
 		if app.Name == "" {
-			p.manifest.Pod.Apps[i].Name = app.Dependencies[0].ShortName()
+			manifest.Pod.Apps[i].Name = app.Dependencies[0].ShortName()
 		}
 	}
-
 	//TODO check that there is no app name conflict
-
-	log.Debug("Pod manifest : ", p.manifest.Name, p.manifest)
+	return manifest
 }
 
 func (p *Pod) toAciManifest(e spec.RuntimeApp) spec.AciManifest {

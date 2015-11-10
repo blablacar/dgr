@@ -18,6 +18,7 @@ type CntConfig struct {
 		Username string `yaml:"username,omitempty"`
 		Password string `yaml:"password,omitempty"`
 	} `yaml:"push,omitempty"`
+	TargetWorkDir string `yaml:"targetWorkDir,omitempty"`
 }
 
 func GetConfig() *CntConfig {

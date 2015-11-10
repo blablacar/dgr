@@ -18,13 +18,9 @@ var buildCmd = &cobra.Command{
 func discoverAndRunBuildType(path string, args builder.BuildArgs) {
 	if cnt, err := builder.NewAci(path, args); err == nil {
 		cnt.Build()
-	} else if pod, err := builder.OpenPod(path, args); err == nil {
+	} else if pod, err := builder.NewPod(path, args); err == nil {
 		pod.Build()
 	} else {
 		panic("Cannot find cnt-manifest.yml")
 	}
-}
-
-func init() {
-	//	buildCmd.Flags().BoolVarP(&buildArgs.ForceUpdate, "force-update", "U", false, "Force update of dependencies")
 }

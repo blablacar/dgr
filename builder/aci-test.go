@@ -47,7 +47,7 @@ fi
 /test.sh
 `
 
-func (cnt *Img) Test() {
+func (cnt *Aci) Test() {
 	cnt.Install()
 	log.Info("Testing " + cnt.manifest.NameAndVersion)
 
@@ -83,7 +83,7 @@ func (cnt *Img) Test() {
 	cnt.checkResult()
 }
 
-func (cnt *Img) checkResult() {
+func (cnt *Aci) checkResult() {
 	files, err := ioutil.ReadDir(cnt.target + PATH_TESTS + PATH_TARGET + PATH_RESULT)
 	if err != nil {
 		panic("Cannot read test result directory" + err.Error())
@@ -112,7 +112,7 @@ func (cnt *Img) checkResult() {
 	}
 }
 
-func (cnt *Img) importAciBats() {
+func (cnt *Aci) importAciBats() {
 	if err := utils.ExecCmd("bash", "-c", "rkt image list --fields name --no-legend | grep -q "+BATS_ACI); err != nil {
 		content, _ := dist.Asset("dist/bindata/aci-bats.aci")
 		if err := ioutil.WriteFile("/tmp/aci-bats.aci", content, 0644); err != nil {
@@ -123,7 +123,7 @@ func (cnt *Img) importAciBats() {
 	}
 }
 
-func (cnt *Img) prepareTestAci() (*Img, error) {
+func (cnt *Aci) prepareTestAci() (*Aci, error) {
 	files, err := ioutil.ReadDir(cnt.path + PATH_TESTS)
 	if err != nil {
 		return nil, err

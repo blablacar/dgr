@@ -18,7 +18,7 @@ var updateCmd = &cobra.Command{
 func discoverAndRunUpdateType(path string, args builder.BuildArgs) {
 	if cnt, err := builder.NewAci(path, args); err == nil {
 		cnt.UpdateConf()
-	} else if _, err := builder.OpenPod(path, args); err == nil {
+	} else if _, err := builder.NewPod(path, args); err == nil {
 		panic("Not Yet implemented for pods")
 	} else {
 		panic("Cannot find cnt-manifest.yml")

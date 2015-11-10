@@ -18,7 +18,7 @@ var testCmd = &cobra.Command{
 func discoverAndRunTestType(path string, args builder.BuildArgs) {
 	if cnt, err := builder.NewAci(path, args); err == nil {
 		cnt.Test()
-	} else if pod, err := builder.OpenPod(path, args); err == nil {
+	} else if pod, err := builder.NewPod(path, args); err == nil {
 		pod.Test()
 	} else {
 		panic("Cannot find cnt-manifest.yml")

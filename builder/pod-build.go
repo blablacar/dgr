@@ -34,11 +34,11 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 	apps := []schema.RuntimeApp{}
 	for _, e := range p.manifest.Pod.Apps {
 
-		aciName := p.buildAciIfNeeded(e)
+		aci := p.buildAci(e)
 
 		name, _ := types.NewACName(e.Name)
 
-		sum, err := utils.Sha512sum(p.path + "/" + e.Name + "/target/image.aci")
+		sum, err := utils.Sha512sum(aci.target + "/image.aci")
 		if err != nil {
 			panic(err)
 		}
@@ -46,8 +46,8 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 		tmp, _ := types.NewHash("sha512-" + sum)
 
 		labels := types.Labels{}
-		labels = append(labels, types.Label{Name: "version", Value: aciName.Version()})
-		identifier, _ := types.NewACIdentifier(aciName.Name())
+		labels = append(labels, types.Label{Name: "version", Value: aci.manifest.NameAndVersion.Version()})
+		identifier, _ := types.NewACIdentifier(aci.manifest.NameAndVersion.Name())
 		ttmp := schema.RuntimeImage{Name: identifier, ID: *tmp, Labels: labels}
 
 		if e.App.User == "" {
@@ -77,7 +77,7 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 	return apps
 }
 
-func (p *Pod) buildAciIfNeeded(e spec.RuntimeApp) *spec.ACFullname {
+func (p *Pod) buildAci(e spec.RuntimeApp) *Aci {
 	if dir, err := os.Stat(p.path + "/" + e.Name); err == nil && dir.IsDir() {
 		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e), nil)
 		if err != nil {
@@ -85,7 +85,7 @@ func (p *Pod) buildAciIfNeeded(e spec.RuntimeApp) *spec.ACFullname {
 		}
 		aci.PodName = &p.manifest.Name
 		aci.Build()
-		return &aci.manifest.NameAndVersion
+		return aci
 	}
 	panic("Cannot found Pod's aci directory :" + p.path + "/" + e.Name)
 	return nil

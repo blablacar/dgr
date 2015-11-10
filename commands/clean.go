@@ -17,7 +17,7 @@ var cleanCmd = &cobra.Command{
 func discoverAndRunCleanType(path string, args builder.BuildArgs) {
 	if cnt, err := builder.NewAci(path, args); err == nil {
 		cnt.Clean()
-	} else if pod, err := builder.OpenPod(path, args); err == nil {
+	} else if pod, err := builder.NewPod(path, args); err == nil {
 		pod.Clean()
 	} else {
 		panic("Cannot find cnt-manifest.yml")

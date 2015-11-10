@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func (cnt *Img) UpdateConf() error {
+func (cnt *Aci) UpdateConf() error {
 	log.Info("Updating Image : ", cnt.manifest.NameAndVersion)
 
 	os.MkdirAll(cnt.rootfs, 0777)

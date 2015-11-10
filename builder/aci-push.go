@@ -9,9 +9,10 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
-func (aci *Img) Push() {
+func (aci *Aci) Push() {
 	if config.GetConfig().Push.Type == "" {
 		panic("Can't push, push is not configured in cnt global configuration file")
 	}
@@ -33,7 +34,7 @@ func (aci *Img) Push() {
 		"-F", "g=com.blablacar.aci.linux.amd64",
 		"-F", "p=aci",
 		"-F", "v="+val,
-		"-F", "a="+ShortNameId(im.Name),
+		"-F", "a="+strings.Split(string(im.Name), "/")[1],
 		"-F", "file=@"+aci.target+PATH_IMAGE_ACI_ZIP,
 		"-u", config.GetConfig().Push.Username+":"+config.GetConfig().Push.Password,
 		config.GetConfig().Push.Url+"/service/local/artifact/maven/content"); err != nil {

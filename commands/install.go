@@ -18,7 +18,7 @@ var installCmd = &cobra.Command{
 func discoverAndRunInstallType(path string, args builder.BuildArgs) {
 	if cnt, err := builder.NewAci(path, args); err == nil {
 		cnt.Install()
-	} else if pod, err := builder.OpenPod(path, args); err == nil {
+	} else if pod, err := builder.NewPod(path, args); err == nil {
 		pod.Install()
 	} else {
 		panic("Cannot find cnt-manifest.yml")

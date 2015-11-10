@@ -33,12 +33,17 @@ func Execute() {
 		},
 	}
 	rootCmd.PersistentFlags().BoolVarP(&buildArgs.Clean, "clean", "c", false, "Clean before doing anything")
-	rootCmd.PersistentFlags().StringVarP(&buildArgs.TargetPath, "target-path", "p", "", "Set target path")
+	rootCmd.PersistentFlags().StringVarP(&buildArgs.TargetsRootPath, "targets-root-path", "p", "", "Set targets root path")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "loglevel", "L", "debug", "Set log level")
 
 	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, updateCmd, graphCmd)
 
 	config.GetConfig().Load()
+
+	if config.GetConfig().TargetWorkDir != "" {
+		buildArgs.TargetsRootPath = config.GetConfig().TargetWorkDir
+	}
+
 	rootCmd.Execute()
 
 	log.Info("Victory !")
