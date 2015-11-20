@@ -21,6 +21,19 @@ func UserHomeOrFatal() string {
 	return usr
 }
 
+func ExecCmdGetStdoutAndStderr(head string, parts ...string) (string, string, error) {
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+
+	log.Debug("Exec > ", head, " ", strings.Join(parts, " "))
+	cmd := exec.Command(head, parts...)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	cmd.Start()
+	err := cmd.Wait()
+	return strings.TrimSpace(stdout.String()), strings.TrimSpace(stderr.String()), err
+}
+
 func ExecCmdGetOutput(head string, parts ...string) (string, error) {
 	var stdout bytes.Buffer
 
