@@ -1,9 +1,6 @@
 {
 	"ImportPath": "github.com/blablacar/cnt",
 	"GoVersion": "go1.5.1",
-	"Packages": [
-		"./..."
-	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
@@ -12,28 +9,32 @@
 		},
 		{
 			"ImportPath": "github.com/appc/spec/aci",
-			"Comment": "v0.6.1-42-g2981bdf",
-			"Rev": "2981bdf7017cc2cd04fcaf0caf6342e552fa176e"
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
 		},
 		{
 			"ImportPath": "github.com/appc/spec/discovery",
-			"Comment": "v0.6.1-42-g2981bdf",
-			"Rev": "2981bdf7017cc2cd04fcaf0caf6342e552fa176e"
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
 		},
 		{
 			"ImportPath": "github.com/appc/spec/pkg/device",
-			"Comment": "v0.6.1-42-g2981bdf",
-			"Rev": "2981bdf7017cc2cd04fcaf0caf6342e552fa176e"
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
 		},
 		{
 			"ImportPath": "github.com/appc/spec/pkg/tarheader",
-			"Comment": "v0.6.1-42-g2981bdf",
-			"Rev": "2981bdf7017cc2cd04fcaf0caf6342e552fa176e"
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
 		},
 		{
 			"ImportPath": "github.com/appc/spec/schema",
-			"Comment": "v0.6.1-42-g2981bdf",
-			"Rev": "2981bdf7017cc2cd04fcaf0caf6342e552fa176e"
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
+		},
+		{
+			"ImportPath": "github.com/camlistore/camlistore/pkg/errorutil",
+			"Rev": "58958f44ee2eaa5139097dec3e02f47df0aba180"
 		},
 		{
 			"ImportPath": "github.com/coreos/go-semver/semver",
@@ -58,11 +59,6 @@
 		{
 			"ImportPath": "github.com/mitchellh/go-homedir",
 			"Rev": "1f6da4a72e57d4e7edd4a7295a585e0a3999a2d4"
-		},
-		{
-			"ImportPath": "github.com/onsi/gomega",
-			"Comment": "v1.0-71-g2152b45",
-			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
 		},
 		{
 			"ImportPath": "github.com/spf13/cobra",

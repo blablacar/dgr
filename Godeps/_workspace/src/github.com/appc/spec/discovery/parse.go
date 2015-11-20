@@ -19,6 +19,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/appc/spec/schema/common"
 	"github.com/appc/spec/schema/types"
 )
 
@@ -46,15 +47,22 @@ func NewApp(name string, labels map[types.ACIdentifier]string) (*App, error) {
 // Example app parameters:
 // 	example.com/reduce-worker:1.0.0
 // 	example.com/reduce-worker,channel=alpha,label=value
+// 	example.com/reduce-worker:1.0.0,label=value
+//
+// As can be seen in above examples - colon, comma and equal sign have
+// special meaning. If any of them has to be a part of a label's value
+// then consider writing your own string to App parser.
 func NewAppFromString(app string) (*App, error) {
 	var (
 		name   string
 		labels map[types.ACIdentifier]string
 	)
 
-	app = strings.Replace(app, ":", ",version=", -1)
-	app = "name=" + app
-	v, err := url.ParseQuery(strings.Replace(app, ",", "&", -1))
+	preparedApp, err := prepareAppString(app)
+	if err != nil {
+		return nil, err
+	}
+	v, err := url.ParseQuery(preparedApp)
 	if err != nil {
 		return nil, err
 	}
@@ -78,6 +86,27 @@ func NewAppFromString(app string) (*App, error) {
 		return nil, err
 	}
 	return a, nil
+}
+
+func prepareAppString(app string) (string, error) {
+	if err := checkColon(app); err != nil {
+		return "", err
+	}
+
+	app = "name=" + strings.Replace(app, ":", ",version=", 1)
+	return common.MakeQueryString(app)
+}
+
+func checkColon(app string) error {
+	firstComma := strings.IndexRune(app, ',')
+	firstColon := strings.IndexRune(app, ':')
+	if firstColon > firstComma && firstComma > -1 {
+		return fmt.Errorf("malformed app string - colon may appear only right after the app name")
+	}
+	if strings.Count(app, ":") > 1 {
+		return fmt.Errorf("malformed app string - colon may appear at most once")
+	}
+	return nil
 }
 
 func (a *App) Copy() *App {

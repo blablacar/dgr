@@ -31,7 +31,7 @@ func (n ACFullname) LatestVersion() (string, error) {
 		app.Labels["arch"] = "amd64"
 	}
 
-	endpoint, _, err := discovery.DiscoverEndpoints(*app, false)
+	endpoint, _, err := discovery.DiscoverEndpoints(*app, nil, false)
 	if err != nil {
 		return "", errors.Annotate(err, "Latest discovery fail")
 	}

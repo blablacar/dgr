@@ -15,11 +15,14 @@
 package schema
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 
 	"github.com/appc/spec/schema/types"
+
+	"github.com/camlistore/camlistore/pkg/errorutil"
 )
 
 const PodManifestKind = types.ACKind("PodManifest")
@@ -46,6 +49,10 @@ func (pm *PodManifest) UnmarshalJSON(data []byte) error {
 	p := podManifest(*pm)
 	err := json.Unmarshal(data, &p)
 	if err != nil {
+		if serr, ok := err.(*json.SyntaxError); ok {
+			line, col, highlight := errorutil.HighlightBytePosition(bytes.NewReader(data), serr.Offset)
+			return fmt.Errorf("\nError at line %d, column %d\n%s%v", line, col, highlight, err)
+		}
 		return err
 	}
 	npm := PodManifest(p)
@@ -126,19 +133,19 @@ func (al AppList) Get(name types.ACName) *RuntimeApp {
 	return nil
 }
 
-// Mount describes the mapping between a volume and an apps
-// MountPoint that will be fulfilled at runtime.
+// Mount describes the mapping between a volume and the path it is mounted
+// inside of an app's filesystem.
 type Mount struct {
-	Volume     types.ACName `json:"volume"`
-	MountPoint types.ACName `json:"mountPoint"`
+	Volume types.ACName `json:"volume"`
+	Path   string       `json:"path"`
 }
 
 func (r Mount) assertValid() error {
 	if r.Volume.Empty() {
 		return errors.New("volume must be set")
 	}
-	if r.MountPoint.Empty() {
-		return errors.New("mountPoint must be set")
+	if r.Path == "" {
+		return errors.New("path must be set")
 	}
 	return nil
 }
