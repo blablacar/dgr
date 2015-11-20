@@ -161,6 +161,8 @@ func (cnt *Aci) prepareTestAci() (*Aci, error) {
 		},
 		NameAndVersion: *fullname,
 	}, nil)
+	testAci.target = cnt.target + PATH_TESTS + PATH_TARGET // this is required when target is deported
+	testAci.rootfs = testAci.target + PATH_ROOTFS
 	if err != nil {
 		panic("Cannot build test aci" + err.Error())
 	}
