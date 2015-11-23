@@ -14,7 +14,7 @@ func (p *Pod) Test() {
 		if err != nil {
 			panic(err)
 		}
-		aci.PodName = &p.manifest.Name
+		aci.podName = &p.manifest.Name
 		aci.Test()
 	}
 

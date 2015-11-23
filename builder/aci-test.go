@@ -72,6 +72,7 @@ func (cnt *Aci) Test() {
 	if err := utils.ExecCmd("rkt",
 		"--insecure-skip-verify=true",
 		"run",
+		"--net=host",
 		"--mds-register=false",
 		"--no-overlay=true",
 		"--volume=result,kind=host,source="+cnt.target+PATH_TESTS+PATH_TARGET+PATH_RESULT,
@@ -161,6 +162,7 @@ func (cnt *Aci) prepareTestAci() (*Aci, error) {
 		},
 		NameAndVersion: *fullname,
 	}, nil)
+	testAci.FullyResolveDep = false                        // this is required to run local tests without discovery
 	testAci.target = cnt.target + PATH_TESTS + PATH_TARGET // this is required when target is deported
 	testAci.rootfs = testAci.target + PATH_ROOTFS
 	if err != nil {

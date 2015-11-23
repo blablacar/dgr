@@ -46,6 +46,10 @@ func (i *Aci) CheckBuilt() {
 ///////////////////////////////////////////////////////
 
 func (cnt *Aci) fullyResolveDependencies() {
+	if !cnt.FullyResolveDep {
+		return
+	}
+
 	for i, dep := range cnt.manifest.Aci.Dependencies {
 		resolved, err := dep.FullyResolved()
 		if err != nil {

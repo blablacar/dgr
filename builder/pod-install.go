@@ -16,7 +16,7 @@ func (p *Pod) Install() {
 		if err != nil {
 			panic(err)
 		}
-		aci.PodName = &p.manifest.Name
+		aci.podName = &p.manifest.Name
 		aci.Install()
 	}
 

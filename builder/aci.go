@@ -95,13 +95,14 @@ const PATH_CONFDOTD = "/conf.d"
 const PATH_TEMPLATES = "/templates"
 
 type Aci struct {
-	log      log.Entry
-	path     string
-	target   string
-	rootfs   string
-	PodName  *spec.ACFullname
-	manifest spec.AciManifest
-	args     BuildArgs
+	log             log.Entry
+	path            string
+	target          string
+	rootfs          string
+	podName         *spec.ACFullname
+	manifest        spec.AciManifest
+	args            BuildArgs
+	FullyResolveDep bool
 }
 
 func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest, checked *chan bool) (*Aci, error) {
@@ -124,12 +125,13 @@ func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest, 
 	}
 
 	aci := &Aci{
-		log:      *aciLog,
-		args:     args,
-		path:     fullPath,
-		manifest: manifest,
-		target:   target,
-		rootfs:   target + PATH_ROOTFS,
+		log:             *aciLog,
+		args:            args,
+		path:            fullPath,
+		manifest:        manifest,
+		target:          target,
+		rootfs:          target + PATH_ROOTFS,
+		FullyResolveDep: true,
 	}
 
 	go aci.checkLatestVersions(checked)

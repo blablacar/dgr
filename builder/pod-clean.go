@@ -19,7 +19,7 @@ func (p *Pod) Clean() {
 		if err != nil {
 			panic(err)
 		}
-		aci.PodName = &p.manifest.Name
+		aci.podName = &p.manifest.Name
 		aci.Clean()
 	}
 

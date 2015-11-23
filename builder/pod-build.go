@@ -83,7 +83,7 @@ func (p *Pod) buildAci(e spec.RuntimeApp) *Aci {
 		if err != nil {
 			panic(err)
 		}
-		aci.PodName = &p.manifest.Name
+		aci.podName = &p.manifest.Name
 		aci.Build()
 		return aci
 	}
