@@ -50,6 +50,7 @@ func ExecCmd(head string, parts ...string) error {
 	log.Debug("Exec > ", head, " ", strings.Join(parts, " "))
 	cmd := exec.Command(head, parts...)
 	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
