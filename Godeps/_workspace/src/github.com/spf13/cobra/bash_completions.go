@@ -275,7 +275,7 @@ func writeRequiredFlag(cmd *Command, out *bytes.Buffer) {
 	fmt.Fprintf(out, "    must_have_one_flag=()\n")
 	flags := cmd.NonInheritedFlags()
 	flags.VisitAll(func(flag *pflag.Flag) {
-		for key, _ := range flag.Annotations {
+		for key := range flag.Annotations {
 			switch key {
 			case BashCompOneRequiredFlag:
 				format := "    must_have_one_flag+=(\"--%s"

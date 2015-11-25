@@ -23,6 +23,9 @@ cp $dir/aci-bats/aci-bats.aci $dir/dist/bindata
 [ -f $dir/dist/bindata/confd ] || wget "https://github.com/kelseyhightower/confd/releases/download/v0.10.0/confd-0.10.0-linux-amd64" -O $dir/dist/bindata/confd
 go-bindata -nomemcopy -pkg dist -o $dir/dist/bindata.go $dir/dist/bindata/...
 
+#save dep
+godep save ./...
+
 # format && test
 gofmt -w -s .
 godep go test -cover $dir/...
