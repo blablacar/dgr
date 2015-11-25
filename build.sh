@@ -24,7 +24,7 @@ cp $dir/aci-bats/aci-bats.aci $dir/dist/bindata
 go-bindata -nomemcopy -pkg dist -o $dir/dist/bindata.go $dir/dist/bindata/...
 
 #save dep
-godep save ./...
+godep save ./... || true
 
 # format && test
 gofmt -w -s .
