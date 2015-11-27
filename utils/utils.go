@@ -132,20 +132,20 @@ func CopyFile(src, dst string) (err error) {
 			return
 		}
 	}
-	if err = os.Link(src, dst); err == nil {
-		return
-	}
-	err = copyFileContents(src, dst)
+	//	if err = os.Link(src, dst); err == nil {
+	//		return
+	//	}
+	err = copyFileContents(src, dst, sfi)
 	return
 }
 
-func copyFileContents(src, dst string) (err error) {
+func copyFileContents(src, dst string, sfi os.FileInfo) (err error) {
 	in, err := os.Open(src)
 	if err != nil {
 		return
 	}
 	defer in.Close()
-	out, err := os.Create(dst)
+	out, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, sfi.Mode())
 	if err != nil {
 		return
 	}
