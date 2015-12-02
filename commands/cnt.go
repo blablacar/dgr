@@ -34,9 +34,9 @@ func Execute() {
 	}
 	rootCmd.PersistentFlags().BoolVarP(&buildArgs.Clean, "clean", "c", false, "Clean before doing anything")
 	rootCmd.PersistentFlags().StringVarP(&buildArgs.TargetsRootPath, "targets-root-path", "p", "", "Set targets root path")
-	rootCmd.PersistentFlags().StringVarP(&logLevel, "loglevel", "L", "debug", "Set log level")
+	rootCmd.PersistentFlags().StringVarP(&logLevel, "loglevel", "L", "info", "Set log level")
 
-	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, updateCmd, graphCmd)
+	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, updateCmd, graphCmd, aciVersion)
 
 	config.GetConfig().Load()
 
@@ -46,7 +46,7 @@ func Execute() {
 
 	rootCmd.Execute()
 
-	log.Info("Victory !")
+	log.Debug("Victory !")
 }
 
 func checkRktVersion() {
