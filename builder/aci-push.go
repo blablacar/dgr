@@ -1,13 +1,13 @@
 package builder
 
 import (
-	"github.com/blablacar/cnt/config"
+	"github.com/blablacar/cnt/cnt"
 	"github.com/blablacar/cnt/utils"
 	"strings"
 )
 
 func (aci *Aci) Push() {
-	if config.GetConfig().Push.Type == "" {
+	if cnt.Home.Config.Push.Type == "" {
 		panic("Can't push, push is not configured in cnt global configuration file")
 	}
 
@@ -30,8 +30,8 @@ func (aci *Aci) Push() {
 		"-F", "v="+val,
 		"-F", "a="+strings.Split(string(im.Name), "/")[1],
 		"-F", "file=@"+aci.target+PATH_IMAGE_ACI_ZIP,
-		"-u", config.GetConfig().Push.Username+":"+config.GetConfig().Push.Password,
-		config.GetConfig().Push.Url+"/service/local/artifact/maven/content"); err != nil {
+		"-u", cnt.Home.Config.Push.Username+":"+cnt.Home.Config.Push.Password,
+		cnt.Home.Config.Push.Url+"/service/local/artifact/maven/content"); err != nil {
 		panic("Cannot push aci" + err.Error())
 	}
 }

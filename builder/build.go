@@ -1,11 +1,10 @@
 package builder
 
 type BuildArgs struct {
-	Clean           bool
-	Test            bool
-	NoTestFail      bool
-	Path            string
-	TargetsRootPath string
+	Clean      bool
+	Test       bool
+	NoTestFail bool
+	Path       string
 }
 
 type BuildError struct {

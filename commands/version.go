@@ -2,7 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"github.com/blablacar/cnt/application"
+	"github.com/blablacar/cnt/cnt"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -13,12 +13,12 @@ var versionCmd = &cobra.Command{
 	Long:  `Print the version number of cnt`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Print("Cnt\n\n")
-		fmt.Printf("version    : %s\n", application.Version)
-		if application.BuildDate != "" {
-			fmt.Printf("build date : %s\n", application.BuildDate)
+		fmt.Printf("version    : %s\n", cnt.Version)
+		if cnt.BuildDate != "" {
+			fmt.Printf("build date : %s\n", cnt.BuildDate)
 		}
-		if application.CommitHash != "" {
-			fmt.Printf("CommitHash : %s\n", application.CommitHash)
+		if cnt.CommitHash != "" {
+			fmt.Printf("CommitHash : %s\n", cnt.CommitHash)
 		}
 		os.Exit(0)
 	},

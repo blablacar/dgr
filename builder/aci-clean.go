@@ -1,12 +1,11 @@
 package builder
 
 import (
-	log "github.com/Sirupsen/logrus"
 	"os"
 )
 
 func (cnt *Aci) Clean() {
-	log.Info("Cleaning " + cnt.manifest.NameAndVersion)
+	cnt.log.Debug("Cleaning")
 	checkVersion := make(chan bool, 1)
 	go cnt.checkLatestVersions(&checkVersion)
 	if err := os.RemoveAll(cnt.target + "/"); err != nil {

@@ -2,6 +2,7 @@ package builder
 
 import (
 	log "github.com/Sirupsen/logrus"
+	"github.com/blablacar/cnt/cnt"
 	"github.com/blablacar/cnt/spec"
 	"github.com/ghodss/yaml"
 	"io/ioutil"
@@ -28,8 +29,8 @@ func NewPod(path string, args BuildArgs) (*Pod, error) {
 	podLog := log.WithField("pod", manifest.Name.String())
 
 	target := path + PATH_TARGET
-	if args.TargetsRootPath != "" {
-		currentAbsDir, err := filepath.Abs(args.TargetsRootPath + "/" + manifest.Name.ShortName())
+	if cnt.Home.Config.TargetWorkDir != "" {
+		currentAbsDir, err := filepath.Abs(cnt.Home.Config.TargetWorkDir + "/" + manifest.Name.ShortName())
 		if err != nil {
 			podLog.WithError(err).Panic("invalid target path")
 		}

@@ -2,6 +2,7 @@ package builder
 
 import (
 	log "github.com/Sirupsen/logrus"
+	"github.com/blablacar/cnt/cnt"
 	"github.com/blablacar/cnt/spec"
 	"github.com/blablacar/cnt/utils"
 	"github.com/ghodss/yaml"
@@ -116,8 +117,8 @@ func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest, 
 	}
 
 	target := fullPath + PATH_TARGET
-	if args.TargetsRootPath != "" {
-		currentAbsDir, err := filepath.Abs(args.TargetsRootPath + "/" + manifest.NameAndVersion.ShortName())
+	if cnt.Home.Config.TargetWorkDir != "" {
+		currentAbsDir, err := filepath.Abs(cnt.Home.Config.TargetWorkDir + "/" + manifest.NameAndVersion.ShortName())
 		if err != nil {
 			aciLog.WithError(err).Panic("invalid target path")
 		}

@@ -2,7 +2,7 @@ package builder
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"github.com/blablacar/cnt/config"
+	"github.com/blablacar/cnt/cnt"
 	"github.com/blablacar/cnt/utils"
 )
 
@@ -35,8 +35,8 @@ func (p *Pod) Push() {
 		"-F", "v="+p.manifest.Name.Version(),
 		"-F", "a="+p.manifest.Name.ShortName(),
 		"-F", "file=@"+p.target+"/pod-manifest.json",
-		"-u", config.GetConfig().Push.Username+":"+config.GetConfig().Push.Password,
-		config.GetConfig().Push.Url+"/service/local/artifact/maven/content"); err != nil {
+		"-u", cnt.Home.Config.Push.Username+":"+cnt.Home.Config.Push.Password,
+		cnt.Home.Config.Push.Url+"/service/local/artifact/maven/content"); err != nil {
 		panic("Cannot push pod" + err.Error())
 	}
 
