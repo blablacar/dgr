@@ -23,8 +23,6 @@ func Execute() {
 	var logLevel string
 	var rootCmd = &cobra.Command{
 		Use: "cnt",
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		},
 	}
 	var homePath string
 	var targetRootPath string
