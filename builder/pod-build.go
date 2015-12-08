@@ -110,7 +110,7 @@ Description={{ .Shortname }} %i
 
 [Service]
 ExecStartPre=/opt/bin/rkt gc --grace-period=0s --expire-prepared=0s
-ExecStart=/opt/bin/rkt --insecure-options=tls run \
+ExecStart=/opt/bin/rkt --insecure-options=image run \
 {{range $i, $e := .Commands}}  {{$e}} \
 {{end}}{{range $i, $e := .Acilist}}{{if $i}} \
 {{end}}  {{$e}}{{end}}
