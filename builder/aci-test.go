@@ -70,7 +70,7 @@ func (cnt *Aci) Test() {
 	os.MkdirAll(cnt.target+PATH_TESTS+PATH_TARGET+PATH_RESULT, 0777)
 
 	if err := utils.ExecCmd("rkt",
-		"--insecure-skip-verify=true",
+		"--insecure-options=tls",
 		"run",
 		"--net=host",
 		"--mds-register=false",
@@ -119,7 +119,7 @@ func (cnt *Aci) importAciBats() {
 		if err := ioutil.WriteFile("/tmp/aci-bats.aci", content, 0644); err != nil {
 			panic(err)
 		}
-		utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", "/tmp/aci-bats.aci")
+		utils.ExecCmd("rkt", "--insecure-options=tls", "fetch", "/tmp/aci-bats.aci")
 		os.Remove("/tmp/aci-bats.aci")
 	}
 }

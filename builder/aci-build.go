@@ -116,7 +116,7 @@ func (cnt *Aci) processFrom() {
 		return
 	}
 	if err := utils.ExecCmd("bash", "-c", "rkt image list --fields name --no-legend | grep -q "+cnt.manifest.From.String()); err != nil {
-		utils.ExecCmd("rkt", "--insecure-skip-verify=true", "fetch", cnt.manifest.From.String())
+		utils.ExecCmd("rkt", "--insecure-options=tls", "fetch", cnt.manifest.From.String())
 	}
 	if err := utils.ExecCmd("rkt", "image", "render", "--overwrite", cnt.manifest.From.String(), cnt.target); err != nil {
 		panic("Cannot render from image" + cnt.manifest.From.String() + err.Error())

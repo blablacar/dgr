@@ -13,7 +13,7 @@ func (aci *Aci) Install() string {
 		aci.Test()
 	}
 	os.Remove(aci.target + PATH_INSTALLED)
-	hash, err := utils.ExecCmdGetOutput("rkt", "--insecure-skip-verify=true", "fetch", aci.target+PATH_IMAGE_ACI)
+	hash, err := utils.ExecCmdGetOutput("rkt", "--insecure-options=tls", "fetch", aci.target+PATH_IMAGE_ACI)
 	if err != nil {
 		panic("Cannot install" + err.Error())
 	}
