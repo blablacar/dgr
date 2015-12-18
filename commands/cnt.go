@@ -15,7 +15,7 @@ import (
 
 var buildArgs = builder.BuildArgs{}
 
-const RKT_SUPPORTED_VERSION = "0.11.0"
+const RKT_SUPPORTED_VERSION = "0.12.0"
 
 func Execute() {
 	checkRktVersion()
