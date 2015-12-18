@@ -22,7 +22,6 @@ func (cnt *Aci) Build() error {
 	cnt.runLevelBuildSetup()
 
 	cnt.writeImgManifest()
-	cnt.writeCntManifest() // TODO move that, here because we update the version number to generated version
 
 	cnt.runBuild()
 	cnt.copyAttributes()
@@ -57,10 +56,6 @@ func (cnt *Aci) fullyResolveDependencies() {
 		}
 		cnt.manifest.Aci.Dependencies[i] = *resolved
 	}
-}
-
-func (cnt *Aci) writeCntManifest() {
-	utils.CopyFile(cnt.path+PATH_CNT_MANIFEST, cnt.target+PATH_CNT_MANIFEST)
 }
 
 func (cnt *Aci) runBuildLate() {
@@ -107,6 +102,9 @@ func (cnt *Aci) runBuild() {
 
 	if err := utils.ExecCmd("systemd-nspawn", "--directory="+cnt.rootfs, "--capability=all",
 		"--bind="+cnt.target+"/:/target", "target/build.sh"); err != nil {
+	aci.log.Info("Starting systemd-nspawn to run Build scripts")
+	if err := utils.ExecCmd("systemd-nspawn", "--directory="+aci.rootfs, "--capability=all",
+		"--bind="+aci.target+"/:/target", "target/build.sh"); err != nil {
 		panic("Build step did not succeed" + err.Error())
 	}
 }
@@ -208,4 +206,11 @@ func (cnt *Aci) copyAttributes() {
 func (cnt *Aci) writeImgManifest() {
 	log.Debug("Writing aci manifest")
 	utils.WriteImageManifest(&cnt.manifest, cnt.target+PATH_MANIFEST, cnt.manifest.NameAndVersion.Name())
+}
+
+func checkSystemdNspawn() {
+	_, err := utils.ExecCmdGetOutput("systemd-nspawn", "--version")
+	if err != nil {
+		logrus.WithError(err).Fatal("systemd-nspawn is required")
+	}
 }
