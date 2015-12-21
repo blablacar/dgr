@@ -20,7 +20,7 @@ type AciManifest struct {
 }
 
 type AciDefinition struct {
-	App           *CntApp           `json:"app,omitempty"`
+	App           CntApp            `json:"app,omitempty"`
 	Annotations   types.Annotations `json:"annotations,omitempty"`
 	Dependencies  []ACFullname      `json:"dependencies,omitempty"`
 	PathWhitelist []string          `json:"pathWhitelist,omitempty"`

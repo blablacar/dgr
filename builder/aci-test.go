@@ -154,7 +154,7 @@ func (cnt *Aci) prepareTestAci() (*Aci, error) {
 	resultMountName, _ := types.NewACName("result")
 	testAci, err := NewAciWithManifest(cnt.target+PATH_TESTS, cnt.args, spec.AciManifest{
 		Aci: spec.AciDefinition{
-			App: &spec.CntApp{
+			App: spec.CntApp{
 				Exec:        []string{"/init.sh"},
 				MountPoints: []types.MountPoint{{Path: PATH_RESULT, Name: *resultMountName}},
 			},
