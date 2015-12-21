@@ -1,10 +1,12 @@
 package builder
 
 import (
+	"github.com/Sirupsen/logrus"
 	log "github.com/Sirupsen/logrus"
 	"github.com/blablacar/cnt/cnt"
 	"github.com/blablacar/cnt/spec"
 	"github.com/ghodss/yaml"
+	"github.com/juju/errors"
 	"io/ioutil"
 	"path/filepath"
 )
@@ -22,10 +24,13 @@ type Pod struct {
 func NewPod(path string, args BuildArgs) (*Pod, error) {
 	fullPath, err := filepath.Abs(path)
 	if err != nil {
-		panic("Cannot get fullpath of project" + err.Error())
+		logrus.WithError(err).WithField("path", path).Fatal("Cannot get fullpath")
 	}
 
-	manifest := readPodManifest(fullPath + POD_MANIFEST)
+	manifest, err := readPodManifest(fullPath + POD_MANIFEST)
+	if err != nil {
+		return nil, errors.Annotate(err, "Failed to read pod manifest")
+	}
 	podLog := log.WithField("pod", manifest.Name.String())
 
 	target := path + PATH_TARGET
@@ -48,16 +53,16 @@ func NewPod(path string, args BuildArgs) (*Pod, error) {
 	return pod, nil
 }
 
-func readPodManifest(manifestPath string) *spec.PodManifest {
+func readPodManifest(manifestPath string) (*spec.PodManifest, error) {
 	source, err := ioutil.ReadFile(manifestPath)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	manifest := &spec.PodManifest{}
 	err = yaml.Unmarshal([]byte(source), manifest)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	for i, app := range manifest.Pod.Apps {
@@ -66,7 +71,7 @@ func readPodManifest(manifestPath string) *spec.PodManifest {
 		}
 	}
 	//TODO check that there is no app name conflict
-	return manifest
+	return manifest, nil
 }
 
 func (p *Pod) toAciManifest(e spec.RuntimeApp) spec.AciManifest {

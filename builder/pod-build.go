@@ -12,7 +12,7 @@ import (
 
 const PATH_POD_MANIFEST = "/pod-manifest.json"
 
-func (p *Pod) Build() {
+func (p *Pod) Build() error {
 	log.Info("Building POD : ", p.manifest.Name)
 
 	os.RemoveAll(p.target)
@@ -22,6 +22,7 @@ func (p *Pod) Build() {
 	apps := p.processAci()
 
 	p.writePodManifest(apps)
+	return nil
 }
 
 func (p *Pod) preparePodVersion() {

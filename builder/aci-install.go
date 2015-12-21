@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func (aci *Aci) Install() string {
+func (aci *Aci) Install() {
 	aci.CheckBuilt()
 	if aci.args.Test {
 		aci.args.Test = false
@@ -18,5 +18,4 @@ func (aci *Aci) Install() string {
 		panic("Cannot install" + err.Error())
 	}
 	ioutil.WriteFile(aci.target+PATH_INSTALLED, []byte(hash), 0644)
-	return hash
 }

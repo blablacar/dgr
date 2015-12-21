@@ -6,6 +6,7 @@ import (
 	"github.com/blablacar/cnt/spec"
 	"github.com/blablacar/cnt/utils"
 	"github.com/ghodss/yaml"
+	"github.com/juju/errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -107,6 +108,10 @@ type Aci struct {
 }
 
 func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest, checked *chan bool) (*Aci, error) {
+	if manifest.NameAndVersion == "" {
+		log.WithField("path", path).Fatal("name is mandatory in manifest")
+	}
+
 	aciLog := log.WithField("aci", manifest.NameAndVersion.String())
 	aciLog.WithField("path", path).WithField("args", args).WithField("manifest", manifest).Debug("New aci")
 
@@ -159,7 +164,7 @@ func readAciManifest(manifestPath string) (*spec.AciManifest, error) {
 	}
 	err = yaml.Unmarshal([]byte(source), &manifest)
 	if err != nil {
-		panic(err)
+		return nil, errors.Annotate(err, "Cannot unmarshall manifest")
 	}
 
 	return &manifest, nil

@@ -1,7 +1,7 @@
 package builder
 
 import (
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/blablacar/cnt/dist"
 	"github.com/blablacar/cnt/utils"
 	"io/ioutil"
@@ -9,34 +9,34 @@ import (
 	"strings"
 )
 
-func (cnt *Aci) Build() error {
-	log.Info("Building Image : ", cnt.manifest.NameAndVersion)
+func (aci *Aci) Build() error {
+	aci.log.Info("Building")
 
-	os.MkdirAll(cnt.rootfs, 0777)
+	os.MkdirAll(aci.rootfs, 0777)
 
-	cnt.fullyResolveDependencies()
-	cnt.processFrom()
-	cnt.copyInternals()
-	cnt.copyRunlevelsScripts()
+	aci.fullyResolveDependencies()
+	aci.processFrom()
+	aci.copyInternals()
+	aci.copyRunlevelsScripts()
 
-	cnt.runLevelBuildSetup()
+	aci.runLevelBuildSetup()
 
-	cnt.writeImgManifest()
+	aci.writeImgManifest()
 
-	cnt.runBuild()
-	cnt.copyAttributes()
-	cnt.copyConfd()
-	cnt.copyFiles()
-	cnt.runBuildLate()
+	aci.runBuild()
+	aci.copyAttributes()
+	aci.copyConfd()
+	aci.copyFiles()
+	aci.runBuildLate()
 
-	cnt.tarAci(false)
+	aci.tarAci(false)
 	//	ExecCmd("chown " + os.Getenv("SUDO_USER") + ": " + target + "/*") //TODO chown
 	return nil
 }
 
-func (i *Aci) CheckBuilt() {
-	if _, err := os.Stat(i.target + PATH_IMAGE_ACI); os.IsNotExist(err) {
-		if err := i.Build(); err != nil {
+func (aci *Aci) CheckBuilt() {
+	if _, err := os.Stat(aci.target + PATH_IMAGE_ACI); os.IsNotExist(err) {
+		if err := aci.Build(); err != nil {
 			panic("Cannot continue since build failed")
 		}
 	}
@@ -44,102 +44,97 @@ func (i *Aci) CheckBuilt() {
 
 ///////////////////////////////////////////////////////
 
-func (cnt *Aci) fullyResolveDependencies() {
-	if !cnt.FullyResolveDep {
+func (aci *Aci) fullyResolveDependencies() {
+	if !aci.FullyResolveDep {
 		return
 	}
 
-	for i, dep := range cnt.manifest.Aci.Dependencies {
+	for i, dep := range aci.manifest.Aci.Dependencies {
 		resolved, err := dep.FullyResolved()
 		if err != nil {
-			log.WithField("dependency", dep).WithError(err).Fatal("Cannot fully resolve dependency")
+			aci.log.WithField("dependency", dep).WithError(err).Fatal("Cannot fully resolve dependency")
 		}
-		cnt.manifest.Aci.Dependencies[i] = *resolved
+		aci.manifest.Aci.Dependencies[i] = *resolved
 	}
 }
 
-func (cnt *Aci) runBuildLate() {
-	res, err := utils.IsDirEmpty(cnt.target + PATH_RUNLEVELS + PATH_BUILD_LATE)
-	res2, err2 := utils.IsDirEmpty(cnt.rootfs + PATH_CNT + PATH_RUNLEVELS + PATH_INHERIT_BUILD_LATE)
+func (aci *Aci) runBuildLate() {
+	res, err := utils.IsDirEmpty(aci.target + PATH_RUNLEVELS + PATH_BUILD_LATE)
+	res2, err2 := utils.IsDirEmpty(aci.rootfs + PATH_CNT + PATH_RUNLEVELS + PATH_INHERIT_BUILD_LATE)
 	if (res && res2) || (err != nil && err2 != nil) {
 		return
 	}
 
 	{
 		rootfs := "${TARGET}/rootfs"
-		if cnt.manifest.Build.NoBuildImage() {
+		if aci.manifest.Build.NoBuildImage() {
 			rootfs = ""
 		}
 		build := strings.Replace(BUILD_SCRIPT_LATE, "%%ROOTFS%%", rootfs, 1)
-		ioutil.WriteFile(cnt.target+"/build-late.sh", []byte(build), 0777)
+		ioutil.WriteFile(aci.target+"/build-late.sh", []byte(build), 0777)
 	}
 
-	if err := utils.ExecCmd("systemd-nspawn", "--version"); err == nil {
-		log.Info("Run with systemd-nspawn")
-		if err := utils.ExecCmd("systemd-nspawn", "--directory="+cnt.rootfs, "--capability=all",
-			"--bind="+cnt.target+"/:/target", "target/build-late.sh"); err != nil {
-			panic("Build step did not succeed" + err.Error())
-		}
-	} else {
-		panic("systemd-nspawn is required")
+	checkSystemdNspawn()
+
+	aci.log.Info("Starting systemd-nspawn to run Build late scripts")
+	if err := utils.ExecCmd("systemd-nspawn", "--directory="+aci.rootfs, "--capability=all",
+		"--bind="+aci.target+"/:/target", "target/build-late.sh"); err != nil {
+		aci.log.WithError(err).Fatal("Build late part failed")
 	}
 }
 
-func (cnt *Aci) runBuild() {
-	if res, err := utils.IsDirEmpty(cnt.target + PATH_RUNLEVELS + PATH_BUILD); res || err != nil {
+func (aci *Aci) runBuild() {
+	if res, err := utils.IsDirEmpty(aci.target + PATH_RUNLEVELS + PATH_BUILD); res || err != nil {
 		return
 	}
-	if err := utils.ExecCmd("systemd-nspawn", "--version"); err != nil {
-		panic("systemd-nspawn is required")
-	}
+
+	checkSystemdNspawn()
 
 	rootfs := "${TARGET}/rootfs"
-	if cnt.manifest.Build.NoBuildImage() {
+	if aci.manifest.Build.NoBuildImage() {
 		rootfs = ""
 	}
 	build := strings.Replace(BUILD_SCRIPT, "%%ROOTFS%%", rootfs, 1)
-	ioutil.WriteFile(cnt.target+"/build.sh", []byte(build), 0777)
+	ioutil.WriteFile(aci.target+"/build.sh", []byte(build), 0777)
 
-	if err := utils.ExecCmd("systemd-nspawn", "--directory="+cnt.rootfs, "--capability=all",
-		"--bind="+cnt.target+"/:/target", "target/build.sh"); err != nil {
 	aci.log.Info("Starting systemd-nspawn to run Build scripts")
 	if err := utils.ExecCmd("systemd-nspawn", "--directory="+aci.rootfs, "--capability=all",
 		"--bind="+aci.target+"/:/target", "target/build.sh"); err != nil {
-		panic("Build step did not succeed" + err.Error())
+		aci.log.WithError(err).Fatal("Build part failed")
 	}
 }
 
-func (cnt *Aci) processFrom() {
-	if cnt.manifest.From == "" {
+func (aci *Aci) processFrom() {
+	if aci.manifest.From == "" {
 		return
 	}
-	if err := utils.ExecCmd("bash", "-c", "rkt image list --fields name --no-legend | grep -q "+cnt.manifest.From.String()); err != nil {
-		utils.ExecCmd("rkt", "--insecure-options=image", "fetch", cnt.manifest.From.String())
+	if err := utils.ExecCmd("bash", "-c", "rkt image list --fields name --no-legend | grep -q "+aci.manifest.From.String()); err != nil {
+		utils.ExecCmd("rkt", "--insecure-options=image", "fetch", aci.manifest.From.String())
 	}
-	if err := utils.ExecCmd("rkt", "image", "render", "--overwrite", cnt.manifest.From.String(), cnt.target); err != nil {
-		panic("Cannot render from image" + cnt.manifest.From.String() + err.Error())
+	if err := utils.ExecCmd("rkt", "image", "render", "--overwrite", aci.manifest.From.String(), aci.target); err != nil {
+		panic("Cannot render from image" + aci.manifest.From.String() + err.Error())
 	}
-	os.Remove(cnt.target + PATH_MANIFEST)
+	os.Remove(aci.target + PATH_MANIFEST)
 }
 
-func (cnt *Aci) copyInternals() {
-	log.Info("Copy internals")
-	os.MkdirAll(cnt.rootfs+PATH_CNT+PATH_BIN, 0755)
-	os.MkdirAll(cnt.rootfs+"/bin", 0755)     // this is required or systemd-nspawn will create symlink on it
-	os.MkdirAll(cnt.rootfs+"/usr/bin", 0755) // this is required by systemd-nspawn
+func (aci *Aci) copyInternals() {
+	aci.log.Debug("Copy internals")
+	os.MkdirAll(aci.rootfs+PATH_CNT+PATH_BIN, 0755)
+	os.MkdirAll(aci.rootfs+"/bin", 0755)     // this is required or systemd-nspawn will create symlink on it
+	os.MkdirAll(aci.rootfs+"/usr/bin", 0755) // this is required by systemd-nspawn
 
 	busybox, _ := dist.Asset("dist/bindata/busybox")
-	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+PATH_BIN+"/busybox", busybox, 0777); err != nil {
+	if err := ioutil.WriteFile(aci.rootfs+PATH_CNT+PATH_BIN+"/busybox", busybox, 0777); err != nil {
 		panic(err)
 	}
 
 	confd, _ := dist.Asset("dist/bindata/confd")
-	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+PATH_BIN+"/confd", confd, 0777); err != nil {
+	if err := ioutil.WriteFile(aci.rootfs+PATH_CNT+PATH_BIN+"/confd", confd, 0777); err != nil {
 		panic(err)
 	}
 
 	attributeMerger, _ := dist.Asset("dist/bindata/attributes-merger")
-	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+PATH_BIN+"/attributes-merger", attributeMerger, 0777); err != nil {
+	if err := ioutil.WriteFile(aci.rootfs+PATH_CNT+PATH_BIN+"/attributes-merger", attributeMerger, 0777); err != nil {
 		panic(err)
 	}
 
@@ -148,64 +143,64 @@ confdir = "/cnt"
 prefix = "/confd"
 log-level = "debug"
 `
-	os.MkdirAll(cnt.rootfs+PATH_CNT+"/prestart", 0755)
-	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+"/prestart/confd.toml", []byte(confdFile), 0777); err != nil {
+	os.MkdirAll(aci.rootfs+PATH_CNT+"/prestart", 0755)
+	if err := ioutil.WriteFile(aci.rootfs+PATH_CNT+"/prestart/confd.toml", []byte(confdFile), 0777); err != nil {
 		panic(err)
 	}
 
-	if err := ioutil.WriteFile(cnt.rootfs+PATH_CNT+PATH_BIN+"/prestart", []byte(PRESTART), 0777); err != nil {
+	if err := ioutil.WriteFile(aci.rootfs+PATH_CNT+PATH_BIN+"/prestart", []byte(PRESTART), 0777); err != nil {
 		panic(err)
 	}
 }
 
-func (cnt *Aci) copyRunlevelsScripts() {
-	log.Info("Copy Runlevels scripts")
-	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_BUILD, cnt.target+PATH_RUNLEVELS+PATH_BUILD)
-	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_BUILD_LATE, cnt.target+PATH_RUNLEVELS+PATH_BUILD_LATE)
-	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_BUILD_SETUP, cnt.target+PATH_RUNLEVELS+PATH_BUILD_SETUP)
-	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_PRESTART_EARLY, cnt.target+PATH_RUNLEVELS+PATH_PRESTART_EARLY)
-	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_PRESTART_LATE, cnt.target+PATH_RUNLEVELS+PATH_PRESTART_LATE)
+func (aci *Aci) copyRunlevelsScripts() {
+	aci.log.Debug("Copy Runlevels scripts")
+	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_BUILD, aci.target+PATH_RUNLEVELS+PATH_BUILD)
+	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_BUILD_LATE, aci.target+PATH_RUNLEVELS+PATH_BUILD_LATE)
+	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_BUILD_SETUP, aci.target+PATH_RUNLEVELS+PATH_BUILD_SETUP)
+	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_PRESTART_EARLY, aci.target+PATH_RUNLEVELS+PATH_PRESTART_EARLY)
+	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_PRESTART_LATE, aci.target+PATH_RUNLEVELS+PATH_PRESTART_LATE)
 
-	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_PRESTART_EARLY, cnt.target+PATH_ROOTFS+PATH_CNT+PATH_RUNLEVELS+PATH_PRESTART_EARLY)
-	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_PRESTART_LATE, cnt.target+PATH_ROOTFS+PATH_CNT+PATH_RUNLEVELS+PATH_PRESTART_LATE)
-	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_INHERIT_BUILD_EARLY, cnt.target+PATH_ROOTFS+PATH_CNT+PATH_RUNLEVELS+PATH_INHERIT_BUILD_EARLY)
-	utils.CopyDir(cnt.path+PATH_RUNLEVELS+PATH_INHERIT_BUILD_LATE, cnt.target+PATH_ROOTFS+PATH_CNT+PATH_RUNLEVELS+PATH_INHERIT_BUILD_LATE)
+	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_PRESTART_EARLY, aci.target+PATH_ROOTFS+PATH_CNT+PATH_RUNLEVELS+PATH_PRESTART_EARLY)
+	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_PRESTART_LATE, aci.target+PATH_ROOTFS+PATH_CNT+PATH_RUNLEVELS+PATH_PRESTART_LATE)
+	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_INHERIT_BUILD_EARLY, aci.target+PATH_ROOTFS+PATH_CNT+PATH_RUNLEVELS+PATH_INHERIT_BUILD_EARLY)
+	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_INHERIT_BUILD_LATE, aci.target+PATH_ROOTFS+PATH_CNT+PATH_RUNLEVELS+PATH_INHERIT_BUILD_LATE)
 }
 
-func (cnt *Aci) runLevelBuildSetup() {
-	files, err := ioutil.ReadDir(cnt.path + PATH_RUNLEVELS + PATH_BUILD_SETUP)
+func (aci *Aci) runLevelBuildSetup() {
+	files, err := ioutil.ReadDir(aci.path + PATH_RUNLEVELS + PATH_BUILD_SETUP)
 	if err != nil {
 		return
 	}
 
-	os.Setenv("BASEDIR", cnt.path)
-	os.Setenv("TARGET", cnt.target)
+	os.Setenv("BASEDIR", aci.path)
+	os.Setenv("TARGET", aci.target)
 	for _, f := range files {
 		if !f.IsDir() {
-			log.Info("Running Build setup level : ", f.Name())
-			if err := utils.ExecCmd(cnt.path + PATH_RUNLEVELS + PATH_BUILD_SETUP + "/" + f.Name()); err != nil {
+			aci.log.WithField("file", f.Name()).Info("Running Build setup level script")
+			if err := utils.ExecCmd(aci.path + PATH_RUNLEVELS + PATH_BUILD_SETUP + "/" + f.Name()); err != nil {
 				panic(err)
 			}
 		}
 	}
 }
 
-func (cnt *Aci) copyConfd() {
-	utils.CopyDir(cnt.path+PATH_CONFD+PATH_CONFDOTD, cnt.rootfs+PATH_CNT+PATH_CONFDOTD)
-	utils.CopyDir(cnt.path+PATH_CONFD+PATH_TEMPLATES, cnt.rootfs+PATH_CNT+PATH_TEMPLATES)
+func (aci *Aci) copyConfd() {
+	utils.CopyDir(aci.path+PATH_CONFD+PATH_CONFDOTD, aci.rootfs+PATH_CNT+PATH_CONFDOTD)
+	utils.CopyDir(aci.path+PATH_CONFD+PATH_TEMPLATES, aci.rootfs+PATH_CNT+PATH_TEMPLATES)
 }
 
-func (cnt *Aci) copyFiles() {
-	utils.CopyDir(cnt.path+PATH_FILES, cnt.rootfs)
+func (aci *Aci) copyFiles() {
+	utils.CopyDir(aci.path+PATH_FILES, aci.rootfs)
 }
 
-func (cnt *Aci) copyAttributes() {
-	utils.CopyDir(cnt.path+PATH_ATTRIBUTES, cnt.rootfs+PATH_CNT+PATH_ATTRIBUTES+"/"+cnt.manifest.NameAndVersion.ShortName())
+func (aci *Aci) copyAttributes() {
+	utils.CopyDir(aci.path+PATH_ATTRIBUTES, aci.rootfs+PATH_CNT+PATH_ATTRIBUTES+"/"+aci.manifest.NameAndVersion.ShortName())
 }
 
-func (cnt *Aci) writeImgManifest() {
-	log.Debug("Writing aci manifest")
-	utils.WriteImageManifest(&cnt.manifest, cnt.target+PATH_MANIFEST, cnt.manifest.NameAndVersion.Name())
+func (aci *Aci) writeImgManifest() {
+	aci.log.Debug("Writing aci manifest")
+	utils.WriteImageManifest(&aci.manifest, aci.target+PATH_MANIFEST, aci.manifest.NameAndVersion.Name())
 }
 
 func checkSystemdNspawn() {

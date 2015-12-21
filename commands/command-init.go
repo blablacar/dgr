@@ -19,7 +19,7 @@ var initCmd = &cobra.Command{
 		if len(os.Args) > 2 {
 			buildArgs.Path = os.Args[2]
 		}
-		discoverAndRunInitType(".", buildArgs)
+		discoverAndRunInitType(workPath, buildArgs)
 	},
 }
 

@@ -3,9 +3,10 @@ package commands
 import (
 	"bufio"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/blablacar/cnt/builder"
 	"github.com/blablacar/cnt/cnt"
+	"github.com/blablacar/cnt/spec"
 	"github.com/blablacar/cnt/utils"
 	"github.com/coreos/go-semver/semver"
 	"github.com/spf13/cobra"
@@ -17,8 +18,10 @@ var buildArgs = builder.BuildArgs{}
 
 const RKT_SUPPORTED_VERSION = "0.12.0"
 
+var workPath string
+
 func Execute() {
-	checkRktVersion()
+	//	checkRktVersion()
 
 	var logLevel string
 	var rootCmd = &cobra.Command{
@@ -30,17 +33,18 @@ func Execute() {
 	rootCmd.PersistentFlags().StringVarP(&targetRootPath, "targets-root-path", "p", "", "Set targets root path")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "loglevel", "L", "info", "Set log level")
 	rootCmd.PersistentFlags().StringVarP(&homePath, "home-path", "H", cnt.DefaultHomeFolder(), "Set home folder")
+	rootCmd.PersistentFlags().StringVarP(&workPath, "work-path", "W", ".", "Set the work path")
 
-	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, updateCmd, graphCmd, aciVersion)
+	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd /*updateCmd,*/, graphCmd, aciVersion)
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 
 		// logs
-		level, err := log.ParseLevel(logLevel)
+		level, err := logrus.ParseLevel(logLevel)
 		if err != nil {
 			fmt.Printf("Unknown log level : %s", logLevel)
 			os.Exit(1)
 		}
-		log.SetLevel(level)
+		logrus.SetLevel(level)
 
 		cnt.Home = cnt.NewHome(homePath)
 
@@ -58,7 +62,7 @@ func Execute() {
 
 	rootCmd.Execute()
 
-	log.Debug("Victory !")
+	logrus.Debug("Victory !")
 }
 
 func checkRktVersion() {
@@ -87,8 +91,19 @@ func checkRktVersion() {
 
 }
 
+func buildAciOrPod(path string, args builder.BuildArgs) spec.CntCommand {
+	if aci, err := builder.NewAci(path, args); err == nil {
+		return aci
+	} else if pod, err2 := builder.NewPod(path, args); err == nil {
+		return pod
+	} else {
+		logrus.WithField("path", path).WithError(err).WithField("error2", err2).Fatal("Cannot construct aci or pod")
+	}
+	return nil
+}
+
 func runCleanIfRequested(path string, args builder.BuildArgs) {
 	if args.Clean {
-		discoverAndRunCleanType(path, args)
+		buildAciOrPod(path, args).Clean()
 	}
 }
