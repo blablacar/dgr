@@ -21,7 +21,7 @@ const RKT_SUPPORTED_VERSION = "0.12.0"
 var workPath string
 
 func Execute() {
-	//	checkRktVersion()
+	checkRktVersion()
 
 	var logLevel string
 	var rootCmd = &cobra.Command{
