@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/blablacar/cnt",
-	"GoVersion": "go1.5.1",
+	"GoVersion": "go1.5.2",
 	"Packages": [
 		"./..."
 	],
@@ -67,6 +67,10 @@
 			"ImportPath": "github.com/onsi/gomega",
 			"Comment": "v1.0-71-g2152b45",
 			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/peterbourgon/mergemap",
+			"Rev": "e21c03b7a721e413718d2703181ead350d3c9d6f"
 		},
 		{
 			"ImportPath": "github.com/spf13/cobra",
