@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
-dir=$( dirname $0 )
+SCRIPT=$(realpath $0)
+dir=$(dirname $SCRIPT)
 
 if [ "$(id -u)" != "0" ]; then
 	echo "Sorry, you are not root."
@@ -28,4 +29,5 @@ execute_tests() {
   done
 }
 
-execute_tests "${dir}/tests"
+cd "${dir}/tests"
+execute_tests "."
