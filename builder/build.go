@@ -4,7 +4,6 @@ type BuildArgs struct {
 	Clean      bool
 	Test       bool
 	NoTestFail bool
-	Path       string
 }
 
 type BuildError struct {

@@ -32,10 +32,6 @@ var graphCmd = &cobra.Command{
 	Short: "generate graphviz part",
 	Long:  `generate graphviz part`,
 	Run: func(cmd *cobra.Command, args []string) {
-		buildArgs.Path = ""
-		if len(os.Args) > 2 {
-			buildArgs.Path = os.Args[2]
-		}
 		buildAciOrPod(workPath, buildArgs).Graph()
 	},
 }

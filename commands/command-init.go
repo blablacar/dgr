@@ -15,21 +15,27 @@ var initCmd = &cobra.Command{
 	Short: "init files-tree",
 	Long:  `init files-tree`,
 	Run: func(cmd *cobra.Command, args []string) {
-		buildArgs.Path = ""
-		if len(os.Args) > 2 {
-			buildArgs.Path = os.Args[2]
-		}
 		discoverAndRunInitType(workPath, buildArgs)
 	},
 }
 
 func discoverAndRunInitType(path string, args builder.BuildArgs) {
-	initPath := path
-	if args.Path != "" {
-		initPath = args.Path
+	log := logrus.WithField("path", path)
+	if _, err := os.Stat(path); err != nil {
+		if err := os.MkdirAll(path, 0755); err != nil {
+			log.WithError(err).Fatal("Cannot create path directory")
+		}
 	}
 
-	logrus.WithField("path", initPath).Info("Init project")
+	empty, err := utils.IsDirEmpty(path)
+	if err != nil {
+		log.WithError(err).Fatal("Cannot read path directory")
+	}
+	if !empty {
+		log.Fatal("Path is not empty cannot init")
+	}
+
+	log.Info("Init project")
 
 	files := make(map[string]string)
 
@@ -92,7 +98,7 @@ aci:
 	files[builder.PATH_TESTS+"/wait.sh"] = `exit 0`
 
 	for filePath, data := range files {
-		fpath := initPath + "/" + filePath
+		fpath := path + "/" + filePath
 		os.MkdirAll(filepath.Dir(fpath), 0777)
 		ioutil.WriteFile(fpath, []byte(data), 0777)
 	}
@@ -103,5 +109,5 @@ aci:
 		uid = os.Getenv("SUDO_UID")
 		gid = os.Getenv("SUDO_GID")
 	}
-	utils.ExecCmd("chown", "-R", uid+":"+gid, initPath)
+	utils.ExecCmd("chown", "-R", uid+":"+gid, path)
 }
