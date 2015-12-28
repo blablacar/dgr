@@ -1,7 +1,7 @@
 #!/bin/bats -x
 
 @test "should fail with no name" {
-  run $CNT_PATH -W should_have_name build
+  run $CNT_PATH -W without_name build
   echo -e "$output"
   [ "$status" -eq 1 ]
   echo "$output" | grep "name is mandatory in manifest"

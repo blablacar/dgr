@@ -5,8 +5,9 @@ pushd `dirname $0` > /dev/null
 dir=`pwd`
 popd > /dev/null
 
-trap "echo cleanup; rm -Rf ${dir}/tests/*/target/; exit" EXIT HUP INT QUIT PIPE TERM
-
+if [ -z "$DEBUG" ]; then
+    trap "rm -Rf ${dir}/tests/*/target/; exit" EXIT HUP INT QUIT PIPE TERM
+fi
 
 if [ "$(id -u)" != "0" ]; then
 	echo "Sorry, you are not root."
