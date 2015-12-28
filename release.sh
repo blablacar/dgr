@@ -44,7 +44,7 @@ require_clean_work_tree () {
 VERSION=$version go generate
 
 ${dir}/build.sh
-${dir}/test.sh
+${dir}/tests.sh
 
 require_clean_work_tree
 
