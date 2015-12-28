@@ -6,6 +6,7 @@ import (
 	"github.com/blablacar/cnt/utils"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -195,7 +196,20 @@ func (aci *Aci) copyFiles() {
 }
 
 func (aci *Aci) copyAttributes() {
-	utils.CopyDir(aci.path+PATH_ATTRIBUTES, aci.rootfs+PATH_CNT+PATH_ATTRIBUTES+"/"+aci.manifest.NameAndVersion.ShortName())
+	files, err := utils.AttributeFiles(aci.path + PATH_ATTRIBUTES)
+	if err != nil {
+		aci.log.WithError(err).Fatal("Cannot read attribute files")
+	}
+	for _, file := range files {
+		targetPath := aci.rootfs + PATH_CNT + PATH_ATTRIBUTES + "/" + aci.manifest.NameAndVersion.ShortName()
+		err = os.MkdirAll(targetPath, 0755)
+		if err != nil {
+			aci.log.WithField("path", targetPath).WithError(err).Fatal("Cannot create target attribute directory")
+		}
+		if err := utils.CopyFile(file, targetPath+"/"+filepath.Base(file)); err != nil {
+			aci.log.WithField("file", file).WithError(err).Fatal("Cannot copy attribute file")
+		}
+	}
 }
 
 func (aci *Aci) writeImgManifest() {

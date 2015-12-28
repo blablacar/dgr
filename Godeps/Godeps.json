@@ -36,6 +36,11 @@
 			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
 		},
 		{
+			"ImportPath": "github.com/blablacar/attributes-merger/attributes",
+			"Comment": "0.1-6-g431a372",
+			"Rev": "431a37282b0ef85175c8c30eb79f3918c378c7d1"
+		},
+		{
 			"ImportPath": "github.com/camlistore/camlistore/pkg/errorutil",
 			"Rev": "58958f44ee2eaa5139097dec3e02f47df0aba180"
 		},
@@ -46,6 +51,11 @@
 		{
 			"ImportPath": "github.com/ghodss/yaml",
 			"Rev": "c3eb24aeea63668ebdac08d2e252f20df8b6b1ae"
+		},
+		{
+			"ImportPath": "github.com/google/cadvisor/utils",
+			"Comment": "v0.19.3-16-g587c022",
+			"Rev": "587c02275537c2d32e62963d61c191715bdb16de"
 		},
 		{
 			"ImportPath": "github.com/inconshreveable/mousetrap",
