@@ -1,4 +1,4 @@
-#!/bin/bats -x
+#!/bin/bats
 
 @test "should fail with no name" {
   run $CNT_PATH -W without_name build
@@ -18,4 +18,11 @@
   run $CNT_PATH -W only_name build
   echo -e "$output"
   [ "$status" -eq 0 ]
+}
+
+@test "should see when a test fail" {
+  run $CNT_PATH -W with_failed_test test
+  echo -e "$output"
+  echo "$output" | grep "Failed test file : test.bats_status"
+  [ "$status" -eq 2 ]
 }

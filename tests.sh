@@ -5,14 +5,17 @@ pushd `dirname $0` > /dev/null
 dir=`pwd`
 popd > /dev/null
 
-if [ -z "$DEBUG" ]; then
-    trap "rm -Rf ${dir}/tests/*/target/; exit" EXIT HUP INT QUIT PIPE TERM
-fi
-
 if [ "$(id -u)" != "0" ]; then
 	echo "Sorry, you are not root."
 	exit 1
 fi
+
+if [ -z "$DEBUG" ]; then
+    trap "rm -Rf ${dir}/tests/*/target/; exit" EXIT HUP INT QUIT PIPE TERM
+else
+    set -x
+fi
+
 
 export CNT_PATH="${dir}/dist/linux-amd64/cnt"
 
