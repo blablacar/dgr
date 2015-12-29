@@ -2,7 +2,6 @@ package builder
 
 import (
 	"errors"
-	log "github.com/Sirupsen/logrus"
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/cnt/spec"
@@ -13,7 +12,7 @@ import (
 const PATH_POD_MANIFEST = "/pod-manifest.json"
 
 func (p *Pod) Build() error {
-	log.Info("Building POD : ", p.manifest.Name)
+	p.log.Info("Building")
 
 	os.RemoveAll(p.target)
 	os.MkdirAll(p.target, 0777)

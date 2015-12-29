@@ -94,7 +94,7 @@ func checkRktVersion() {
 func buildAciOrPod(path string, args builder.BuildArgs) spec.CntCommand {
 	if aci, err := builder.NewAci(path, args); err == nil {
 		return aci
-	} else if pod, err2 := builder.NewPod(path, args); err == nil {
+	} else if pod, err2 := builder.NewPod(path, args); err2 == nil {
 		return pod
 	} else {
 		logrus.WithField("path", path).WithError(err).WithField("error2", err2).Fatal("Cannot construct aci or pod")

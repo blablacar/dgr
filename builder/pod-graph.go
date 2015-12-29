@@ -2,13 +2,12 @@ package builder
 
 import (
 	"bytes"
-	log "github.com/Sirupsen/logrus"
 	"io/ioutil"
 	"os"
 )
 
 func (p *Pod) Graph() {
-	log.Info("Graph POD", p.manifest.Name)
+	p.log.Info("Graphing")
 	os.MkdirAll(p.target, 0777)
 
 	var buffer bytes.Buffer

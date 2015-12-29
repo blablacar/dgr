@@ -1,12 +1,11 @@
 package builder
 
 import (
-	log "github.com/Sirupsen/logrus"
 	"os"
 )
 
 func (p *Pod) Clean() {
-	log.Info("Cleaning POD", p.manifest.Name)
+	p.log.Info("Cleaning")
 
 	if err := os.RemoveAll(p.target + "/"); err != nil {
 		panic("Cannot clean" + p.manifest.Name.String() + err.Error())
@@ -17,7 +16,7 @@ func (p *Pod) Clean() {
 	for _, e := range p.manifest.Pod.Apps {
 		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e), &checkVersion)
 		if err != nil {
-			panic(err)
+			p.log.WithError(err).WithField("name", e.Name).Fatal("Cannot prepare aci")
 		}
 		aci.podName = &p.manifest.Name
 		aci.Clean()

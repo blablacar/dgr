@@ -1,18 +1,14 @@
 package builder
 
-import (
-	log "github.com/Sirupsen/logrus"
-)
-
 func (p *Pod) Test() {
-	log.Info("Testing POD", p.manifest.Name)
+	p.log.Info("Testing")
 
 	checkVersion := make(chan bool, 1)
 
 	for _, e := range p.manifest.Pod.Apps {
 		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e), &checkVersion)
 		if err != nil {
-			panic(err)
+			p.log.WithError(err).WithField("name", e.Name).Fatal("Cannot prepare aci")
 		}
 		aci.podName = &p.manifest.Name
 		aci.Test()
