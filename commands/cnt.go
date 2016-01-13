@@ -3,12 +3,12 @@ package commands
 import (
 	"bufio"
 	"fmt"
-	"github.com/Sirupsen/logrus"
 	"github.com/blablacar/cnt/builder"
 	"github.com/blablacar/cnt/cnt"
 	"github.com/blablacar/cnt/spec"
 	"github.com/blablacar/cnt/utils"
 	"github.com/coreos/go-semver/semver"
+	"github.com/n0rad/go-erlog/logs"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
@@ -39,12 +39,13 @@ func Execute() {
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 
 		// logs
-		level, err := logrus.ParseLevel(logLevel)
+
+		level, err := logs.ParseLevel(logLevel)
 		if err != nil {
 			fmt.Printf("Unknown log level : %s", logLevel)
 			os.Exit(1)
 		}
-		logrus.SetLevel(level)
+		logs.SetLevel(level)
 
 		cnt.Home = cnt.NewHome(homePath)
 
@@ -62,7 +63,7 @@ func Execute() {
 
 	rootCmd.Execute()
 
-	logrus.Debug("Victory !")
+	logs.Debug("Victory !")
 }
 
 func checkRktVersion() {
@@ -97,7 +98,7 @@ func buildAciOrPod(path string, args builder.BuildArgs) spec.CntCommand {
 	} else if pod, err2 := builder.NewPod(path, args); err2 == nil {
 		return pod
 	} else {
-		logrus.WithField("path", path).WithError(err).WithField("error2", err2).Fatal("Cannot construct aci or pod")
+		logs.WithField("path", path).WithField("err", err).WithField("err2", err2).Fatal("Cannot construct aci or pod")
 	}
 	return nil
 }

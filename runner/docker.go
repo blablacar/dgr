@@ -3,7 +3,6 @@ package runner
 //
 //import (
 //	"bytes"
-//	log "github.com/Sirupsen/logrus"
 //	"github.com/blablacar/cnt/utils"
 //	"io"
 //	"os"

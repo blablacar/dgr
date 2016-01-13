@@ -2,9 +2,9 @@ package spec
 
 import (
 	"encoding/json"
-	log "github.com/Sirupsen/logrus"
 	"github.com/appc/spec/discovery"
 	"github.com/juju/errors"
+	"github.com/n0rad/go-erlog/logs"
 	"net/http"
 	"regexp"
 	"strings"
@@ -39,7 +39,7 @@ func (n ACFullname) LatestVersion() (string, error) {
 	r, _ := regexp.Compile(`^(\d+\.)?(\d+\.)?(\*|\d+)(\-[\dA-Za-z]+){0,1}$`)
 
 	url := getRedirectForLatest(endpoint.ACIEndpoints[0].ACI)
-	log.Debug("latest version url is ", url)
+	logs.WithField("url", url).Debug("latest verion url")
 
 	for _, part := range strings.Split(url, "/") {
 		if r.Match([]byte(part)) {

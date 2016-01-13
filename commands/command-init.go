@@ -1,9 +1,10 @@
 package commands
 
 import (
-	"github.com/Sirupsen/logrus"
 	"github.com/blablacar/cnt/builder"
 	"github.com/blablacar/cnt/utils"
+	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/logs"
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
@@ -20,22 +21,22 @@ var initCmd = &cobra.Command{
 }
 
 func discoverAndRunInitType(path string, args builder.BuildArgs) {
-	log := logrus.WithField("path", path)
+	fields := data.WithField("path", path)
 	if _, err := os.Stat(path); err != nil {
 		if err := os.MkdirAll(path, 0755); err != nil {
-			log.WithError(err).Fatal("Cannot create path directory")
+			logs.WithEF(err, fields).Fatal("Cannot create path directory")
 		}
 	}
 
 	empty, err := utils.IsDirEmpty(path)
 	if err != nil {
-		log.WithError(err).Fatal("Cannot read path directory")
+		logs.WithEF(err, fields).Fatal("Cannot read path directory")
 	}
 	if !empty {
-		log.Fatal("Path is not empty cannot init")
+		logs.WithEF(err, fields).Fatal("Path is not empty cannot init")
 	}
 
-	log.Info("Init project")
+	logs.WithEF(err, fields).Info("Init project")
 
 	files := make(map[string]string)
 

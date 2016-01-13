@@ -1,7 +1,6 @@
 package builder
 
 import (
-	"github.com/Sirupsen/logrus"
 	"github.com/blablacar/cnt/dist"
 	"github.com/blablacar/cnt/utils"
 	"github.com/n0rad/go-erlog/logs"
@@ -221,6 +220,6 @@ func (aci *Aci) writeImgManifest() {
 func checkSystemdNspawn() {
 	_, err := utils.ExecCmdGetOutput("systemd-nspawn", "--version")
 	if err != nil {
-		logrus.WithError(err).Fatal("systemd-nspawn is required")
+		logs.WithE(err).Fatal("system-nspawn is required")
 	}
 }

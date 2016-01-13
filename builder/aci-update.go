@@ -1,12 +1,12 @@
 package builder
 
 import (
-	log "github.com/Sirupsen/logrus"
+	"github.com/n0rad/go-erlog/logs"
 	"os"
 )
 
 func (cnt *Aci) UpdateConf() error {
-	log.Info("Updating Image : ", cnt.manifest.NameAndVersion)
+	logs.WithF(cnt.fields).Info("Updating")
 
 	os.MkdirAll(cnt.rootfs, 0777)
 

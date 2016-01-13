@@ -1,8 +1,8 @@
 package cnt
 
 import (
-	"github.com/Sirupsen/logrus"
 	"github.com/blablacar/cnt/utils"
+	"github.com/n0rad/go-erlog/logs"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
@@ -25,7 +25,7 @@ type HomeStruct struct {
 }
 
 func NewHome(path string) HomeStruct {
-	logrus.WithField("path", path).Debug("loading home")
+	logs.WithField("path", path).Debug("Loading home")
 
 	var config Config
 	if source, err := ioutil.ReadFile(path + "/config.yml"); err == nil {

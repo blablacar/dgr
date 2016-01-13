@@ -1,11 +1,11 @@
 package builder
 
 import (
-	log "github.com/Sirupsen/logrus"
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/cnt/dist"
 	"github.com/blablacar/cnt/spec"
 	"github.com/blablacar/cnt/utils"
+	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -49,13 +49,13 @@ fi
 
 func (cnt *Aci) Test() {
 	cnt.Install()
-	log.Info("Testing " + cnt.manifest.NameAndVersion)
+	logs.WithF(cnt.fields).Info("Testing")
 
 	if _, err := os.Stat(cnt.path + PATH_TESTS); err != nil {
 		if cnt.args.NoTestFail {
 			panic("Test directory does not exists but tests are mandatory")
 		}
-		log.Warn("Tests directory does not exists")
+		logs.WithF(cnt.fields).Warn("Tests directory does not exists")
 		return
 	}
 
@@ -103,7 +103,7 @@ func (cnt *Aci) checkResult() {
 			continue
 		}
 		if string(content) != "0\n" {
-			log.Error("Failed test file : ", f.Name())
+			logs.WithF(cnt.fields).WithField("file", f.Name()).Error("Failed test")
 			os.Exit(2)
 		}
 	}
