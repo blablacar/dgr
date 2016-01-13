@@ -46,6 +46,7 @@ VERSION=$version go generate
 ${dir}/build.sh
 echo -e "\e[1m\e[32mRunning tests as root\e[0m"
 sudo ${dir}/tests.sh
+sudo ${dir}/tests-it.sh
 
 require_clean_work_tree
 
