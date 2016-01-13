@@ -11,12 +11,12 @@ File templating will be resolved on container start using [confd](https://github
 
 ## commands
 ```bash
+$ cnt init          # init a simple project
 $ cnt build         # build the image
 $ cnt clean         # clean the build
 $ cnt install       # store target image to rkt local store
 $ cnt push          # push target image to remote storage
 $ cnt test          # test the final image
-$ cnt init          # init a simple project
 ```
 
 ## cnt configuration file
