@@ -3,10 +3,11 @@ package builder
 import (
 	"github.com/blablacar/cnt/cnt"
 	"github.com/blablacar/cnt/utils"
+	"github.com/n0rad/go-erlog/logs"
 )
 
 func (p *Pod) Push() {
-	p.log.Info("Pushing")
+	logs.WithF(p.fields).Info("Pushing")
 
 	p.Build()
 
@@ -15,7 +16,7 @@ func (p *Pod) Push() {
 	for _, e := range p.manifest.Pod.Apps {
 		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e), &checkVersion)
 		if err != nil {
-			p.log.WithError(err).WithField("name", e.Name).Fatal("Cannot prepare aci")
+			logs.WithEF(err, p.fields.WithField("name", e.Name)).Fatal("Cannot prepare aci")
 		}
 		aci.podName = &p.manifest.Name
 		aci.Push()
@@ -36,7 +37,7 @@ func (p *Pod) Push() {
 		"-F", "file=@"+p.target+"/pod-manifest.json",
 		"-u", cnt.Home.Config.Push.Username+":"+cnt.Home.Config.Push.Password,
 		cnt.Home.Config.Push.Url+"/service/local/artifact/maven/content"); err != nil {
-		p.log.WithError(err).Fatal("Cannot push pod")
+		logs.WithEF(err, p.fields).Fatal("Cannot push pod")
 	}
 
 }

@@ -6,13 +6,14 @@ import (
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/cnt/spec"
 	"github.com/blablacar/cnt/utils"
+	"github.com/n0rad/go-erlog/logs"
 	"os"
 )
 
 const PATH_POD_MANIFEST = "/pod-manifest.json"
 
 func (p *Pod) Build() error {
-	p.log.Info("Building")
+	logs.WithF(p.fields).Info("Building")
 
 	os.RemoveAll(p.target)
 	os.MkdirAll(p.target, 0777)

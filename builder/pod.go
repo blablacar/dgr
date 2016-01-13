@@ -1,12 +1,12 @@
 package builder
 
 import (
-	"github.com/Sirupsen/logrus"
-	log "github.com/Sirupsen/logrus"
 	"github.com/blablacar/cnt/cnt"
 	"github.com/blablacar/cnt/spec"
 	"github.com/ghodss/yaml"
 	"github.com/juju/errors"
+	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"path/filepath"
 )
@@ -14,7 +14,7 @@ import (
 const POD_MANIFEST = "/cnt-pod-manifest.yml"
 
 type Pod struct {
-	log      log.Entry
+	fields   data.Fields
 	path     string
 	args     BuildArgs
 	target   string
@@ -24,26 +24,26 @@ type Pod struct {
 func NewPod(path string, args BuildArgs) (*Pod, error) {
 	fullPath, err := filepath.Abs(path)
 	if err != nil {
-		logrus.WithError(err).WithField("path", path).Fatal("Cannot get fullpath")
+		logs.WithE(err).WithField("path", path).Fatal("Cannot get fullpath")
 	}
 
 	manifest, err := readPodManifest(fullPath + POD_MANIFEST)
 	if err != nil {
 		return nil, errors.Annotate(err, "Failed to read pod manifest")
 	}
-	podLog := log.WithField("pod", manifest.Name.String())
+	fields := data.WithField("pod", manifest.Name.String())
 
 	target := path + PATH_TARGET
 	if cnt.Home.Config.TargetWorkDir != "" {
 		currentAbsDir, err := filepath.Abs(cnt.Home.Config.TargetWorkDir + "/" + manifest.Name.ShortName())
 		if err != nil {
-			podLog.WithError(err).Panic("invalid target path")
+			logs.WithEF(err, fields).Panic("invalid target path")
 		}
 		target = currentAbsDir
 	}
 
 	pod := &Pod{
-		log:      *podLog,
+		fields:   fields,
 		path:     fullPath,
 		args:     args,
 		target:   target,

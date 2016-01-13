@@ -2,45 +2,45 @@ package builder
 
 import (
 	"bytes"
-	log "github.com/Sirupsen/logrus"
+	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"os"
 )
 
-func (cnt *Aci) Graph() {
-	log.Info("Graph " + cnt.manifest.NameAndVersion)
+func (aci *Aci) Graph() {
+	logs.WithF(aci.fields).Debug("Graphing")
 
-	os.MkdirAll(cnt.target, 0777)
+	os.MkdirAll(aci.target, 0777)
 
 	var buffer bytes.Buffer
 	buffer.WriteString("digraph {\n")
 
-	if cnt.manifest.From != "" {
+	if aci.manifest.From != "" {
 		buffer.WriteString("  ")
 		buffer.WriteString("\"")
-		buffer.WriteString(cnt.manifest.From.ShortNameId())
+		buffer.WriteString(aci.manifest.From.ShortNameId())
 		buffer.WriteString("\"")
 		buffer.WriteString(" -> ")
 		buffer.WriteString("\"")
-		buffer.WriteString(cnt.manifest.NameAndVersion.ShortNameId())
+		buffer.WriteString(aci.manifest.NameAndVersion.ShortNameId())
 		buffer.WriteString("\"")
 		buffer.WriteString("[color=red,penwidth=2.0]")
 		buffer.WriteString("\n")
 	}
 
-	for _, dep := range cnt.manifest.Aci.Dependencies {
+	for _, dep := range aci.manifest.Aci.Dependencies {
 		buffer.WriteString("  ")
 		buffer.WriteString("\"")
 		buffer.WriteString(dep.ShortNameId())
 		buffer.WriteString("\"")
 		buffer.WriteString(" -> ")
 		buffer.WriteString("\"")
-		buffer.WriteString(cnt.manifest.NameAndVersion.ShortNameId())
+		buffer.WriteString(aci.manifest.NameAndVersion.ShortNameId())
 		buffer.WriteString("\"")
 		buffer.WriteString("\n")
 	}
 
 	buffer.WriteString("}\n")
 
-	ioutil.WriteFile(cnt.target+"/graph.dot", buffer.Bytes(), 0644)
+	ioutil.WriteFile(aci.target+"/graph.dot", buffer.Bytes(), 0644)
 }

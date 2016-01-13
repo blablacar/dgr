@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/blablacar/cnt/commands"
+	_ "github.com/n0rad/go-erlog/register"
 	"os"
 )
 

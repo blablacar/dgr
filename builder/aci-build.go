@@ -4,6 +4,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/blablacar/cnt/dist"
 	"github.com/blablacar/cnt/utils"
+	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -11,7 +12,7 @@ import (
 )
 
 func (aci *Aci) Build() error {
-	aci.log.Info("Building")
+	logs.WithF(aci.fields).Info("Building")
 
 	os.MkdirAll(aci.rootfs, 0777)
 
@@ -53,7 +54,7 @@ func (aci *Aci) fullyResolveDependencies() {
 	for i, dep := range aci.manifest.Aci.Dependencies {
 		resolved, err := dep.FullyResolved()
 		if err != nil {
-			aci.log.WithField("dependency", dep).WithError(err).Fatal("Cannot fully resolve dependency")
+			logs.WithEF(err, aci.fields.WithField("dependency", dep)).Fatal("Cannot fully resolve dependency")
 		}
 		aci.manifest.Aci.Dependencies[i] = *resolved
 	}
@@ -77,10 +78,10 @@ func (aci *Aci) runBuildLate() {
 
 	checkSystemdNspawn()
 
-	aci.log.Info("Starting systemd-nspawn to run Build late scripts")
+	logs.WithF(aci.fields).Info("Starting systemd-nspawn to run Build late scripts")
 	if err := utils.ExecCmd("systemd-nspawn", "--directory="+aci.rootfs, "--capability=all",
 		"--bind="+aci.target+"/:/target", "target/build-late.sh"); err != nil {
-		aci.log.WithError(err).Fatal("Build late part failed")
+		logs.WithEF(err, aci.fields).Fatal("Build late part failed")
 	}
 }
 
@@ -98,10 +99,10 @@ func (aci *Aci) runBuild() {
 	build := strings.Replace(BUILD_SCRIPT, "%%ROOTFS%%", rootfs, 1)
 	ioutil.WriteFile(aci.target+"/build.sh", []byte(build), 0777)
 
-	aci.log.Info("Starting systemd-nspawn to run Build scripts")
+	logs.WithF(aci.fields).Info("Starting systemd-nspawn to run Build scripts")
 	if err := utils.ExecCmd("systemd-nspawn", "--directory="+aci.rootfs, "--capability=all",
 		"--bind="+aci.target+"/:/target", "target/build.sh"); err != nil {
-		aci.log.WithError(err).Fatal("Build part failed")
+		logs.WithEF(err, aci.fields).Fatal("Build part failed")
 	}
 }
 
@@ -119,7 +120,7 @@ func (aci *Aci) processFrom() {
 }
 
 func (aci *Aci) copyInternals() {
-	aci.log.Debug("Copy internals")
+	logs.WithF(aci.fields).Debug("Copy internals")
 	os.MkdirAll(aci.rootfs+PATH_CNT+PATH_BIN, 0755)
 	os.MkdirAll(aci.rootfs+"/bin", 0755)     // this is required or systemd-nspawn will create symlink on it
 	os.MkdirAll(aci.rootfs+"/usr/bin", 0755) // this is required by systemd-nspawn
@@ -155,7 +156,7 @@ log-level = "debug"
 }
 
 func (aci *Aci) copyRunlevelsScripts() {
-	aci.log.Debug("Copy Runlevels scripts")
+	logs.WithF(aci.fields).Debug("Copy Runlevels scripts")
 	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_BUILD, aci.target+PATH_RUNLEVELS+PATH_BUILD)
 	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_BUILD_LATE, aci.target+PATH_RUNLEVELS+PATH_BUILD_LATE)
 	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_BUILD_SETUP, aci.target+PATH_RUNLEVELS+PATH_BUILD_SETUP)
@@ -178,7 +179,7 @@ func (aci *Aci) runLevelBuildSetup() {
 	os.Setenv("TARGET", aci.target)
 	for _, f := range files {
 		if !f.IsDir() {
-			aci.log.WithField("file", f.Name()).Info("Running Build setup level script")
+			logs.WithF(aci.fields.WithField("file", f.Name())).Debug("Running Build setup level script")
 			if err := utils.ExecCmd(aci.path + PATH_RUNLEVELS + PATH_BUILD_SETUP + "/" + f.Name()); err != nil {
 				panic(err)
 			}
@@ -198,22 +199,22 @@ func (aci *Aci) copyFiles() {
 func (aci *Aci) copyAttributes() {
 	files, err := utils.AttributeFiles(aci.path + PATH_ATTRIBUTES)
 	if err != nil {
-		aci.log.WithError(err).Fatal("Cannot read attribute files")
+		logs.WithEF(err, aci.fields).Fatal("Cannot read attribute files")
 	}
 	for _, file := range files {
 		targetPath := aci.rootfs + PATH_CNT + PATH_ATTRIBUTES + "/" + aci.manifest.NameAndVersion.ShortName()
 		err = os.MkdirAll(targetPath, 0755)
 		if err != nil {
-			aci.log.WithField("path", targetPath).WithError(err).Fatal("Cannot create target attribute directory")
+			logs.WithEF(err, aci.fields.WithField("path", targetPath)).Fatal("Cannot create target attribute directory")
 		}
 		if err := utils.CopyFile(file, targetPath+"/"+filepath.Base(file)); err != nil {
-			aci.log.WithField("file", file).WithError(err).Fatal("Cannot copy attribute file")
+			logs.WithEF(err, aci.fields.WithField("file", file)).Fatal("Cannot copy attribute file")
 		}
 	}
 }
 
 func (aci *Aci) writeImgManifest() {
-	aci.log.Debug("Writing aci manifest")
+	logs.WithF(aci.fields).Debug("Writing aci manifest")
 	utils.WriteImageManifest(&aci.manifest, aci.target+PATH_MANIFEST, aci.manifest.NameAndVersion.Name())
 }
 

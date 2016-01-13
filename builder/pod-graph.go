@@ -2,12 +2,13 @@ package builder
 
 import (
 	"bytes"
+	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"os"
 )
 
 func (p *Pod) Graph() {
-	p.log.Info("Graphing")
+	logs.WithF(p.fields).Info("Graphing")
 	os.MkdirAll(p.target, 0777)
 
 	var buffer bytes.Buffer

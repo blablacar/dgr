@@ -1,11 +1,12 @@
 package builder
 
 import (
+	"github.com/n0rad/go-erlog/logs"
 	"os"
 )
 
 func (p *Pod) Clean() {
-	p.log.Info("Cleaning")
+	logs.WithF(p.fields).Info("Cleaning")
 
 	if err := os.RemoveAll(p.target + "/"); err != nil {
 		panic("Cannot clean" + p.manifest.Name.String() + err.Error())
@@ -16,7 +17,7 @@ func (p *Pod) Clean() {
 	for _, e := range p.manifest.Pod.Apps {
 		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e), &checkVersion)
 		if err != nil {
-			p.log.WithError(err).WithField("name", e.Name).Fatal("Cannot prepare aci")
+			logs.WithEF(err, p.fields).WithField("name", e.Name).Fatal("Cannot prepare aci")
 		}
 		aci.podName = &p.manifest.Name
 		aci.Clean()

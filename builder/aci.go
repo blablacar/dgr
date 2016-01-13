@@ -1,12 +1,13 @@
 package builder
 
 import (
-	log "github.com/Sirupsen/logrus"
 	"github.com/blablacar/cnt/cnt"
 	"github.com/blablacar/cnt/spec"
 	"github.com/blablacar/cnt/utils"
 	"github.com/ghodss/yaml"
-	"github.com/juju/errors"
+	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/errs"
+	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -97,7 +98,7 @@ const PATH_CONFDOTD = "/conf.d"
 const PATH_TEMPLATES = "/templates"
 
 type Aci struct {
-	log             log.Entry
+	fields          data.Fields
 	path            string
 	target          string
 	rootfs          string
@@ -109,29 +110,28 @@ type Aci struct {
 
 func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest, checked *chan bool) (*Aci, error) {
 	if manifest.NameAndVersion == "" {
-		log.WithField("path", path).Fatal("name is mandatory in manifest")
+		logs.WithField("path", path).Fatal("name is mandatory in manifest")
 	}
 
-	aciLog := log.WithField("aci", manifest.NameAndVersion.String())
-	aciLog.WithField("path", path).WithField("args", args).WithField("manifest", manifest).Debug("New aci")
+	fields := data.WithField("aci", manifest.NameAndVersion.String())
+	logs.WithF(fields).WithFields(data.Fields{"args": args, "path": path, "manifest": manifest}).Debug("New aci")
 
 	fullPath, err := filepath.Abs(path)
 	if err != nil {
-		aciLog.WithError(err).Panic("Cannot get fullpath of project" + err.Error())
-		return nil, err
+		return nil, errs.WithEF(err, fields, "Cannot get fullpath of project")
 	}
 
 	target := fullPath + PATH_TARGET
 	if cnt.Home.Config.TargetWorkDir != "" {
 		currentAbsDir, err := filepath.Abs(cnt.Home.Config.TargetWorkDir + "/" + manifest.NameAndVersion.ShortName())
 		if err != nil {
-			aciLog.WithError(err).Panic("invalid target path")
+			return nil, errs.WithEF(err, fields.WithField("path", path), "Invalid target path")
 		}
 		target = currentAbsDir
 	}
 
 	aci := &Aci{
-		log:             *aciLog,
+		fields:          fields,
 		args:            args,
 		path:            fullPath,
 		manifest:        manifest,
@@ -147,8 +147,7 @@ func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest, 
 func NewAci(path string, args BuildArgs) (*Aci, error) {
 	manifest, err := readAciManifest(path + PATH_CNT_MANIFEST)
 	if err != nil {
-		log.WithError(err).WithField("path", path+PATH_CNT_MANIFEST).Debug("Cannot read manifest")
-		return nil, err
+		return nil, errs.WithEF(err, data.WithField("path", path+PATH_CNT_MANIFEST), "Cannot read manifest")
 	}
 	return NewAciWithManifest(path, args, *manifest, nil)
 }
@@ -164,7 +163,7 @@ func readAciManifest(manifestPath string) (*spec.AciManifest, error) {
 	}
 	err = yaml.Unmarshal([]byte(source), &manifest)
 	if err != nil {
-		return nil, errors.Annotate(err, "Cannot unmarshall manifest")
+		return nil, errs.WithE(err, "Cannot unmarshall manifest")
 	}
 
 	return &manifest, nil
@@ -176,21 +175,19 @@ func (aci *Aci) tarAci(zip bool) {
 		target = PATH_IMAGE_ACI_ZIP[1:]
 	}
 	dir, _ := os.Getwd()
-	aci.log.WithField("path", aci.target).Debug("chdir")
+	logs.WithField("path", aci.target).Debug("chdir")
 	os.Chdir(aci.target)
 	utils.Tar(zip, target, PATH_MANIFEST[1:], PATH_ROOTFS[1:])
-	aci.log.WithField("path", dir).Debug("chdir")
+	logs.WithField("path", dir).Debug("chdir")
 	os.Chdir(dir)
 }
 
 func (aci *Aci) checkLatestVersions(checked *chan bool) {
 	if aci.manifest.From != "" && aci.manifest.From.Version() != "" {
 		version, _ := aci.manifest.From.LatestVersion()
-		log.WithField("version", aci.manifest.From.Name()+":"+version).Debug("Discovered from latest verion")
+		logs.WithField("version", aci.manifest.From.Name()+":"+version).Debug("Discovered from latest verion")
 		if version != "" && utils.Version(aci.manifest.From.Version()).LessThan(utils.Version(version)) {
-			aci.log.Warn("---------------------------------")
-			aci.log.WithField("version", aci.manifest.From.Name()+":"+version).Warn("Newer from version")
-			aci.log.Warn("---------------------------------")
+			logs.WithF(aci.fields.WithField("version", aci.manifest.From.Name()+":"+version)).Warn("Newer from version")
 		}
 	}
 	for _, dep := range aci.manifest.Aci.Dependencies {
@@ -199,9 +196,7 @@ func (aci *Aci) checkLatestVersions(checked *chan bool) {
 		}
 		version, _ := dep.LatestVersion()
 		if version != "" && utils.Version(dep.Version()).LessThan(utils.Version(version)) {
-			aci.log.Warn("---------------------------------")
-			aci.log.WithField("version", dep.Name()+":"+version).Warn("Newer dependency version")
-			aci.log.Warn("---------------------------------")
+			logs.WithF(aci.fields.WithField("version", dep.Name()+":"+version)).Warn("Newer dependency version")
 		}
 	}
 	if checked != nil {

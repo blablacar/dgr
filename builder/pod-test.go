@@ -1,14 +1,16 @@
 package builder
 
+import "github.com/n0rad/go-erlog/logs"
+
 func (p *Pod) Test() {
-	p.log.Info("Testing")
+	logs.WithF(p.fields).Info("Testing")
 
 	checkVersion := make(chan bool, 1)
 
 	for _, e := range p.manifest.Pod.Apps {
 		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e), &checkVersion)
 		if err != nil {
-			p.log.WithError(err).WithField("name", e.Name).Fatal("Cannot prepare aci")
+			logs.WithEF(err, p.fields).WithField("name", e.Name).Fatal("Cannot prepare aci")
 		}
 		aci.podName = &p.manifest.Name
 		aci.Test()
