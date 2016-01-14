@@ -18,6 +18,6 @@
 @test "should see when a test fail" {
   run $CNT_PATH -W with_failed_test test
   echo -e "$output"
-  echo "$output" | grep "Failed test file : test.bats_status"
+  echo "$output" | grep "Failed test"
   [ "$status" -eq 2 ]
 }
