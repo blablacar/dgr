@@ -1,17 +1,49 @@
-# cnt
+# CNT
 
 [![GoDoc](https://godoc.org/blablacar/cnt?status.png)](https://godoc.org/github.com/blablacar/cnt) [![Build Status](https://travis-ci.org/blablacar/cnt.svg?branch=master)](https://travis-ci.org/blablacar/cnt)
 
-Tool to build [APPC](https://github.com/appc/spec) ACI and POD in a mixup of Chef, Dockerfile and Packer logic.
-[RKT](https://github.com/coreos/rkt) is required in the path to run CNT.
+**CNT** is a command line utility designed to build and configure at runtime App Containers Images ([ACI](https://github.com/appc/spec/blob/master/spec/aci.md)) and [pods](https://github.com/appc/spec/blob/master/spec/pods.md) based on convention instead of configuration.
 
-File templating will be resolved on container start using [confd](https://github.com/kelseyhightower/confd) with the backend env.
+CNT allows you to build generic container images for a service and to configure them at runtime. Therefore you can use the same image for different environments, clusters, or nodes by overriding the appropriate attributes when launching the container.
 
-**This README is work in progress**
 
-## commands
+## Build the ACI once, configure your app at runtime.
+
+CNT provides various resources to build and configure an ACI :
+
+  - scripts at runlevels (build, prestart...)
+  - templates and attributes
+  - static files
+  - images from (base filesystem to start from)
+  - images dependencies
+
+
+**Scripts** are executed at the image build, before your container is started and more. See [runlevels](#runlevels) for more information.
+
+**Templates** and **attributes** are the way CNT deals with environment-specific configurations. **Templates** are stored in the image and resolved at runtime ; **attributes** are inherited from different contexts (aci -> pod -> environement). 
+
+**Static files** are copied to same path in the container.
+
+**Images from** is the base filesystem to start building from.
+  
+**Image dependencies** are used as defined in [APPC spec](https://github.com/appc/spec/blob/master/spec/aci.md#dependency-matching).
+
+
+## Comparison with alternatives
+
+
+### CNT vs Dockerfiles
+A Dockerfile describes the steps to build the container 
+
+
+### CNT vs acbuild
+
+
+
+## Commands
+
 ```bash
-$ cnt init          # init a simple project
+$ cnt init          # init a sample project
 $ cnt build         # build the image
 $ cnt clean         # clean the build
 $ cnt install       # store target image to rkt local store
@@ -19,7 +51,7 @@ $ cnt push          # push target image to remote storage
 $ cnt test          # test the final image
 ```
 
-## cnt configuration file
+## Cnt configuration file
 
 CNT global conf is a yaml file located at `~/.config/cnt/config.yml`. Home is the home of starting user (The caller user if running with sudo)
 It is used to indicate the target work directory where CNT will create the ACI and the push endpoint informations. Both are optional.
@@ -33,7 +65,6 @@ push:
   username: admin
   password: admin
 ```
-
 
 # Building an ACI
 
@@ -172,7 +203,6 @@ set -e
 /usr/bin/myapp-init
 ```
 
-
 Building a POD
 =============
 
@@ -181,9 +211,24 @@ Building a POD
 ```bash
 ├── aci-elasticsearch               # Directory that match the pod app shortname (or name)
 │   ├── attributes
-│   │   └── attributes.yml          # Attributes file for confd in this ACI
+│   │   └── attributes.yml          # Attributes file for confd in this ACI
 │   ├── files                       # Files to be inserted into this ACI
 │   ...  
 ├── cnt-pod-manifest.yml            # Pod Manifest
 
 ```
+
+####
+File templating will be resolved on container start using [confd](https://github.com/kelseyhightower/confd) with the backend env.
+
+
+# caveats
+
+- [rkt](https://github.com/coreos/rkt) in path
+- systemd-nspawn to launch 'build runlevels' scripts
+- being root is required to construct the filesystem
+
+
+# Inspiration
+
+Tool to build [APPC](https://github.com/appc/spec) ACI and POD in a mixup of Chef, Dockerfile and Packer logic.
