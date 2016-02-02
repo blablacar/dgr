@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/blablacar/cnt",
-	"GoVersion": "go1.5.2",
+	"GoVersion": "go1.5.3",
 	"Packages": [
 		"./..."
 	],
@@ -69,9 +69,8 @@
 			"Rev": "1f6da4a72e57d4e7edd4a7295a585e0a3999a2d4"
 		},
 		{
-			"ImportPath": "github.com/onsi/gomega",
-			"Comment": "v1.0-71-g2152b45",
-			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+			"ImportPath": "github.com/n0rad/go-erlog",
+			"Rev": "d91d1cac32e6fa5843dcef5818e10e83a4a7c1bf"
 		},
 		{
 			"ImportPath": "github.com/peterbourgon/mergemap",

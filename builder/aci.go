@@ -187,7 +187,7 @@ func (aci *Aci) checkLatestVersions(checked *chan bool) {
 		version, _ := aci.manifest.From.LatestVersion()
 		logs.WithField("version", aci.manifest.From.Name()+":"+version).Debug("Discovered from latest verion")
 		if version != "" && utils.Version(aci.manifest.From.Version()).LessThan(utils.Version(version)) {
-			logs.WithF(aci.fields.WithField("version", aci.manifest.From.Name()+":"+version)).Warn("Newer from version")
+			logs.WithF(aci.fields.WithField("version", aci.manifest.From.Name()+":"+version)).Warn("Newer 'from' version")
 		}
 	}
 	for _, dep := range aci.manifest.Aci.Dependencies {
@@ -196,7 +196,7 @@ func (aci *Aci) checkLatestVersions(checked *chan bool) {
 		}
 		version, _ := dep.LatestVersion()
 		if version != "" && utils.Version(dep.Version()).LessThan(utils.Version(version)) {
-			logs.WithF(aci.fields.WithField("version", dep.Name()+":"+version)).Warn("Newer dependency version")
+			logs.WithF(aci.fields.WithField("version", dep.Name()+":"+version)).Warn("Newer 'dependency' version")
 		}
 	}
 	if checked != nil {
