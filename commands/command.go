@@ -29,8 +29,8 @@ var cleanCmd = &cobra.Command{
 
 var graphCmd = &cobra.Command{
 	Use:   "graph",
-	Short: "generate graphviz part",
-	Long:  `generate graphviz part`,
+	Short: "generate dependency graph",
+	Long:  `generate Graphviz dependency graph (.dot, .png)`,
 	Run: func(cmd *cobra.Command, args []string) {
 		buildAciOrPod(workPath, buildArgs).Graph()
 	},

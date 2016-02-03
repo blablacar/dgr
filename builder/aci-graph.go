@@ -5,6 +5,7 @@ import (
 	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"os"
+	"os/exec"
 )
 
 func (aci *Aci) Graph() {
@@ -43,4 +44,6 @@ func (aci *Aci) Graph() {
 	buffer.WriteString("}\n")
 
 	ioutil.WriteFile(aci.target+"/graph.dot", buffer.Bytes(), 0644)
+	cmd := exec.Command("dot", "-Tpng", aci.target+"/graph.dot", "-o", aci.target+"/graph.png")
+	cmd.Run()
 }
