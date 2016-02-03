@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 )
 
+var initForce bool
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "init files-tree",
@@ -32,8 +33,10 @@ func discoverAndRunInitType(path string, args builder.BuildArgs) {
 	if err != nil {
 		logs.WithEF(err, fields).Fatal("Cannot read path directory")
 	}
-	if !empty {
-		logs.WithEF(err, fields).Fatal("Path is not empty cannot init")
+	if !initForce {
+		if !empty {
+			logs.WithEF(err, fields).Fatal("Path is not empty cannot init")
+		}
 	}
 
 	logs.WithEF(err, fields).Info("Init project")

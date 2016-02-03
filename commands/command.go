@@ -114,5 +114,7 @@ func init() {
 	pushCmd.Flags().BoolVarP(&buildArgs.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")
 	pushCmd.Flags().BoolVarP(&buildArgs.Test, "test", "t", false, "Run tests before push")
 
+	initCmd.Flags().BoolVarP(&initForce, "force", "f", false, "Force init command if path is not empty")
+
 	testCmd.Flags().BoolVarP(&buildArgs.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")
 }
