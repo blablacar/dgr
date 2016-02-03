@@ -19,7 +19,6 @@ var buildArgs = builder.BuildArgs{}
 const RKT_SUPPORTED_VERSION = "0.12.0"
 
 var workPath string
-var initForce bool
 
 func Execute() {
 	checkRktVersion()
@@ -35,7 +34,6 @@ func Execute() {
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "loglevel", "L", "info", "Set log level")
 	rootCmd.PersistentFlags().StringVarP(&homePath, "home-path", "H", cnt.DefaultHomeFolder(), "Set home folder")
 	rootCmd.PersistentFlags().StringVarP(&workPath, "work-path", "W", ".", "Set the work path")
-	rootCmd.PersistentFlags().BoolVarP(&initForce, "force", "f", false, "Force init command if path is not empty")
 
 	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd /*updateCmd,*/, graphCmd, aciVersion)
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {

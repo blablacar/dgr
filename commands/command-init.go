@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 )
 
+var initForce bool
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "init files-tree",
