@@ -44,6 +44,12 @@ func (aci *Aci) Graph() {
 	buffer.WriteString("}\n")
 
 	ioutil.WriteFile(aci.target+"/graph.dot", buffer.Bytes(), 0644)
-	cmd := exec.Command("dot", "-Tpng", aci.target+"/graph.dot", "-o", aci.target+"/graph.png")
-	cmd.Run()
+	_, err := os.Stat(aci.target + "/graph.dot")
+	if os.IsNotExist(err) {
+		logs.WithF(aci.fields).Error("No such file : " + aci.target + "/graph.dot")
+		return
+	} else {
+		cmd := exec.Command("dot", "-Tpng", aci.target+"/graph.dot", "-o", aci.target+"/graph.png")
+		cmd.Run()
+	}
 }
