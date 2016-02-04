@@ -29,6 +29,9 @@ CNT provides various resources to build and configure an ACI :
 **Image dependencies** are used as defined in [APPC spec](https://github.com/appc/spec/blob/master/spec/aci.md#dependency-matching).
 
 
+
+![demo](https://raw.githubusercontent.com/blablacar/cnt/gh-pages/aci-dummy.gif)
+
 ## Comparison with alternatives
 
 ### CNT vs Dockerfiles
