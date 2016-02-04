@@ -7,6 +7,8 @@
 CNT allows you to build generic container images for a service and to configure them at runtime. Therefore you can use the same image for different environments, clusters, or nodes by overriding the appropriate attributes when launching the container.
 
 
+_cnt is actively used at blablacar to build more than an hundred different aci and pod to [run all platforms](http://blablatech.com/blog/why-and-how-blablacar-went-full-containers)._
+
 ## Build the ACI once, configure your app at runtime.
 
 CNT provides various resources to build and configure an ACI :
