@@ -79,17 +79,19 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 }
 
 func (p *Pod) buildAci(e spec.RuntimeApp) *Aci {
-	if dir, err := os.Stat(p.path + "/" + e.Name); err == nil && dir.IsDir() {
-		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e), nil)
-		if err != nil {
-			panic(err)
+	path := p.path + "/" + e.Name
+	if dir, err := os.Stat(path); err != nil || !dir.IsDir() {
+		if err := os.Mkdir(path, 0777); err != nil {
+			logs.WithEF(err, p.fields).WithField("path", path).Fatal("Cannot created pod's aci directory")
 		}
-		aci.podName = &p.manifest.Name
-		aci.Build()
-		return aci
 	}
-	panic("Cannot found Pod's aci directory :" + p.path + "/" + e.Name)
-	return nil
+	aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e), nil)
+	if err != nil {
+		logs.WithEF(err, p.fields).WithField("aci", path).Fatal("Failed to prepare aci")
+	}
+	aci.podName = &p.manifest.Name
+	aci.Build()
+	return aci
 }
 
 func (p *Pod) writePodManifest(apps []schema.RuntimeApp) {
