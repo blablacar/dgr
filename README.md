@@ -31,10 +31,11 @@ CNT provides various resources to build and configure an ACI :
 
 ## Comparison with alternatives
 
-
 ### CNT vs Dockerfiles
-A Dockerfile describes the steps to build the container 
 
+A Dockerfile is purely configuration, describing the steps to build the container.
+It does not provide scripts levels, ending with very long bash scripting for the run option in the dockerfile.
+It does not handle configuration, nor build time nor at runtime. So users usually use sed in the bash script to replace parts of configuration.
 
 ### CNT vs acbuild
 
