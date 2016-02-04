@@ -2,7 +2,7 @@
 
 [![GoDoc](https://godoc.org/blablacar/cnt?status.png)](https://godoc.org/github.com/blablacar/cnt) [![Build Status](https://travis-ci.org/blablacar/cnt.svg?branch=master)](https://travis-ci.org/blablacar/cnt)
 
-**CNT** is a command line utility designed to build and configure at runtime App Containers Images ([ACI](https://github.com/appc/spec/blob/master/spec/aci.md)) and [pods](https://github.com/appc/spec/blob/master/spec/pods.md) based on convention instead of configuration.
+**CNT** is a command line utility designed to build and configure at runtime App Containers Images ([ACI](https://github.com/appc/spec/blob/master/spec/aci.md)) and [pods](https://github.com/appc/spec/blob/master/spec/pods.md) based on convention over configuration.
 
 CNT allows you to build generic container images for a service and to configure them at runtime. Therefore you can use the same image for different environments, clusters, or nodes by overriding the appropriate attributes when launching the container.
 
