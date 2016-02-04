@@ -30,6 +30,8 @@ func (m *AciManifest) GetFroms() ([]ACFullname, error) {
 		for _, from := range m.From.([]interface{}) {
 			froms = append(froms, *NewACFullName(from.(string)))
 		}
+	case nil:
+		return froms, nil
 	default:
 		return nil, errs.WithF(data.WithField("type", v), "Invalid from type format")
 	}
