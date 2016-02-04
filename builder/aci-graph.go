@@ -9,7 +9,7 @@ import (
 )
 
 func (aci *Aci) Graph() {
-	logs.WithF(aci.fields).Debug("Graphing")
+	logs.WithF(aci.fields).Info("Graphing")
 
 	os.MkdirAll(aci.target, 0777)
 
