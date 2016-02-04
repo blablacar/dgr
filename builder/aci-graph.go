@@ -15,10 +15,17 @@ func (aci *Aci) Graph() {
 	var buffer bytes.Buffer
 	buffer.WriteString("digraph {\n")
 
-	if aci.manifest.From != "" {
+	froms, err := aci.manifest.GetFroms()
+	if err != nil {
+		logs.WithEF(err, aci.fields).Fatal("Cannot render from part of grapth")
+	}
+	for _, from := range froms {
+		if from == "" {
+			continue
+		}
 		buffer.WriteString("  ")
 		buffer.WriteString("\"")
-		buffer.WriteString(aci.manifest.From.ShortNameId())
+		buffer.WriteString(from.ShortNameId())
 		buffer.WriteString("\"")
 		buffer.WriteString(" -> ")
 		buffer.WriteString("\"")

@@ -106,15 +106,25 @@ func (aci *Aci) runBuild() {
 }
 
 func (aci *Aci) processFrom() {
-	if aci.manifest.From == "" {
-		return
+	froms, err := aci.manifest.GetFroms()
+	if err != nil {
+		logs.WithEF(err, aci.fields).Fatal("Cannot process from")
 	}
-	if err := utils.ExecCmd("bash", "-c", "rkt image list --fields name --no-legend | grep -q "+aci.manifest.From.String()); err != nil {
-		utils.ExecCmd("rkt", "--insecure-options=image", "fetch", aci.manifest.From.String())
+	for _, from := range froms {
+		if from == "" {
+			continue
+		}
+
+		logs.WithF(aci.fields).WithField("from", from).Info("Rendering from")
+
+		if err := utils.ExecCmd("bash", "-c", "rkt image list --fields name --no-legend | grep -q "+from.String()); err != nil {
+			utils.ExecCmd("rkt", "--insecure-options=image", "fetch", from.String())
+		}
+		if err := utils.ExecCmd("rkt", "image", "render", "--overwrite", from.String(), aci.target); err != nil {
+			logs.WithEF(err, aci.fields).WithField("from", from.String()).Fatal("Failed to render from")
+		}
 	}
-	if err := utils.ExecCmd("rkt", "image", "render", "--overwrite", aci.manifest.From.String(), aci.target); err != nil {
-		panic("Cannot render from image" + aci.manifest.From.String() + err.Error())
-	}
+
 	os.Remove(aci.target + PATH_MANIFEST)
 }
 

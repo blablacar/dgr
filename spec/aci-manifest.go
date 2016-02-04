@@ -2,6 +2,8 @@ package spec
 
 import (
 	"github.com/appc/spec/schema/types"
+	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/errs"
 )
 
 type CntBuild struct {
@@ -14,9 +16,24 @@ func (b *CntBuild) NoBuildImage() bool {
 
 type AciManifest struct {
 	NameAndVersion ACFullname    `json:"name"`
-	From           ACFullname    `json:"from"`
+	From           interface{}   `json:"from"`
 	Build          CntBuild      `json:"build"`
 	Aci            AciDefinition `json:"aci"`
+}
+
+func (m *AciManifest) GetFroms() ([]ACFullname, error) {
+	var froms []ACFullname
+	switch v := m.From.(type) {
+	case string:
+		froms = []ACFullname{*NewACFullName(m.From.(string))}
+	case []interface{}:
+		for _, from := range m.From.([]interface{}) {
+			froms = append(froms, *NewACFullName(from.(string)))
+		}
+	default:
+		return nil, errs.WithF(data.WithField("type", v), "Invalid from type format")
+	}
+	return froms, nil
 }
 
 type AciDefinition struct {
@@ -27,8 +44,7 @@ type AciDefinition struct {
 }
 
 type CntApp struct {
-	Exec types.Exec `json:"exec"`
-	//	EventHandlers    []types.EventHandler `json:"eventHandlers,omitempty"`
+	Exec             types.Exec         `json:"exec"`
 	User             string             `json:"user"`
 	Group            string             `json:"group"`
 	WorkingDirectory string             `json:"workingDirectory,omitempty"`
