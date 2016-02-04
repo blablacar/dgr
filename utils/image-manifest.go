@@ -19,7 +19,7 @@ import (
 //    return im
 //}
 
-func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName string) {
+func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName string, cntVersion string) {
 	name, err := types.NewACIdentifier(m.NameAndVersion.Name())
 	if err != nil {
 		panic(err)
@@ -44,6 +44,9 @@ func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName stri
 
 	im := schema.BlankImageManifest()
 	im.Annotations = m.Aci.Annotations
+
+	cntVersionIdentifier, _ := types.NewACIdentifier("cnt-version")
+	im.Annotations.Set(*cntVersionIdentifier, cntVersion)
 	im.Dependencies = toAppcDependencies(m.Aci.Dependencies)
 	im.Name = *name
 	im.Labels = labels

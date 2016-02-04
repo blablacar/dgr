@@ -10,7 +10,7 @@ func (cnt *Aci) UpdateConf() error {
 
 	os.MkdirAll(cnt.rootfs, 0777)
 
-	cnt.writeImgManifest()
+	cnt.writeAciManifest()
 
 	cnt.copyRunlevelsScripts()
 	cnt.copyAttributes()

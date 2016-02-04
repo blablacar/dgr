@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"github.com/blablacar/cnt/cnt"
 	"github.com/blablacar/cnt/dist"
 	"github.com/blablacar/cnt/utils"
 	"github.com/n0rad/go-erlog/logs"
@@ -22,7 +23,7 @@ func (aci *Aci) Build() error {
 
 	aci.runLevelBuildSetup()
 
-	aci.writeImgManifest()
+	aci.writeAciManifest()
 
 	aci.runBuild()
 	aci.copyAttributes()
@@ -222,9 +223,9 @@ func (aci *Aci) copyAttributes() {
 	}
 }
 
-func (aci *Aci) writeImgManifest() {
+func (aci *Aci) writeAciManifest() {
 	logs.WithF(aci.fields).Debug("Writing aci manifest")
-	utils.WriteImageManifest(&aci.manifest, aci.target+PATH_MANIFEST, aci.manifest.NameAndVersion.Name())
+	utils.WriteImageManifest(&aci.manifest, aci.target+PATH_MANIFEST, aci.manifest.NameAndVersion.Name(), cnt.Version)
 }
 
 func checkSystemdNspawn() {
