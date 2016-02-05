@@ -128,7 +128,7 @@ This project is already valid which means that you can build it and it will resu
 
 ### The manifest
 
-The cnt manifest looks like a light ACI manifest. CNT will take this manifest and convert it to the format defined in the APPC spec.
+The cnt manifest looks like a light ACI manifest. cnt will take this manifest and convert it to the format defined in the APPC spec.
 
 Example of a cnt-manifest.yml :
 ```yaml
