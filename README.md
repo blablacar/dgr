@@ -1,6 +1,9 @@
 # CNT - container build and runtime tool
 
+
 [![GoDoc](https://godoc.org/blablacar/cnt?status.png)](https://godoc.org/github.com/blablacar/cnt) [![Build Status](https://travis-ci.org/blablacar/cnt.svg?branch=master)](https://travis-ci.org/blablacar/cnt)
+
+<img src="https://github.com/blablacar/cnt/blob/gh-pages/cnt.png" width="200">
 
 **CNT** is a command line utility designed to build and to configure at runtime App Containers Images ([ACI](https://github.com/appc/spec/blob/master/spec/aci.md)) and App Container Pods ([POD](https://github.com/appc/spec/blob/master/spec/pods.md)) based on convention over configuration.
 
