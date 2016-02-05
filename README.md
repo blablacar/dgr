@@ -1,20 +1,20 @@
-# CNT - container build and runtime tool
+# cnt - container build and runtime tool
 
 
 [![GoDoc](https://godoc.org/blablacar/cnt?status.png)](https://godoc.org/github.com/blablacar/cnt) [![Build Status](https://travis-ci.org/blablacar/cnt.svg?branch=master)](https://travis-ci.org/blablacar/cnt)
 
 <img src="https://github.com/blablacar/cnt/blob/gh-pages/cnt.png" width="200">
 
-**CNT** is a command line utility designed to build and to configure at runtime App Containers Images ([ACI](https://github.com/appc/spec/blob/master/spec/aci.md)) and App Container Pods ([POD](https://github.com/appc/spec/blob/master/spec/pods.md)) based on convention over configuration.
+**cnt** is a command line utility designed to build and to configure at runtime App Containers Images ([ACI](https://github.com/appc/spec/blob/master/spec/aci.md)) and App Container Pods ([POD](https://github.com/appc/spec/blob/master/spec/pods.md)) based on convention over configuration.
 
-CNT allows you to build generic container images for a service and to configure them at runtime. Therefore you can use the same image for different environments, clusters, or nodes by overriding the appropriate attributes when launching the container.
+cnt allows you to build generic container images for a service and to configure them at runtime. Therefore you can use the same image for different environments, clusters, or nodes by overriding the appropriate attributes when launching the container.
 
 
 _cnt is actively used at blablacar to build more than an hundred different aci and pod to [run all platforms](http://blablatech.com/blog/why-and-how-blablacar-went-full-containers)._
 
 ## Build the ACI once, configure your app at runtime.
 
-CNT provides various resources to build and configure an ACI :
+cnt provides various resources to build and configure an ACI :
 
   - scripts at runlevels (build, prestart...)
   - templates and attributes
@@ -25,7 +25,7 @@ CNT provides various resources to build and configure an ACI :
 
 **Scripts** are executed at the image build, before your container is started and more. See [runlevels](#runlevels) for more information.
 
-**Templates** and **attributes** are the way CNT deals with environment-specific configurations. **Templates** are stored in the image and resolved at runtime ; **attributes** are inherited from different contexts (aci -> pod -> environement). 
+**Templates** and **attributes** are the way cnt deals with environment-specific configurations. **Templates** are stored in the image and resolved at runtime ; **attributes** are inherited from different contexts (aci -> pod -> environement). 
 
 **Static files** are copied to same path in the container.
 
@@ -39,13 +39,13 @@ CNT provides various resources to build and configure an ACI :
 
 ## Comparison with alternatives
 
-### CNT vs Dockerfiles
+### cnt vs Dockerfiles
 
 A Dockerfile is purely configuration, describing the steps to build the container.
 It does not provide scripts levels, ending with very long bash scripting for the run option in the dockerfile.
 It does not handle configuration, nor build time nor at runtime. So users usually use sed in the bash script to replace parts of configuration.
 
-### CNT vs acbuild
+### cnt vs acbuild
 
 acbuild is a command line tools to build ACIs. It is more flexible than Dockerfiles as it can be wrapped by other tools such as Makefiles but like Dockerfiles it doesn't provide a standard way of configuring the images.
 
@@ -63,8 +63,8 @@ $ cnt test          # test the final image
 
 ## Cnt configuration file
 
-CNT global conf is a yaml file located at `~/.config/cnt/config.yml`. Home is the home of starting user (The caller user if running with sudo)
-It is used to indicate the target work directory where CNT will create the ACI and the push endpoint informations. Both are optional.
+cnt global conf is a yaml file located at `~/.config/cnt/config.yml`. Home is the home of starting user (The caller user if running with sudo)
+It is used to indicate the target work directory where cnt will create the ACI and the push endpoint informations. Both are optional.
 
 content :
 ```yml
@@ -122,13 +122,13 @@ It will generate the following file tree :
     `-- wait.sh
 ```
 
-This project is already valid which means that you can build it and it will result in a runnable ACI. (CNT always adds busybox to the ACI). But you probably want to customize it at this point.
+This project is already valid which means that you can build it and it will result in a runnable ACI. (cnt always adds busybox to the ACI). But you probably want to customize it at this point.
 
 ## Customizing
 
 ### The manifest
 
-The CNT manifest looks like a light ACI manifest. CNT will take this manifest and convert it to the format defined in the APPC spec.
+The cnt manifest looks like a light ACI manifest. CNT will take this manifest and convert it to the format defined in the APPC spec.
 
 Example of a cnt-manifest.yml :
 ```yaml
@@ -188,7 +188,7 @@ Note that the first line is compulsory as this is the way to get all the attribu
 
 ### The attributes
 
-All the YAML files in the directory **attributes** are read by CNT. The first node of the YAML has to be "default" as it can be overridden in a POD or with a json in the env variable CONFD_OVERRIDE in the cmd line.
+All the YAML files in the directory **attributes** are read by cnt. The first node of the YAML has to be "default" as it can be overridden in a POD or with a json in the env variable CONFD_OVERRIDE in the cmd line.
 
 attributes/myapp.yml
 ```yaml
@@ -202,7 +202,7 @@ default:
 
 ### The prestart
 
-CNT uses the "pre-start" eventHandler of the ACI to customize the ACI rootfs before the run depending on the instance or the environment.
+cnt uses the "pre-start" eventHandler of the ACI to customize the ACI rootfs before the run depending on the instance or the environment.
 It resolves at that time the templates so it has all the context needed to do that.
 You can also run custom scripts before (prestart-early) or after (prestart-late) this template resolution. This is useful if you want to initialize a mountpoint with some data before running your app for instance.
 
