@@ -68,7 +68,10 @@ func (f *TemplateFile) runTemplate(dst string, attributes map[string]interface{}
 	if bytes.Contains(b, []byte("<no value>")) {
 		return errs.WithF(fields, "Templating result have <no value>")
 	}
-	out.Write(b)
+	if length, err := out.Write(b); length != len(b) || err != nil {
+		return errs.WithEF(err, fields, "Write to file failed")
+	}
+
 
 	if err = out.Sync(); err != nil {
 		return errs.WithEF(err, fields, "Failed to sync output file")

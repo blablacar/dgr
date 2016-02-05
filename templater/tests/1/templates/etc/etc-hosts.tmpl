@@ -1,2 +1,13 @@
 127.0.0.1	{{if .pod.domain}}{{ .pod.hostname }}.{{ .pod.domain }}{{end}} {{ .pod.hostname }} localhost
 ::1         {{if .pod.domain}}{{ .pod.hostname }}.{{ .pod.domain }}{{end}} {{ .pod.hostname }} localhost
+
+127.0.0.1	{{ifOrDef .pod.domain (print .pod.hostname "." .pod.domain) .pod.hostname}} localhost
+
+{{orDef .pod.domain "localdomain"}}
+
+{{range (orDefs .dns.nameservers "8.8.8.8")}}
+    - {{.}}
+{{end}}
+
+
+{{replaceAll "" /_Change_ME/I'm changed/g}}

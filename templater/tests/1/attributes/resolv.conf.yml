@@ -7,4 +7,4 @@ default:
       - bla.com
   pod:
     hostname: zk1
-
+#    domain: yopla

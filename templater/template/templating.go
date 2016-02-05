@@ -9,6 +9,7 @@ import (
 	"strings"
 	"text/template"
 	"time"
+"regexp"
 )
 
 type Templating struct {
@@ -84,7 +85,31 @@ func newFuncMap() map[string]interface{} {
 	m["toLower"] = strings.ToLower
 	m["contains"] = strings.Contains
 	m["replace"] = strings.Replace
+	m["orDef"] = orDef
+	m["orDefs"] = orDefs
+ 	m["ifOrDef"] = ifOrDef
 	return m
+}
+
+func ifOrDef(eif interface{}, yes interface{}, no interface{}) interface{} {
+	if eif != nil {
+		return yes
+	}
+	return no
+}
+
+func orDef(val interface{}, def interface{}) interface{} {
+	if val != nil {
+		return val
+	}
+	return def
+}
+
+func orDefs(val []interface{}, def interface{}) interface{} {
+	if val != nil {
+		return val
+	}
+	return []interface{}{def}
 }
 
 func addFuncs(out, in map[string]interface{}) {
