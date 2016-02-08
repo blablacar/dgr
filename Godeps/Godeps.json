@@ -70,7 +70,7 @@
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog",
-			"Rev": "d91d1cac32e6fa5843dcef5818e10e83a4a7c1bf"
+			"Rev": "73ef27688910c7154b1428a4aa63b1d3f4ada1f9"
 		},
 		{
 			"ImportPath": "github.com/peterbourgon/mergemap",

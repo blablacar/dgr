@@ -18,12 +18,20 @@ type Templating struct {
 	functions map[string]interface{}
 }
 
-func NewTemplating(name, content string) *Templating {
-	t := new(Templating)
-	t.name = name
-	t.content = cleanupOfTemplate(content)
-	t.functions = newFuncMap()
-	return t
+const EXT_CFG = ".cfg"
+
+var templateFunctions map[string]interface{}
+
+func NewTemplating(filePath, content string) (*Templating, error) {
+	t := Templating{
+		name:      filePath,
+		content:   cleanupOfTemplate(content),
+		functions: templateFunctions,
+	}
+
+	tmpl, err := template.New(t.name).Funcs(t.functions).Parse(t.content)
+	t.template = tmpl
+	return &t, err
 }
 
 func cleanupOfTemplate(content string) string {
@@ -50,12 +58,6 @@ func cleanupOfTemplate(content string) string {
 	return strings.Join(lines, "\n")
 }
 
-func (t *Templating) ParseWithSuccess() error {
-	tmpl, err := template.New(t.name).Funcs(t.functions).Parse(t.content)
-	t.template = tmpl
-	return err
-}
-
 func (t *Templating) Execute(wr io.Writer, data interface{}) error {
 	return t.template.Execute(wr, data)
 }
@@ -69,26 +71,6 @@ func (t *Templating) AddFunctions(fs map[string]interface{}) {
 }
 
 ///////////////////////////////////
-
-func newFuncMap() map[string]interface{} {
-	m := make(map[string]interface{})
-	m["base"] = path.Base
-	m["split"] = strings.Split
-	m["json"] = UnmarshalJsonObject
-	m["jsonArray"] = UnmarshalJsonArray
-	m["dir"] = path.Dir
-	m["getenv"] = os.Getenv
-	m["join"] = strings.Join
-	m["datetime"] = time.Now
-	m["toUpper"] = strings.ToUpper
-	m["toLower"] = strings.ToLower
-	m["contains"] = strings.Contains
-	m["replace"] = strings.Replace
-	m["orDef"] = orDef
-	m["orDefs"] = orDefs
- 	m["ifOrDef"] = ifOrDef
-	return m
-}
 
 func ifOrDef(eif interface{}, yes interface{}, no interface{}) interface{} {
 	if eif != nil {
@@ -127,4 +109,23 @@ func UnmarshalJsonArray(data string) ([]interface{}, error) {
 	var ret []interface{}
 	err := json.Unmarshal([]byte(data), &ret)
 	return ret, err
+}
+
+func init() {
+	templateFunctions = make(map[string]interface{})
+	templateFunctions["base"] = path.Base
+	templateFunctions["split"] = strings.Split
+	templateFunctions["json"] = UnmarshalJsonObject
+	templateFunctions["jsonArray"] = UnmarshalJsonArray
+	templateFunctions["dir"] = path.Dir
+	templateFunctions["getenv"] = os.Getenv
+	templateFunctions["join"] = strings.Join
+	templateFunctions["datetime"] = time.Now
+	templateFunctions["toUpper"] = strings.ToUpper
+	templateFunctions["toLower"] = strings.ToLower
+	templateFunctions["contains"] = strings.Contains
+	templateFunctions["replace"] = strings.Replace
+	templateFunctions["orDef"] = orDef
+	templateFunctions["orDefs"] = orDefs
+	templateFunctions["ifOrDef"] = ifOrDef
 }

@@ -7,23 +7,6 @@ import (
 	"strings"
 )
 
-//func toLog(err error, level log.Level) {
-//	if e, ok := err.(*EntryError); ok {
-//		log.LogEntry(&log.Entry{
-//			Message: e.Message,
-//			Fields:  e.Fields,
-//			Level:   level})
-//		if e.Err != nil { // TODO this sux
-//			toLog(e.Err, level)
-//		}
-//	} else {
-//		log.LogEntry(&log.Entry{
-//			Message: err.Error(),
-//			Level:   level,
-//		})
-//	}
-//}
-
 type ErlogFactory struct {
 	defaultLog *ErlogLogger
 	logs       map[string]*ErlogLogger

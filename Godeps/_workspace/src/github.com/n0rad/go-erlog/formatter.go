@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/mgutz/ansi"
+	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"io"
 	"runtime"
@@ -62,8 +64,8 @@ func (f *ErlogWriterAppender) SetLevel(level logs.Level) {
 }
 
 func (f *ErlogWriterAppender) Fire(event *LogEvent) {
-	keys := f.prepareKeys(event)
-	time := time.Now().Format("15:04:05")
+	keys := f.prepareKeys(event.Fields)
+	time := time.Now().Format("15:04:05") // TODO prepare format ?
 	level := f.textLevel(event.Level)
 
 	//	isColored := isTerminal && (runtime.GOOS != "windows")
@@ -88,9 +90,78 @@ func (f *ErlogWriterAppender) Fire(event *LogEvent) {
 	}
 	b.WriteByte('\n')
 
+	f.logError(b, event)
+
 	//	f.mu.Lock() //TODO
 	f.Out.Write(b.Bytes())
 	//	f.mu.Unlock()
+}
+
+func (f *ErlogWriterAppender) logError(b *bytes.Buffer, event *LogEvent) {
+	if event.Err == nil {
+		return
+	}
+
+	for err := event.Err; err != nil; {
+		if e, ok := err.(*errs.EntryError); ok {
+			path, line := findFileAndName(e.Stack)
+			paths := strings.SplitN(path, "/", pathSkip+1)
+			fmt.Fprintf(b, "               %s%30s:%-3d%s %s%-44s%s",
+				f.fileColor(event.Level),
+				f.reduceFilePath(paths[pathSkip], 30),
+				line,
+				reset,
+				f.textColor(event.Level),
+				e.Message,
+				reset)
+
+			keys := f.prepareKeys(e.Fields)
+			for _, k := range keys {
+				v := e.Fields[k]
+				fmt.Fprintf(b, " %s%s%s=%+v", lvlColorInfo, k, reset, v)
+			}
+			b.WriteByte('\n')
+
+			err = e.Err
+		} else {
+			fmt.Fprintf(b, "                                                  %s%s%s\n",
+				f.textColor(event.Level),
+				err.Error(),
+				reset)
+			err = nil
+		}
+	}
+}
+
+func findFileAndName(ptrs []uintptr) (string, int) {
+	var frame errs.StackFrame
+	for i := 1; i < len(ptrs); i++ {
+		frame = errs.NewStackFrame(ptrs[i])
+		if !strings.Contains(frame.Package, "n0rad/go-erlog") {
+			break
+		}
+		if strings.Contains(frame.Package, "n0rad/go-erlog/examples") { // TODO what to do with that ?
+			break
+		}
+	}
+	return frame.File, frame.LineNumber
+}
+
+func toLog(err error, level logs.Level) {
+	if e, ok := err.(*errs.EntryError); ok {
+		logs.LogEntry(&logs.Entry{
+			Message: e.Message,
+			Fields:  e.Fields,
+			Level:   level})
+		if e.Err != nil { // TODO this sux
+			toLog(e.Err, level)
+		}
+	} else {
+		logs.LogEntry(&logs.Entry{
+			Message: err.Error(),
+			Level:   level,
+		})
+	}
 }
 
 func (f *ErlogWriterAppender) reduceFilePath(path string, max int) string {
@@ -116,9 +187,9 @@ func (f *ErlogWriterAppender) reduceFilePath(path string, max int) string {
 	return buffer.String()
 }
 
-func (f *ErlogWriterAppender) prepareKeys(event *LogEvent) []string {
-	var keys []string = make([]string, 0, len(event.Entry.Fields))
-	for k := range event.Entry.Fields {
+func (f *ErlogWriterAppender) prepareKeys(fields data.Fields) []string {
+	var keys []string = make([]string, 0, len(fields))
+	for k := range fields {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)

@@ -88,12 +88,14 @@ CNT_PATH=/cnt
 
 execute_files ${CNT_PATH}/runlevels/prestart-early
 
-if [ -d ${CNT_PATH}/attributes ]; then
-	echo "$CONFD_OVERRIDE"
-    ${BASEDIR}/attributes-merger -i ${CNT_PATH}/attributes -e CONFD_OVERRIDE
-    export CONFD_DATA=$(cat attributes.json)
-fi
-${BASEDIR}/confd -onetime -config-file=${CNT_PATH}/prestart/confd.toml
+${BASEDIR}/templater -L ${LOG_LEVEL} -t / /cnt
+
+#if [ -d ${CNT_PATH}/attributes ]; then
+#	echo "$CONFD_OVERRIDE"
+#    ${BASEDIR}/attributes-merger -i ${CNT_PATH}/attributes -e CONFD_OVERRIDE
+#    export CONFD_DATA=$(cat attributes.json)
+#fi
+#${BASEDIR}/confd -onetime -config-file=${CNT_PATH}/prestart/confd.toml
 
 execute_files ${CNT_PATH}/runlevels/prestart-late
 `
@@ -114,11 +116,9 @@ const PATH_INHERIT_BUILD_LATE = "/inherit-build-late"
 const PATH_INHERIT_BUILD_EARLY = "/inherit-build-early"
 const PATH_ATTRIBUTES = "/attributes"
 const PATH_FILES = "/files"
-const PATH_CONFD = "/confd"
 const PATH_BUILD_LATE = "/build-late"
 const PATH_BUILD_SETUP = "/build-setup"
 const PATH_BUILD = "/build"
-const PATH_CONFDOTD = "/conf.d"
 const PATH_TEMPLATES = "/templates"
 
 type Aci struct {

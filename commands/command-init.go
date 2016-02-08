@@ -69,7 +69,7 @@ echo "I'm a inherit build late script that is run on this image and all images t
 	files[builder.PATH_ATTRIBUTES+"/attributes.yml"] = `default:
   dummy: world
 `
-	files[builder.PATH_CONFD+builder.PATH_CONFDOTD+"/templated.toml"] = `[template]
+	files[builder.PATH_TEMPLATES+"/templated.template"] = `[template]
 src = "templated.tmpl"
 dest = "/templated"
 uid = 0
@@ -77,7 +77,7 @@ gid = 0
 mode = "0644"
 keys = ["/"]
 `
-	files[builder.PATH_CONFD+builder.PATH_TEMPLATES+"/templated.tmpl"] = `{{$data := json (getv "/data")}}Hello {{ $data.dummy }}
+	files[builder.PATH_TEMPLATES+"/templated.tmpl"] = `Hello {{ .dummy }}
 `
 	files[".gitignore"] = `target/
 `
@@ -87,7 +87,7 @@ aci:
   app:
     exec: [ "/cnt/bin/busybox", "sh" ]
 `
-	files[builder.PATH_TESTS+"/dummy.bats"] = `#!/cnt/bin/bats -x
+	files[builder.PATH_TESTS+"/dummy.bats"] = `#!/cnt/bin/bats
 
 @test "Prestart should template" {
   result="$(cat /templated)"

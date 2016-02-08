@@ -13,7 +13,7 @@ type EntryError struct {
 	Fields  data.Fields
 	Message string
 	Err     error
-	stack   []uintptr
+	Stack   []uintptr
 	frames  []StackFrame
 }
 
@@ -48,7 +48,7 @@ func WithEF(err error, fields data.Fields, msg string) *EntryError {
 func fill(entry *EntryError) *EntryError {
 	stack := make([]uintptr, MaxStackDepth)
 	length := runtime.Callers(2, stack[:])
-	entry.stack = stack[:length]
+	entry.Stack = stack[:length]
 	return entry
 }
 

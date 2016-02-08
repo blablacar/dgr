@@ -14,13 +14,19 @@ import (
 
 func main() {
 	logs.GetDefaultLog().(*erlog.ErlogLogger).Appenders[0].(*erlog.ErlogWriterAppender).Out = os.Stdout
-	logs.SetLevel(logs.TRACE)
 
 	overrideEnvVarName := ""
 	target := "/"
 	var templateDir string
+	logLvl := "INFO"
 
-	processArgs(&overrideEnvVarName, &target, &templateDir)
+	processArgs(&overrideEnvVarName, &target, &templateDir, &logLvl)
+
+	lvl, err := logs.ParseLevel(logLvl)
+	if err != nil {
+		fmt.Println("Wrong log level : " + logLvl)
+	}
+	logs.SetLevel(lvl)
 
 	Run(overrideEnvVarName, target, templateDir)
 }
@@ -30,7 +36,7 @@ const USAGE = `Usage: templater [-e overrideEnvVarName] [-t target] templaterDir
   -o overrideEnvVarName,  varname of json object that will override attributes files
   -t target,  directory for start of templating instead of /`
 
-func processArgs(overrideEnvVarName *string, target *string, templaterDir *string) {
+func processArgs(overrideEnvVarName *string, target *string, templaterDir *string, logLevel *string) {
 	for i := 1; i < len(os.Args); i++ {
 		switch os.Args[i] {
 		case "--help":
@@ -39,6 +45,9 @@ func processArgs(overrideEnvVarName *string, target *string, templaterDir *strin
 			os.Exit(1)
 		case "-o":
 			*overrideEnvVarName = os.Args[i+1]
+			i++
+		case "-L":
+			*logLevel = os.Args[i+1]
 			i++
 		case "-t":
 			*target = os.Args[i+1]

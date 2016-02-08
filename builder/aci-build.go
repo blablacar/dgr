@@ -142,7 +142,7 @@ func (aci *Aci) processFrom() {
 func (aci *Aci) copyInternals() {
 	logs.WithF(aci.fields).Debug("Copy internals")
 	os.MkdirAll(aci.rootfs+PATH_CNT+PATH_BIN, 0755)
-	os.MkdirAll(aci.rootfs+"/bin", 0755)     // this is required or systemd-nspawn will create symlink on it
+	os.MkdirAll(aci.rootfs+PATH_BIN, 0755)   // this is required or systemd-nspawn will create symlink on it
 	os.MkdirAll(aci.rootfs+"/usr/bin", 0755) // this is required by systemd-nspawn
 
 	busybox, _ := dist.Asset("dist/bindata/busybox")
@@ -150,28 +150,14 @@ func (aci *Aci) copyInternals() {
 		panic(err)
 	}
 
-	confd, _ := dist.Asset("dist/bindata/confd")
-	if err := ioutil.WriteFile(aci.rootfs+PATH_CNT+PATH_BIN+"/confd", confd, 0777); err != nil {
-		panic(err)
+	templater, _ := dist.Asset("dist/bindata/templater")
+	if err := ioutil.WriteFile(aci.rootfs+PATH_CNT+PATH_BIN+"/templater", templater, 0777); err != nil {
+		logs.WithEF(err, aci.fields).Fatal("Failed to copy templater")
 	}
 
-	attributeMerger, _ := dist.Asset("dist/bindata/attributes-merger")
-	if err := ioutil.WriteFile(aci.rootfs+PATH_CNT+PATH_BIN+"/attributes-merger", attributeMerger, 0777); err != nil {
-		panic(err)
-	}
-
-	confdFile := `backend = "env"
-confdir = "/cnt"
-prefix = "/confd"
-log-level = "debug"
-`
 	os.MkdirAll(aci.rootfs+PATH_CNT+"/prestart", 0755)
-	if err := ioutil.WriteFile(aci.rootfs+PATH_CNT+"/prestart/confd.toml", []byte(confdFile), 0777); err != nil {
-		panic(err)
-	}
-
 	if err := ioutil.WriteFile(aci.rootfs+PATH_CNT+PATH_BIN+"/prestart", []byte(PRESTART), 0777); err != nil {
-		panic(err)
+		logs.WithEF(err, aci.fields).Fatal("Failed to copy prestart")
 	}
 }
 
@@ -208,8 +194,7 @@ func (aci *Aci) runLevelBuildSetup() {
 }
 
 func (aci *Aci) copyConfd() {
-	utils.CopyDir(aci.path+PATH_CONFD+PATH_CONFDOTD, aci.rootfs+PATH_CNT+PATH_CONFDOTD)
-	utils.CopyDir(aci.path+PATH_CONFD+PATH_TEMPLATES, aci.rootfs+PATH_CNT+PATH_TEMPLATES)
+	utils.CopyDir(aci.path+PATH_TEMPLATES, aci.rootfs+PATH_CNT+PATH_TEMPLATES)
 }
 
 func (aci *Aci) copyFiles() {

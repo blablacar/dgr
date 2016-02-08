@@ -132,7 +132,7 @@ func (cnt *Aci) prepareTestAci() (*Aci, error) {
 
 	utils.CopyDir(cnt.path+PATH_TESTS+PATH_FILES, cnt.target+PATH_TESTS+PATH_FILES)
 	utils.CopyDir(cnt.path+PATH_TESTS+PATH_ATTRIBUTES, cnt.target+PATH_TESTS+PATH_ATTRIBUTES)
-	utils.CopyDir(cnt.path+PATH_TESTS+PATH_CONFD, cnt.target+PATH_TESTS+PATH_CONFD)
+	utils.CopyDir(cnt.path+PATH_TESTS+PATH_TEMPLATES, cnt.target+PATH_TESTS+PATH_TEMPLATES)
 	utils.CopyDir(cnt.path+PATH_TESTS+PATH_RUNLEVELS, cnt.target+PATH_TESTS+PATH_RUNLEVELS)
 
 	os.MkdirAll(cnt.target+PATH_TESTS+PATH_FILES+PATH_TESTS, 0777)
