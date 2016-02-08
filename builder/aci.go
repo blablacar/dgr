@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 )
 
-const EXEC_FILES = `
+const SH_FUNCTIONS = `
 execute_files() {
   fdir=$1
   [ -d "$fdir" ] || return 0
@@ -21,46 +21,70 @@ execute_files() {
   for file in $fdir/*; do
     [ -e "$file" ] && {
      	[ -x "$file" ] || /cnt/bin/busybox chmod +x "$file"
-     	echo -e "\e[1m\e[32mRunning script -> $file\e[0m"
+		isLevelEnabled 4 && echo -e "\e[1m\e[32mRunning script -> $file\e[0m"
      	$file
     }
   done
-}`
+}
+
+case ` + "`echo ${LOG_LEVEL:-INFO} | awk '{print toupper($0)}'`" + ` in
+	"FATAL") lvl=0 ;;
+	"PANIC") lvl=1 ;;
+	"ERROR") lvl=2 ;;
+	"WARN"|"WARNING") lvl=3 ;;
+	"INFO") lvl=4 ;;
+	"DEBUG") lvl=5 ;;
+	"TRACE") lvl=6 ;;
+	*) echo "UNKNOWN LOG LEVEL"; lvl=4 ;;
+esac
+
+
+isLevelEnabled() {
+	if [ $1 -le $lvl ]; then
+		return 0
+	fi
+	return 1
+}
+`
 
 const BUILD_SCRIPT = `#!/cnt/bin/busybox sh
-set -x
 set -e
+` + SH_FUNCTIONS + `
+
+isLevelEnabled 5 && set -x
+
 export TARGET=$( dirname $0 )
 export ROOTFS=%%ROOTFS%%
 export TERM=xterm
-
-` + EXEC_FILES + `
 
 execute_files "$ROOTFS/cnt/runlevels/inherit-build-early"
 execute_files "$TARGET/runlevels/build"
 `
 
 const BUILD_SCRIPT_LATE = `#!/cnt/bin/busybox sh
-set -x
 set -e
+` + SH_FUNCTIONS + `
+
+isLevelEnabled 5 && set -x
+
+
 export TARGET=$( dirname $0 )
 export ROOTFS=%%ROOTFS%%
 export TERM=xterm
-
-` + EXEC_FILES + `
 
 execute_files "$TARGET/runlevels/build-late"
 execute_files "$ROOTFS/cnt/runlevels/inherit-build-late"
 `
 
 const PRESTART = `#!/cnt/bin/busybox sh
-set -x
 set -e
+` + SH_FUNCTIONS + `
+
+isLevelEnabled 5 && set -x
+
 
 BASEDIR=${0%/*}
 CNT_PATH=/cnt
-
-` + EXEC_FILES + `
 
 execute_files ${CNT_PATH}/runlevels/prestart-early
 

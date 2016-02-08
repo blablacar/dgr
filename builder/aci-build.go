@@ -79,8 +79,13 @@ func (aci *Aci) runBuildLate() {
 	checkSystemdNspawn()
 
 	logs.WithF(aci.fields).Info("Starting systemd-nspawn to run Build late scripts")
-	if err := utils.ExecCmd("systemd-nspawn", "--directory="+aci.rootfs, "--capability=all",
-		"--bind="+aci.target+"/:/target", "target/build-late.sh"); err != nil {
+	if err := utils.ExecCmd("systemd-nspawn",
+		"--setenv=LOG_LEVEL="+logs.GetLevel().String(),
+		"-q",
+		"--directory="+aci.rootfs,
+		"--capability=all",
+		"--bind="+aci.target+"/:/target",
+		"target/build-late.sh"); err != nil {
 		logs.WithEF(err, aci.fields).Fatal("Build late part failed")
 	}
 }
@@ -100,8 +105,13 @@ func (aci *Aci) runBuild() {
 	ioutil.WriteFile(aci.target+"/build.sh", []byte(build), 0777)
 
 	logs.WithF(aci.fields).Info("Starting systemd-nspawn to run Build scripts")
-	if err := utils.ExecCmd("systemd-nspawn", "--directory="+aci.rootfs, "--capability=all",
-		"--bind="+aci.target+"/:/target", "target/build.sh"); err != nil {
+	if err := utils.ExecCmd("systemd-nspawn",
+		"--setenv=LOG_LEVEL="+logs.GetLevel().String(),
+		"-q",
+		"--directory="+aci.rootfs,
+		"--capability=all",
+		"--bind="+aci.target+"/:/target",
+		"target/build.sh"); err != nil {
 		logs.WithEF(err, aci.fields).Fatal("Build part failed")
 	}
 }
@@ -231,6 +241,6 @@ func (aci *Aci) writeAciManifest() {
 func checkSystemdNspawn() {
 	_, err := utils.ExecCmdGetOutput("systemd-nspawn", "--version")
 	if err != nil {
-		logs.WithE(err).Fatal("system-nspawn is required")
+		logs.WithE(err).Fatal("systemd-nspawn is required")
 	}
 }
