@@ -9,7 +9,6 @@ import (
 	"strings"
 	"text/template"
 	"time"
-"regexp"
 )
 
 type Templating struct {
