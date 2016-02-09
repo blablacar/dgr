@@ -75,6 +75,7 @@ func Run(overrideEnvVarName string, target string, templaterDir string) {
 	}
 	attributes := attrMerger.Merge()
 	attributes = overrideWithJsonIfNeeded(overrideEnvVarName, attributes)
+	logs.WithField("content", attributes).Debug("Final attributes resolution")
 
 	info, _ := os.Stat(templaterDir + PATH_TEMPLATES)
 	if info == nil {
@@ -92,6 +93,7 @@ func Run(overrideEnvVarName string, target string, templaterDir string) {
 }
 
 func overrideWithJsonIfNeeded(overrideEnvVarName string, attributes map[string]interface{}) map[string]interface{} {
+	logs.WithField("val", overrideEnvVarName).Warn("overrride name")
 	if overrideEnvVarName != "" {
 		if envjson := os.Getenv(overrideEnvVarName); envjson != "" {
 			logs.WithField("content", envjson).Debug("Override var content")
@@ -99,9 +101,9 @@ func overrideWithJsonIfNeeded(overrideEnvVarName string, attributes map[string]i
 			err := json.Unmarshal([]byte(envjson), &envattr)
 			if err != nil {
 				logs.WithE(err).
-				WithField("varName", overrideEnvVarName).
-				WithField("content", envjson).
-				Fatal("Invalid format for environment override content")
+					WithField("varName", overrideEnvVarName).
+					WithField("content", envjson).
+					Fatal("Invalid format for environment override content")
 			}
 			attributes = mergemap.Merge(attributes, envattr)
 		}
