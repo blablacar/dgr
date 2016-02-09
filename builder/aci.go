@@ -170,8 +170,8 @@ func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest, 
 		FullyResolveDep: true,
 	}
 
-	go aci.checkCompatibilityVersions(compatChecked)
-	go aci.checkLatestVersions(latestChecked)
+	aci.checkCompatibilityVersions(compatChecked)
+	aci.checkLatestVersions(latestChecked)
 	return aci, nil
 }
 
