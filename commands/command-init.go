@@ -64,20 +64,22 @@ echo "I'm a inherit build early script that is run on this image and all images 
 	files[builder.PATH_RUNLEVELS+builder.PATH_INHERIT_BUILD_LATE+"/10.inherit-build-early.sh"] = `#!/cnt/bin/busybox sh
 echo "I'm a inherit build late script that is run on this image and all images that have me as From during build"
 `
-	files[builder.PATH_FILES+"/dummy"] = `Dummy file
+	files[builder.PATH_FILES+"/etc/dummy"] = `Dummy file
 `
 	files[builder.PATH_ATTRIBUTES+"/attributes.yml"] = `default:
   dummy: world
 `
-	files[builder.PATH_TEMPLATES+"/templated.template"] = `[template]
-src = "templated.tmpl"
-dest = "/templated"
-uid = 0
-gid = 0
-mode = "0644"
-keys = ["/"]
+	files[builder.PATH_TEMPLATES+"/etc/templated.tmpl.cfg"] = `---
+uid: 0
+gid: 0
+mode: 0644
+checkCmd: true
 `
-	files[builder.PATH_TEMPLATES+"/templated.tmpl"] = `Hello {{ .dummy }}
+	files[builder.PATH_TEMPLATES+"/etc/templated.tmpl"] = `Hello {{ .dummy }}
+`
+	files[builder.PATH_TEMPLATES+"/header.partial"] = `{{define "header"}}
+world
+{{end}}
 `
 	files[".gitignore"] = `target/
 `
@@ -90,12 +92,12 @@ aci:
 	files[builder.PATH_TESTS+"/dummy.bats"] = `#!/cnt/bin/bats
 
 @test "Prestart should template" {
-  result="$(cat /templated)"
+  result="$(cat /etc/templated)"
   [ "$result" == "Hello world" ]
 }
 
 @test "Cnt should copy files" {
-  result="$(cat /dummy)"
+  result="$(cat /etc/dummy)"
   [ "$result" == "Dummy file" ]
 }
 `
