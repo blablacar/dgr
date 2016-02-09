@@ -75,6 +75,11 @@ func Run(overrideEnvVarName string, target string, templaterDir string) {
 	attributes := attrMerger.Merge()
 	attributes = overrideWithJsonIfNeeded(overrideEnvVarName, attributes)
 
+	info, _ := os.Stat(templaterDir + PATH_TEMPLATES)
+	if info == nil {
+		logs.WithField("dir", templaterDir+PATH_TEMPLATES).Info("Template dir is empty. Nothing to template")
+		return
+	}
 	tmpl, err := template.NewTemplateDir(templaterDir+PATH_TEMPLATES, target)
 	if err != nil {
 		logs.WithE(err).WithField("dir", templaterDir+PATH_TEMPLATES).Fatal("Failed to load template dir")
@@ -83,15 +88,6 @@ func Run(overrideEnvVarName string, target string, templaterDir string) {
 	if err != nil {
 		logs.WithE(err).WithField("dir", templaterDir+PATH_TEMPLATES).Fatal("Failed to process template dir")
 	}
-
-	//		out := attrMerger.Merge(fgs.confd_env, res)
-	//	err = ioutil.WriteFile("attributes.json", []byte(out), 0777)
-	//	if err != nil {
-	//		panic(err)
-	//	}
-
-	// read files from dir
-	// run templates
 }
 
 func overrideWithJsonIfNeeded(overrideEnvVarName string, attributes map[string]interface{}) map[string]interface{} {

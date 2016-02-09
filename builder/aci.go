@@ -221,6 +221,10 @@ func (aci *Aci) checkCompatibilityVersions(compatChecked *chan bool) {
 
 		fromFields := aci.fields.WithField("dependency", from.String())
 
+		err := utils.ExecCmd("rkt", "--insecure-options=image", "fetch", from.String())
+		if err != nil {
+			logs.WithEF(err, fromFields).Fatal("Cannot fetch from")
+		}
 		out, err := utils.ExecCmdGetOutput("rkt", "image", "cat-manifest", from.String())
 		if err != nil {
 			logs.WithEF(err, fromFields).Fatal("Cannot find dependency")
@@ -243,8 +247,12 @@ func (aci *Aci) checkCompatibilityVersions(compatChecked *chan bool) {
 	}
 
 	for _, dep := range aci.manifest.Aci.Dependencies {
-		out, err := utils.ExecCmdGetOutput("rkt", "image", "cat-manifest", dep.String())
 		depFields := aci.fields.WithField("dependency", dep.String())
+		err := utils.ExecCmd("rkt", "--insecure-options=image", "fetch", dep.String())
+		if err != nil {
+			logs.WithEF(err, depFields).Fatal("Cannot fetch dependency")
+		}
+		out, err := utils.ExecCmdGetOutput("rkt", "image", "cat-manifest", dep.String())
 		if err != nil {
 			logs.WithEF(err, depFields).Fatal("Cannot find dependency")
 		}
