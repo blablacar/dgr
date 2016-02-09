@@ -165,40 +165,89 @@ apt-get install -y myapp
 
 ### The templates
 
-You can create templates in your ACI. For that we use [confd](https://github.com/kelseyhightower/confd), so you should at the documentation on there if you're not familiar with it.
-For our example :
+You can create templates in your ACI. Templates are stored in the ACI as long as attributes and are resolved at start of the container.
 
-confd/conf.d/myapp.cfg.toml
-```ini
-[template]
-src = "myapp.cfg.tmpl"
-dest = "/etc/myapp/myapp.cfg"
-keys = ["/data"]
-```
+example :
 
-confd/templates/myapp.cfg.tmpl
+templates/etc/resolv.conf.tmpl
 ```
-{{$data := json (getv "/data")}}
-{{ if $data.myapp.setting1 }}
-setting1: {{$data.myapp.setting1}}
+{{ range .dns.nameservers -}}
+nameserver {{ . }}
 {{ end }}
+
+{{ if .dns.search -}}
+search {{ range .dns.search }} {{.}} {{end}}
+{{end}}
 ```
 
-Note that the first line is compulsory as this is the way to get all the attributes in the $data variable.
+templates/etc/resolv.conf.tmpl.cfg
+```
+uid: 0
+gid: 0
+mode: 0644
+```
+
+When you have to reuse the same part in multiple templates, you can create a partial template like defined in the [go templating](https://golang.org/pkg/text/template/#hdr-Nested_template_definitions)
+
+templates/header.partial
+```
+{{define "header"}}
+whatever
+{{end}}
+```
+
+and include it in a template:
+```
+{{template "header" .}}
+```
+
+templater provides functions to manipulate data inside the template. Here is the list
+| Tables   |      Are      |  Cool |
+|----------|:-------------:|------:|
+| col 1 is |  left-aligned | $1600 |
+| col 2 is |    centered   |   $12 |
+| col 3 is | right-aligned |    $1 |
+
+
+
+| Tables    |      Function        |  Description                                                |
+|-----------|:---------------------|:------------------------------------------------------------|
+| base      | path.Base            |                                                             |
+| split     | strings.Split        |                                                             |
+| json      | UnmarshalJsonObject  |                                                             |
+| jsonArray | UnmarshalJsonArray   |                                                             |
+| dir       | path.Dir             |                                                             |
+| getenv    | os.Getenv            |                                                             |
+| join      | strings.Join         |                                                             |
+| datetime  | time.Now             |                                                             |
+| toUpper   | strings.ToUpper      |                                                             |
+| toLower   | strings.ToLower      |                                                             |
+| contains  | strings.Contains     |                                                             |
+| replace   | strings.Replace      |                                                             |
+| orDef     | orDef                | if first element is nil, use second as default              |
+| orDefs    | orDefs               | if first array param is empty use second element to fill it |
+| ifOrDef   | ifOrDef              | if first param is not nil, use second, else third           |
+
+
+
+
+
+It also provide all function defined by [gtf project](https://github.com/leekchan/gtf)
 
 ### The attributes
 
 All the YAML files in the directory **attributes** are read by cnt. The first node of the YAML has to be "default" as it can be overridden in a POD or with a json in the env variable CONFD_OVERRIDE in the cmd line.
 
-attributes/myapp.yml
-```yaml
----
-default:
-  myapp:
-    setting1: value1
-    setting2: 42
+attributes/resolv.conf.yml
 ```
-
+default:
+  dns:
+    nameservers:
+      - "8.8.8.8"
+      - "8.8.4.4"
+    search:
+      - bla.com
+```
 
 ### The prestart
 

@@ -91,7 +91,7 @@ func orDef(val interface{}, def interface{}) interface{} {
 }
 
 func orDefs(val []interface{}, def interface{}) interface{} {
-	if val != nil {
+	if val != nil && len(val) != 0 {
 		return val
 	}
 	return []interface{}{def}
