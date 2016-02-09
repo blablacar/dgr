@@ -3,6 +3,7 @@ package template
 import (
 	"bufio"
 	"encoding/json"
+	"github.com/leekchan/gtf"
 	"io"
 	"os"
 	"path"
@@ -33,7 +34,7 @@ func NewTemplating(partials *txttmpl.Template, filePath, content string) (*Templ
 	}
 
 	//	template.New(t.name).Funcs(t.functions).Parse(t.content)
-	tmpl, err := partials.New(t.name).Funcs(t.functions).Parse(t.content)
+	tmpl, err := partials.New(t.name).Funcs(t.functions).Funcs(map[string]interface{}(gtf.GtfFuncMap)).Parse(t.content)
 	t.template = tmpl
 	return &t, err
 }
@@ -132,4 +133,5 @@ func init() {
 	templateFunctions["orDef"] = orDef
 	templateFunctions["orDefs"] = orDefs
 	templateFunctions["ifOrDef"] = ifOrDef
+
 }

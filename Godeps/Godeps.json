@@ -61,6 +61,10 @@
 			"Rev": "1b5e39b83d1835fa480e0c2ddefb040ee82d58b3"
 		},
 		{
+			"ImportPath": "github.com/leekchan/gtf",
+			"Rev": "882e96b937c8506c67b5adf98ff1f84cd7b7b93a"
+		},
+		{
 			"ImportPath": "github.com/mgutz/ansi",
 			"Rev": "c286dcecd19ff979eeb73ea444e479b903f2cfcb"
 		},
