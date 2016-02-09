@@ -85,7 +85,7 @@ func (p *Pod) buildAci(e spec.RuntimeApp) *Aci {
 			logs.WithEF(err, p.fields).WithField("path", path).Fatal("Cannot created pod's aci directory")
 		}
 	}
-	aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e), nil)
+	aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e), nil, nil)
 	if err != nil {
 		logs.WithEF(err, p.fields).WithField("aci", path).Fatal("Failed to prepare aci")
 	}

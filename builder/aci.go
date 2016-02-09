@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"github.com/appc/spec/schema"
 	"github.com/blablacar/cnt/cnt"
 	"github.com/blablacar/cnt/spec"
 	"github.com/blablacar/cnt/utils"
@@ -11,6 +12,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 const SH_FUNCTIONS = `
@@ -132,7 +134,7 @@ type Aci struct {
 	FullyResolveDep bool
 }
 
-func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest, checked *chan bool) (*Aci, error) {
+func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest, latestChecked *chan bool, compatChecked *chan bool) (*Aci, error) {
 	if manifest.NameAndVersion == "" {
 		logs.WithField("path", path).Fatal("name is mandatory in manifest")
 	}
@@ -164,7 +166,8 @@ func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest, 
 		FullyResolveDep: true,
 	}
 
-	go aci.checkLatestVersions(checked)
+	go aci.checkCompatibilityVersions(compatChecked)
+	go aci.checkLatestVersions(latestChecked)
 	return aci, nil
 }
 
@@ -173,7 +176,7 @@ func NewAci(path string, args BuildArgs) (*Aci, error) {
 	if err != nil {
 		return nil, errs.WithEF(err, data.WithField("path", path+PATH_CNT_MANIFEST), "Cannot read manifest")
 	}
-	return NewAciWithManifest(path, args, *manifest, nil)
+	return NewAciWithManifest(path, args, *manifest, nil, nil)
 }
 
 //////////////////////////////////////////////////////////////////
@@ -206,7 +209,76 @@ func (aci *Aci) tarAci(zip bool) {
 	os.Chdir(dir)
 }
 
-func (aci *Aci) checkLatestVersions(checked *chan bool) {
+func (aci *Aci) checkCompatibilityVersions(compatChecked *chan bool) {
+	froms, err := aci.manifest.GetFroms()
+	if err != nil {
+		logs.WithEF(err, aci.fields).Fatal("Invalid from")
+	}
+	for _, from := range froms {
+		if from == "" {
+			continue
+		}
+
+		fromFields := aci.fields.WithField("dependency", from.String())
+
+		out, err := utils.ExecCmdGetOutput("rkt", "image", "cat-manifest", from.String())
+		if err != nil {
+			logs.WithEF(err, fromFields).Fatal("Cannot find dependency")
+		}
+
+		version, ok := loadManifest(out).Annotations.Get("cnt-version")
+		var val int
+		if ok {
+			val, err = strconv.Atoi(version)
+			if err != nil {
+				logs.WithEF(err, fromFields).WithField("version", version).Fatal("Failed to parse cnt-version from manifest")
+			}
+		}
+		if !ok || val < 51 {
+			logs.WithF(aci.fields).
+				WithField("from", from).
+				WithField("require", ">=51").
+				Error("from aci was not build with a compatible version of cnt")
+		}
+	}
+
+	for _, dep := range aci.manifest.Aci.Dependencies {
+		out, err := utils.ExecCmdGetOutput("rkt", "image", "cat-manifest", dep.String())
+		depFields := aci.fields.WithField("dependency", dep.String())
+		if err != nil {
+			logs.WithEF(err, depFields).Fatal("Cannot find dependency")
+		}
+
+		version, ok := loadManifest(out).Annotations.Get("cnt-version")
+		var val int
+		if ok {
+			val, err = strconv.Atoi(version)
+			if err != nil {
+				logs.WithEF(err, depFields).WithField("version", version).Fatal("Failed to parse cnt-version from manifest")
+			}
+		}
+		if !ok || val < 51 {
+			logs.WithF(aci.fields).
+				WithField("dependency", dep).
+				WithField("require", ">=51").
+				Error("dependency aci was not build with a compatible version of cnt")
+		}
+	}
+	if compatChecked != nil {
+		*compatChecked <- true
+	}
+}
+
+func loadManifest(content string) schema.ImageManifest {
+	im := schema.ImageManifest{}
+	err := im.UnmarshalJSON([]byte(content))
+	if err != nil {
+		logs.WithE(err).WithField("content", content).Fatal("Failed to read manifest content")
+	}
+	return im
+}
+
+func (aci *Aci) checkLatestVersions(latestChecked *chan bool) {
 	froms, err := aci.manifest.GetFroms()
 	if err != nil {
 		logs.WithEF(err, aci.fields).Fatal("Invalid from")
@@ -231,7 +303,7 @@ func (aci *Aci) checkLatestVersions(checked *chan bool) {
 			logs.WithF(aci.fields.WithField("version", dep.Name()+":"+version)).Warn("Newer 'dependency' version")
 		}
 	}
-	if checked != nil {
-		*checked <- true
+	if latestChecked != nil {
+		*latestChecked <- true
 	}
 }

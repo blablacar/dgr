@@ -161,7 +161,7 @@ func (cnt *Aci) prepareTestAci() (*Aci, error) {
 			Dependencies: []spec.ACFullname{BATS_ACI, cnt.manifest.NameAndVersion},
 		},
 		NameAndVersion: *fullname,
-	}, nil)
+	}, nil, nil)
 	testAci.FullyResolveDep = false                        // this is required to run local tests without discovery
 	testAci.target = cnt.target + PATH_TESTS + PATH_TARGET // this is required when target is deported
 	testAci.rootfs = testAci.target + PATH_ROOTFS
