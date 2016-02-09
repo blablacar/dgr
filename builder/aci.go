@@ -90,7 +90,11 @@ CNT_PATH=/cnt
 
 execute_files ${CNT_PATH}/runlevels/prestart-early
 
-${BASEDIR}/templater -L ${LOG_LEVEL} -t / /cnt
+if [ -z ${LOG_LEVEL} ]; then
+	${BASEDIR}/templater -t / /cnt
+else
+	${BASEDIR}/templater -L "${LOG_LEVEL}" -t / /cnt
+fi
 
 #if [ -d ${CNT_PATH}/attributes ]; then
 #	echo "$CONFD_OVERRIDE"

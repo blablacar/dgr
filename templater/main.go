@@ -25,6 +25,7 @@ func main() {
 	lvl, err := logs.ParseLevel(logLvl)
 	if err != nil {
 		fmt.Println("Wrong log level : " + logLvl)
+		os.Exit(1)
 	}
 	logs.SetLevel(lvl)
 
