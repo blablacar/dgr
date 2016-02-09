@@ -94,10 +94,14 @@ func Run(overrideEnvVarName string, target string, templaterDir string) {
 func overrideWithJsonIfNeeded(overrideEnvVarName string, attributes map[string]interface{}) map[string]interface{} {
 	if overrideEnvVarName != "" {
 		if envjson := os.Getenv(overrideEnvVarName); envjson != "" {
+			logs.WithField("content", envjson).Debug("Override var content")
 			var envattr map[string]interface{}
 			err := json.Unmarshal([]byte(envjson), &envattr)
 			if err != nil {
-				panic(err)
+				logs.WithE(err).
+				WithField("varName", overrideEnvVarName).
+				WithField("content", envjson).
+				Fatal("Invalid format for environment override content")
 			}
 			attributes = mergemap.Merge(attributes, envattr)
 		}

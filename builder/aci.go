@@ -91,9 +91,9 @@ CNT_PATH=/cnt
 execute_files ${CNT_PATH}/runlevels/prestart-early
 
 if [ -z ${LOG_LEVEL} ]; then
-	${BASEDIR}/templater -t / /cnt
+	${BASEDIR}/templater -o TEMPLATER_OVERRIDE -t / /cnt
 else
-	${BASEDIR}/templater -L "${LOG_LEVEL}" -t / /cnt
+	${BASEDIR}/templater -o TEMPLATER_OVERRIDE -L "${LOG_LEVEL}" -t / /cnt
 fi
 
 #if [ -d ${CNT_PATH}/attributes ]; then
