@@ -21,13 +21,13 @@ type Templating struct {
 
 const EXT_CFG = ".cfg"
 
-var templateFunctions map[string]interface{}
+var TemplateFunctions map[string]interface{}
 
 func NewTemplating(partials *txttmpl.Template, filePath, content string) (*Templating, error) {
 	t := Templating{
 		name:      filePath,
-		content:   cleanupOfTemplate(content),
-		functions: templateFunctions,
+		content:   CleanupOfTemplate(content),
+		functions: TemplateFunctions,
 	}
 	if partials == nil {
 		partials = txttmpl.New(t.name)
@@ -38,7 +38,7 @@ func NewTemplating(partials *txttmpl.Template, filePath, content string) (*Templ
 	return &t, err
 }
 
-func cleanupOfTemplate(content string) string {
+func CleanupOfTemplate(content string) string {
 	var lines []string
 	var currentLine string
 	scanner := bufio.NewScanner(strings.NewReader(string(content)))
@@ -116,21 +116,21 @@ func UnmarshalJsonArray(data string) ([]interface{}, error) {
 }
 
 func init() {
-	templateFunctions = make(map[string]interface{})
-	templateFunctions["base"] = path.Base
-	templateFunctions["split"] = strings.Split
-	templateFunctions["json"] = UnmarshalJsonObject
-	templateFunctions["jsonArray"] = UnmarshalJsonArray
-	templateFunctions["dir"] = path.Dir
-	templateFunctions["getenv"] = os.Getenv
-	templateFunctions["join"] = strings.Join
-	templateFunctions["datetime"] = time.Now
-	templateFunctions["toUpper"] = strings.ToUpper
-	templateFunctions["toLower"] = strings.ToLower
-	templateFunctions["contains"] = strings.Contains
-	templateFunctions["replace"] = strings.Replace
-	templateFunctions["orDef"] = orDef
-	templateFunctions["orDefs"] = orDefs
-	templateFunctions["ifOrDef"] = ifOrDef
+	TemplateFunctions = make(map[string]interface{})
+	TemplateFunctions["base"] = path.Base
+	TemplateFunctions["split"] = strings.Split
+	TemplateFunctions["json"] = UnmarshalJsonObject
+	TemplateFunctions["jsonArray"] = UnmarshalJsonArray
+	TemplateFunctions["dir"] = path.Dir
+	TemplateFunctions["getenv"] = os.Getenv
+	TemplateFunctions["join"] = strings.Join
+	TemplateFunctions["datetime"] = time.Now
+	TemplateFunctions["toUpper"] = strings.ToUpper
+	TemplateFunctions["toLower"] = strings.ToLower
+	TemplateFunctions["contains"] = strings.Contains
+	TemplateFunctions["replace"] = strings.Replace
+	TemplateFunctions["orDef"] = orDef
+	TemplateFunctions["orDefs"] = orDefs
+	TemplateFunctions["ifOrDef"] = ifOrDef
 
 }

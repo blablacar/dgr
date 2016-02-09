@@ -4,6 +4,7 @@ import (
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
+	"io/ioutil"
 	"os"
 	"strings"
 	txttmpl "text/template"
@@ -47,9 +48,22 @@ func (t *TemplateDir) LoadPartial() error {
 	if len(partials) == 0 {
 		return nil
 	}
-	tmpl, err := txttmpl.ParseFiles(partials...)
-	if err != nil {
-		return errs.WithEF(err, t.fields, "Failed to load partials")
+	var tmpl *txttmpl.Template
+	for _, partial := range partials {
+		if tmpl == nil {
+			tmpl = txttmpl.New(partial)
+		} else {
+			tmpl = tmpl.New(partial)
+		}
+
+		content, err := ioutil.ReadFile(partial)
+		if err != nil {
+			return errs.WithEF(err, t.fields.WithField("partial", partial), "Cannot read partial file")
+		}
+		tmpl, err = tmpl.Funcs(TemplateFunctions).Parse(CleanupOfTemplate(string(content)))
+		if err != nil {
+			return errs.WithEF(err, t.fields.WithField("partial", partial), "Failed to parse partial")
+		}
 	}
 	t.partials = tmpl
 	return nil
