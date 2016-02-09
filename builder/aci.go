@@ -207,13 +207,21 @@ func (aci *Aci) tarAci(zip bool) {
 }
 
 func (aci *Aci) checkLatestVersions(checked *chan bool) {
-	//	if aci.manifest.From != "" && aci.manifest.From.Version() != "" {
-	//		version, _ := aci.manifest.From.LatestVersion()
-	//		logs.WithField("version", aci.manifest.From.Name()+":"+version).Debug("Discovered from latest verion")
-	//		if version != "" && utils.Version(aci.manifest.From.Version()).LessThan(utils.Version(version)) {
-	//			logs.WithF(aci.fields.WithField("version", aci.manifest.From.Name()+":"+version)).Warn("Newer 'from' version")
-	//		}
-	//	}
+	froms, err := aci.manifest.GetFroms()
+	if err != nil {
+		logs.WithEF(err, aci.fields).Fatal("Invalid from")
+	}
+	for _, from := range froms {
+		if from == "" {
+			continue
+		}
+
+		version, _ := from.LatestVersion()
+		logs.WithField("version", from.Name()+":"+version).Debug("Discovered from latest verion")
+		if version != "" && utils.Version(from.Version()).LessThan(utils.Version(version)) {
+			logs.WithF(aci.fields.WithField("version", from.Name()+":"+version)).Warn("Newer 'from' version")
+		}
+	}
 	for _, dep := range aci.manifest.Aci.Dependencies {
 		if dep.Version() == "" {
 			continue
