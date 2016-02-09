@@ -185,7 +185,10 @@ templates/etc/resolv.conf.tmpl.cfg
 uid: 0
 gid: 0
 mode: 0644
+checkCmd: /cnt/bin/busybox true
 ```
+
+`checkCmd` is a command to run after the templating to check that the configuration is valid.
 
 When you have to reuse the same part in multiple templates, you can create a partial template like defined in the [go templating](https://golang.org/pkg/text/template/#hdr-Nested_template_definitions)
 
@@ -221,11 +224,9 @@ templater provides functions to manipulate data inside the template. Here is the
 | orDefs    | orDefs               | if first array param is empty use second element to fill it |
 | ifOrDef   | ifOrDef              | if first param is not nil, use second, else third           |
 
-
-
-
-
 It also provide all function defined by [gtf project](https://github.com/leekchan/gtf)
+
+*We can add functions on demand*
 
 ### The attributes
 
