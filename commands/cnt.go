@@ -35,7 +35,7 @@ func Execute() {
 	rootCmd.PersistentFlags().StringVarP(&homePath, "home-path", "H", cnt.DefaultHomeFolder(), "Set home folder")
 	rootCmd.PersistentFlags().StringVarP(&workPath, "work-path", "W", ".", "Set the work path")
 
-	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd /*updateCmd,*/, graphCmd, aciVersion)
+	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, updateCmd, graphCmd, aciVersion)
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 
 		// logs

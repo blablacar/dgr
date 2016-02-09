@@ -33,7 +33,6 @@ func NewTemplating(partials *txttmpl.Template, filePath, content string) (*Templ
 		partials = txttmpl.New(t.name)
 	}
 
-	//	template.New(t.name).Funcs(t.functions).Parse(t.content)
 	tmpl, err := partials.New(t.name).Funcs(t.functions).Funcs(map[string]interface{}(gtf.GtfFuncMap)).Parse(t.content)
 	t.template = tmpl
 	return &t, err

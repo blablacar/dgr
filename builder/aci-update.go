@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func (cnt *Aci) UpdateConf() error {
+func (cnt *Aci) Update() error {
 	logs.WithF(cnt.fields).Info("Updating")
 
 	os.MkdirAll(cnt.rootfs, 0777)

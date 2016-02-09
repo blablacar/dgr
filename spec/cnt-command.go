@@ -7,5 +7,5 @@ type CntCommand interface {
 	Install()
 	Test()
 	Graph()
-	//	Update() error
+	Update() error
 }

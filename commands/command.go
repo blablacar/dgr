@@ -66,15 +66,15 @@ var testCmd = &cobra.Command{
 	},
 }
 
-//var updateCmd = &cobra.Command{
-//	Use:   "update",
-//	Short: "update aci",
-//	Long:  `update an aci`,
-//	Run: func(cmd *cobra.Command, args []string) {
-//		runCleanIfRequested(workPath, buildArgs)
-//		buildAciOrPod(workPath, buildArgs).Update()
-//	},
-//}
+var updateCmd = &cobra.Command{
+	Use:   "update",
+	Short: "update aci",
+	Long:  `update an aci`,
+	Run: func(cmd *cobra.Command, args []string) {
+		runCleanIfRequested(workPath, buildArgs)
+		buildAciOrPod(workPath, buildArgs).Update()
+	},
+}
 
 var aciVersion = &cobra.Command{
 	Use:   "aci-version file",
