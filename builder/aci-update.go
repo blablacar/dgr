@@ -5,19 +5,20 @@ import (
 	"os"
 )
 
-func (cnt *Aci) Update() error {
-	logs.WithF(cnt.fields).Info("Updating")
+func (aci *Aci) Update() error {
+	logs.WithF(aci.fields).Info("Updating")
 
-	os.MkdirAll(cnt.rootfs, 0777)
+	os.MkdirAll(aci.rootfs, 0777)
 
-	cnt.writeAciManifest()
+	aci.copyInternals()
+	aci.writeAciManifest()
 
-	cnt.copyRunlevelsScripts()
-	cnt.copyAttributes()
-	cnt.copyConfd()
-	cnt.copyFiles()
+	aci.copyRunlevelsScripts()
+	aci.copyAttributes()
+	aci.copyConfd()
+	aci.copyFiles()
 
-	cnt.tarAci(false)
+	aci.tarAci(false)
 
 	return nil
 }
