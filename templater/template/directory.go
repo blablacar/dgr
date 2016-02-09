@@ -6,32 +6,63 @@ import (
 	"github.com/n0rad/go-erlog/logs"
 	"os"
 	"strings"
+	txttmpl "text/template"
 )
 
-type templateDir struct {
-	fields data.Fields
-	src    string
-	dst    string
+type TemplateDir struct {
+	fields   data.Fields
+	src      string
+	dst      string
+	partials *txttmpl.Template
 }
 
-func NewTemplateDir(path string, targetRoot string) *templateDir {
+func NewTemplateDir(path string, targetRoot string) (*TemplateDir, error) {
 	fields := data.WithField("dir", path)
 	logs.WithF(fields).Info("Reading template dir")
-	return &templateDir{
+	tmplDir := &TemplateDir{
 		fields: fields,
 		src:    path,
 		dst:    targetRoot,
 	}
+	return tmplDir, tmplDir.LoadPartial()
 }
 
-func (t *templateDir) Process(attributes map[string]interface{}) error {
+func (t *TemplateDir) LoadPartial() error {
+	partials := []string{}
+
+	directory, err := os.Open(t.src)
+	if err != nil {
+		return errs.WithEF(err, t.fields, "Failed to open template dir")
+	}
+	objects, err := directory.Readdir(-1)
+	if err != nil {
+		return errs.WithEF(err, t.fields, "Failed to read template dir")
+	}
+	for _, obj := range objects {
+		if !obj.IsDir() && strings.HasSuffix(obj.Name(), ".partial") {
+			partials = append(partials, t.src+"/"+obj.Name())
+		}
+	}
+
+	if len(partials) == 0 {
+		return nil
+	}
+	tmpl, err := txttmpl.ParseFiles(partials...)
+	if err != nil {
+		return errs.WithEF(err, t.fields, "Failed to load partials")
+	}
+	t.partials = tmpl
+	return nil
+}
+
+func (t *TemplateDir) Process(attributes map[string]interface{}) error {
 	if err := t.processSingleDir(t.src, t.dst, attributes); err != nil {
 		return errs.WithEF(err, t.fields, "Failed to process templating of directory")
 	}
 	return nil
 }
 
-func (t *templateDir) processSingleDir(src string, dst string, attributes map[string]interface{}) error {
+func (t *TemplateDir) processSingleDir(src string, dst string, attributes map[string]interface{}) error {
 	sourceInfo, err := os.Stat(src)
 	if err != nil {
 		return errs.WithEF(err, t.fields, "Cannot read source dir stat")
@@ -58,7 +89,7 @@ func (t *templateDir) processSingleDir(src string, dst string, attributes map[st
 			}
 		} else if strings.HasSuffix(obj.Name(), ".tmpl") {
 			dstObj := dstObj[:len(dstObj)-5]
-			template, err := NewTemplateFile(srcObj, obj.Mode())
+			template, err := NewTemplateFile(t.partials, srcObj, obj.Mode())
 			if err != nil {
 				return err
 			}

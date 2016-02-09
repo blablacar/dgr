@@ -75,7 +75,11 @@ func Run(overrideEnvVarName string, target string, templaterDir string) {
 	attributes := attrMerger.Merge()
 	attributes = overrideWithJsonIfNeeded(overrideEnvVarName, attributes)
 
-	err = template.NewTemplateDir(templaterDir+PATH_TEMPLATES, target).Process(attributes)
+	tmpl, err := template.NewTemplateDir(templaterDir+PATH_TEMPLATES, target)
+	if err != nil {
+		logs.WithE(err).WithField("dir", templaterDir+PATH_TEMPLATES).Fatal("Failed to load template dir")
+	}
+	err = tmpl.Process(attributes)
 	if err != nil {
 		logs.WithE(err).WithField("dir", templaterDir+PATH_TEMPLATES).Fatal("Failed to process template dir")
 	}

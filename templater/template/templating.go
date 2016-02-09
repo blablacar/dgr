@@ -7,12 +7,12 @@ import (
 	"os"
 	"path"
 	"strings"
-	"text/template"
+	txttmpl "text/template"
 	"time"
 )
 
 type Templating struct {
-	template  *template.Template
+	template  *txttmpl.Template
 	name      string
 	content   string
 	functions map[string]interface{}
@@ -22,14 +22,18 @@ const EXT_CFG = ".cfg"
 
 var templateFunctions map[string]interface{}
 
-func NewTemplating(filePath, content string) (*Templating, error) {
+func NewTemplating(partials *txttmpl.Template, filePath, content string) (*Templating, error) {
 	t := Templating{
 		name:      filePath,
 		content:   cleanupOfTemplate(content),
 		functions: templateFunctions,
 	}
+	if partials == nil {
+		partials = txttmpl.New(t.name)
+	}
 
-	tmpl, err := template.New(t.name).Funcs(t.functions).Parse(t.content)
+	//	template.New(t.name).Funcs(t.functions).Parse(t.content)
+	tmpl, err := partials.New(t.name).Funcs(t.functions).Parse(t.content)
 	t.template = tmpl
 	return &t, err
 }

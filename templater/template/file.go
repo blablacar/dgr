@@ -10,6 +10,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
+	txttmpl "text/template"
 )
 
 type TemplateFile struct {
@@ -22,7 +23,7 @@ type TemplateFile struct {
 	template *Templating
 }
 
-func NewTemplateFile(src string, mode os.FileMode) (*TemplateFile, error) {
+func NewTemplateFile(partials *txttmpl.Template, src string, mode os.FileMode) (*TemplateFile, error) {
 	fields := data.WithField("src", src)
 
 	content, err := ioutil.ReadFile(src)
@@ -30,7 +31,7 @@ func NewTemplateFile(src string, mode os.FileMode) (*TemplateFile, error) {
 		return nil, errs.WithEF(err, fields, "Cannot read template file")
 	}
 
-	template, err := NewTemplating(src, string(content))
+	template, err := NewTemplating(partials, src, string(content))
 	if err != nil {
 		return nil, errs.WithEF(err, fields, "Failed to prepare template")
 	}
@@ -63,6 +64,8 @@ func (t *TemplateFile) loadTemplateConfig(src string) error {
 	}
 	return nil
 }
+
+//template.ExecuteTemplate(os.Stdout, "login", data)
 
 func (f *TemplateFile) runTemplate(dst string, attributes map[string]interface{}) error {
 	if logs.IsTraceEnabled() {
