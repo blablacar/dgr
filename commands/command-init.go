@@ -44,24 +44,45 @@ func discoverAndRunInitType(path string, args builder.BuildArgs) {
 	files := make(map[string]string)
 
 	files[builder.PATH_RUNLEVELS+builder.PATH_PRESTART_EARLY+"/10.prestart-early.sh"] = `#!/cnt/bin/busybox sh
+source /cnt/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
 echo "I'm a prestart early script that is run before templating"
 `
 	files[builder.PATH_RUNLEVELS+builder.PATH_PRESTART_LATE+"/10.prestart-late.sh"] = `#!/cnt/bin/busybox sh
+source /cnt/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
 echo "I'm a prestart late script that is run after templating"
 `
 	files[builder.PATH_RUNLEVELS+builder.PATH_BUILD+"/10.install.sh"] = `#!/cnt/bin/busybox sh
+source /cnt/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
 echo "I'm a build script that is run to install applications"
 `
 	files[builder.PATH_RUNLEVELS+builder.PATH_BUILD_SETUP+"/10.setup.sh"] = `#!/bin/sh
+source ${TARGET}/rootfs/cnt/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
 echo "I'm build setup script file that is run from $BASEDIR to prepare $TARGET/rootfs before running build scripts"
 `
 	files[builder.PATH_RUNLEVELS+builder.PATH_BUILD_LATE+"/10.setup.sh"] = `#!/cnt/bin/busybox sh
+source /cnt/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
 echo "I'm a build late script that is run to install applications after the copy of files,template,etc..."
 `
 	files[builder.PATH_RUNLEVELS+builder.PATH_INHERIT_BUILD_EARLY+"/10.inherit-build-early.sh"] = `#!/cnt/bin/busybox sh
+source /cnt/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
 echo "I'm a inherit build early script that is run on this image and all images that have me as From during build"
 `
 	files[builder.PATH_RUNLEVELS+builder.PATH_INHERIT_BUILD_LATE+"/10.inherit-build-early.sh"] = `#!/cnt/bin/busybox sh
+source /cnt/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
 echo "I'm a inherit build late script that is run on this image and all images that have me as From during build"
 `
 	files[builder.PATH_FILES+"/etc/dummy"] = `Dummy file

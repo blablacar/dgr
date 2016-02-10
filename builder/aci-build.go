@@ -157,7 +157,11 @@ func (aci *Aci) copyInternals() {
 
 	os.MkdirAll(aci.rootfs+PATH_CNT+"/prestart", 0755)
 	if err := ioutil.WriteFile(aci.rootfs+PATH_CNT+PATH_BIN+"/prestart", []byte(PRESTART), 0777); err != nil {
-		logs.WithEF(err, aci.fields).Fatal("Failed to copy prestart")
+		logs.WithEF(err, aci.fields).Fatal("Failed to write prestart")
+	}
+
+	if err := ioutil.WriteFile(aci.rootfs+PATH_CNT+PATH_BIN+"/functions.sh", []byte(SH_FUNCTIONS), 0777); err != nil {
+		logs.WithEF(err, aci.fields).Fatal("Failed to write functions.sh")
 	}
 }
 
@@ -176,21 +180,32 @@ func (aci *Aci) copyRunlevelsScripts() {
 }
 
 func (aci *Aci) runLevelBuildSetup() {
-	files, err := ioutil.ReadDir(aci.path + PATH_RUNLEVELS + PATH_BUILD_SETUP)
+	_, err := ioutil.ReadDir(aci.path + PATH_RUNLEVELS + PATH_BUILD_SETUP)
 	if err != nil {
 		return
 	}
 
+	logs.WithF(aci.fields).Info("Running build setup scripts")
+
+	if err := ioutil.WriteFile(aci.target+"/build-setup.sh", []byte(BUILD_SETUP), 0777); err != nil {
+		logs.WithEF(err, aci.fields).Fatal("Failed to write build setup script")
+	}
+
 	os.Setenv("BASEDIR", aci.path)
 	os.Setenv("TARGET", aci.target)
-	for _, f := range files {
-		if !f.IsDir() {
-			logs.WithF(aci.fields.WithField("file", f.Name())).Debug("Running Build setup level script")
-			if err := utils.ExecCmd(aci.path + PATH_RUNLEVELS + PATH_BUILD_SETUP + "/" + f.Name()); err != nil {
-				panic(err)
-			}
-		}
+
+	if err := utils.ExecCmd(aci.target + "/build-setup.sh"); err != nil {
+		logs.WithEF(err, aci.fields).Fatal("Build setup failed")
 	}
+
+	//	for _, f := range files {
+	//		if !f.IsDir() {
+	//			logs.WithF(aci.fields.WithField("file", f.Name())).Debug("Running Build setup level script")
+	//			if err := utils.ExecCmd(aci.path + PATH_RUNLEVELS + PATH_BUILD_SETUP + "/" + f.Name()); err != nil {
+	//				logs.WithEF(err, aci.fields).WithField("script", f.Name()).Fatal("Build setup runlevel script failed")
+	//			}
+	//		}
+	//	}
 }
 
 func (aci *Aci) copyConfd() {

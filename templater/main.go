@@ -93,7 +93,6 @@ func Run(overrideEnvVarName string, target string, templaterDir string) {
 }
 
 func overrideWithJsonIfNeeded(overrideEnvVarName string, attributes map[string]interface{}) map[string]interface{} {
-	logs.WithField("val", overrideEnvVarName).Warn("overrride name")
 	if overrideEnvVarName != "" {
 		if envjson := os.Getenv(overrideEnvVarName); envjson != "" {
 			logs.WithField("content", envjson).Debug("Override var content")

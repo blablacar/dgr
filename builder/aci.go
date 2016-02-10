@@ -29,31 +29,35 @@ execute_files() {
   done
 }
 
-case ` + "`echo ${LOG_LEVEL:-INFO} | awk '{print toupper($0)}'`" + ` in
-	"FATAL") lvl=0 ;;
-	"PANIC") lvl=1 ;;
-	"ERROR") lvl=2 ;;
-	"WARN"|"WARNING") lvl=3 ;;
-	"INFO") lvl=4 ;;
-	"DEBUG") lvl=5 ;;
-	"TRACE") lvl=6 ;;
-	*) echo "UNKNOWN LOG LEVEL"; lvl=4 ;;
-esac
-
+levelFromString() {
+	case ` + "`echo ${1} | awk '{print toupper($0)}'`" + ` in
+		"FATAL") echo 0; return 0 ;;
+		"PANIC") echo 1; return 0 ;;
+		"ERROR") echo 2; return 0 ;;
+		"WARN"|"WARNING") echo 3; return 0 ;;
+		"INFO") echo 4; return 0 ;;
+		"DEBUG") echo 5; return 0 ;;
+		"TRACE") echo 6; return 0 ;;
+		*) echo 4 ;;
+	esac
+}
 
 isLevelEnabled() {
-	if [ $1 -le $lvl ]; then
+	l=$(levelFromString $1)
+
+	if [ $l -le $log_level ]; then
 		return 0
 	fi
 	return 1
 }
+
+export log_level=$(levelFromString ${LOG_LEVEL:-INFO})
 `
 
 const BUILD_SCRIPT = `#!/cnt/bin/busybox sh
 set -e
-` + SH_FUNCTIONS + `
-
-isLevelEnabled 5 && set -x
+source /cnt/bin/functions.sh
+isLevelEnabled "debug" && set -x
 
 export TARGET=$( dirname $0 )
 export ROOTFS=%%ROOTFS%%
@@ -65,9 +69,8 @@ execute_files "$TARGET/runlevels/build"
 
 const BUILD_SCRIPT_LATE = `#!/cnt/bin/busybox sh
 set -e
-` + SH_FUNCTIONS + `
-
-isLevelEnabled 5 && set -x
+source /cnt/bin/functions.sh
+isLevelEnabled "debug" && set -x
 
 
 export TARGET=$( dirname $0 )
@@ -80,10 +83,8 @@ execute_files "$ROOTFS/cnt/runlevels/inherit-build-late"
 
 const PRESTART = `#!/cnt/bin/busybox sh
 set -e
-` + SH_FUNCTIONS + `
-
-isLevelEnabled 5 && set -x
-
+source /cnt/bin/functions.sh
+isLevelEnabled "debug" && set -x
 
 BASEDIR=${0%/*}
 CNT_PATH=/cnt
@@ -105,6 +106,14 @@ fi
 
 execute_files ${CNT_PATH}/runlevels/prestart-late
 `
+const BUILD_SETUP = `#!/bin/sh
+set -e
+source ${TARGET}/rootfs/cnt/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
+execute_files ${BASEDIR}/runlevels/build-setup
+`
+
 const PATH_BIN = "/bin"
 const PATH_TESTS = "/tests"
 const PATH_INSTALLED = "/installed"
