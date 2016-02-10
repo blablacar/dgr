@@ -81,6 +81,7 @@ func (aci *Aci) runBuildLate() {
 	logs.WithF(aci.fields).Info("Starting systemd-nspawn to run Build late scripts")
 	if err := utils.ExecCmd("systemd-nspawn",
 		"--setenv=LOG_LEVEL="+logs.GetLevel().String(),
+		"--register=no",
 		"-q",
 		"--directory="+aci.rootfs,
 		"--capability=all",
@@ -107,6 +108,7 @@ func (aci *Aci) runBuild() {
 	logs.WithF(aci.fields).Info("Starting systemd-nspawn to run Build scripts")
 	if err := utils.ExecCmd("systemd-nspawn",
 		"--setenv=LOG_LEVEL="+logs.GetLevel().String(),
+		"--register=no",
 		"-q",
 		"--directory="+aci.rootfs,
 		"--capability=all",
