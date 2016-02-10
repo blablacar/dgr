@@ -22,7 +22,7 @@ execute_files() {
 
   for file in $fdir/*; do
     [ -e "$file" ] && {
-     	[ -x "$file" ] || /cnt/bin/busybox chmod +x "$file"
+     	[ -x "$file" ] || chmod +x "$file"
 		isLevelEnabled 4 && echo -e "\e[1m\e[32mRunning script -> $file\e[0m"
      	$file
     }
@@ -56,7 +56,7 @@ export log_level=$(levelFromString ${LOG_LEVEL:-INFO})
 
 const BUILD_SCRIPT = `#!/cnt/bin/busybox sh
 set -e
-source /cnt/bin/functions.sh
+. /cnt/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
 export TARGET=$( dirname $0 )
@@ -69,7 +69,7 @@ execute_files "$TARGET/runlevels/build"
 
 const BUILD_SCRIPT_LATE = `#!/cnt/bin/busybox sh
 set -e
-source /cnt/bin/functions.sh
+. /cnt/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
 
@@ -83,7 +83,7 @@ execute_files "$ROOTFS/cnt/runlevels/inherit-build-late"
 
 const PRESTART = `#!/cnt/bin/busybox sh
 set -e
-source /cnt/bin/functions.sh
+. /cnt/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
 BASEDIR=${0%/*}
@@ -108,7 +108,7 @@ execute_files ${CNT_PATH}/runlevels/prestart-late
 `
 const BUILD_SETUP = `#!/bin/sh
 set -e
-source ${TARGET}/rootfs/cnt/bin/functions.sh
+. ${TARGET}/rootfs/cnt/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
 execute_files ${BASEDIR}/runlevels/build-setup

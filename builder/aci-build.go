@@ -193,6 +193,7 @@ func (aci *Aci) runLevelBuildSetup() {
 
 	os.Setenv("BASEDIR", aci.path)
 	os.Setenv("TARGET", aci.target)
+	os.Setenv("LOG_LEVEL", logs.GetLevel().String())
 
 	if err := utils.ExecCmd(aci.target + "/build-setup.sh"); err != nil {
 		logs.WithEF(err, aci.fields).Fatal("Build setup failed")
