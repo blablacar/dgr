@@ -93,15 +93,15 @@ It will generate the following file tree :
 ```text
 .
 |-- attributes
-|   `-- attributes.yml                 # Attributes file for confd
+|   `-- attributes.yml                 # Attributes files that will be merged and used to resolve templates
 |-- cnt-manifest.yml                   # Manifest
-|-- confd
-|   |-- conf.d
-|   |   `-- templated.toml             # Confd template resource config
-|   `-- templates
-|       `-- templated.tmpl             # Confd source template
+|-- templates
+|   |-- etc
+|   |   |-- templated.tmpl             # template file that will end up at /etc/templated
+|   |   `-- templated.tmpl.cfg         # configuration of the targeted file, like user and mode (optional file)
+|   `-- header.partial                 # template part that can be included in template files
 |-- files
-|   `-- dummy                          # Files to be copied in the target rootfs
+|   `-- dummy                          # Files to be copied to the same location in the target rootfs
 |-- runlevels
 |   |-- build
 |   |   `-- 10.install.sh              # Scripts to be run when building
@@ -114,9 +114,9 @@ It will generate the following file tree :
 |   |-- inherit-build-late
 |   |   `-- 10.inherit-build-early.sh  # Scripts stored in ACI and used when building FROM this image
 |   |-- prestart-early
-|   |   `-- 10.prestart-early.sh       # Scripts to be run when starting ACI before confd templating
+|   |   `-- 10.prestart-early.sh       # Scripts to be run when starting ACI before templating
 |   `-- prestart-late
-|       `-- 10.prestart-late.sh        # Scripts to be run when starting ACI after confd templating
+|       `-- 10.prestart-late.sh        # Scripts to be run when starting ACI after templating
 `-- tests
     |-- dummy.bats                     # Bats tests for this ACI
     `-- wait.sh
@@ -230,7 +230,7 @@ It also provide all function defined by [gtf project](https://github.com/leekcha
 
 ### The attributes
 
-All the YAML files in the directory **attributes** are read by cnt. The first node of the YAML has to be "default" as it can be overridden in a POD or with a json in the env variable CONFD_OVERRIDE in the cmd line.
+All the YAML files in the directory **attributes** are read by cnt. The first node of the YAML has to be "default" as it can be overridden in a POD or with a json in the env variable TEMPLATER_OVERRIDE in the cmd line.
 
 attributes/resolv.conf.yml
 ```
@@ -264,15 +264,12 @@ Building a POD
 ```bash
 ├── aci-elasticsearch               # Directory that match the pod app shortname (or name)
 │   ├── attributes
-│   │   └── attributes.yml          # Attributes file for confd in this ACI
+│   │   └── attributes.yml          # Attributes file for templating in this ACI
 │   ├── files                       # Files to be inserted into this ACI
 │   ...  
 ├── cnt-pod-manifest.yml            # Pod Manifest
 
 ```
-
-####
-File templating will be resolved on container start using [confd](https://github.com/kelseyhightower/confd) with the backend env.
 
 
 # caveats
@@ -280,8 +277,3 @@ File templating will be resolved on container start using [confd](https://github
 - [rkt](https://github.com/coreos/rkt) in path
 - systemd-nspawn to launch 'build runlevels' scripts
 - being root is required to construct the filesystem
-
-
-# Inspiration
-
-Tool to build [APPC](https://github.com/appc/spec) ACI and POD in a mixup of Chef, Dockerfile and Packer logic.
