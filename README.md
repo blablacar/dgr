@@ -55,6 +55,7 @@ acbuild is a command line tools to build ACIs. It is more flexible than Dockerfi
 ```bash
 $ cnt init          # init a sample project
 $ cnt build         # build the image
+$ cnt update        # update only template part for fast test iteration (use with caution)
 $ cnt clean         # clean the build
 $ cnt install       # store target image to rkt local store
 $ cnt push          # push target image to remote storage
