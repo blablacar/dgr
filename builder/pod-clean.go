@@ -12,23 +12,13 @@ func (p *Pod) Clean() {
 		panic("Cannot clean" + p.manifest.Name.String() + err.Error())
 	}
 
-	checkVersion := make(chan bool, 1)
-	checkCompat := make(chan bool, 1)
-
 	for _, e := range p.manifest.Pod.Apps {
-		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e), &checkVersion, &checkCompat)
+		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e))
 		if err != nil {
 			logs.WithEF(err, p.fields).WithField("name", e.Name).Fatal("Cannot prepare aci")
 		}
 		aci.podName = &p.manifest.Name
 		aci.Clean()
-	}
-
-	for range p.manifest.Pod.Apps {
-		<-checkVersion
-	}
-	for range p.manifest.Pod.Apps {
-		<-checkCompat
 	}
 
 }

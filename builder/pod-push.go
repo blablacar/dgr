@@ -11,23 +11,13 @@ func (p *Pod) Push() {
 
 	p.Build()
 
-	checkVersion := make(chan bool, 1)
-	checkCompat := make(chan bool, 1)
-
 	for _, e := range p.manifest.Pod.Apps {
-		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e), &checkVersion, &checkCompat)
+		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e))
 		if err != nil {
 			logs.WithEF(err, p.fields.WithField("name", e.Name)).Fatal("Cannot prepare aci")
 		}
 		aci.podName = &p.manifest.Name
 		aci.Push()
-	}
-
-	for range p.manifest.Pod.Apps {
-		<-checkVersion
-	}
-	for range p.manifest.Pod.Apps {
-		<-checkCompat
 	}
 
 	if err := utils.ExecCmd("curl", "-i",

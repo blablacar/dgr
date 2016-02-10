@@ -147,7 +147,7 @@ type Aci struct {
 	FullyResolveDep bool
 }
 
-func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest, latestChecked *chan bool, compatChecked *chan bool) (*Aci, error) {
+func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest) (*Aci, error) {
 	if manifest.NameAndVersion == "" {
 		logs.WithField("path", path).Fatal("name is mandatory in manifest")
 	}
@@ -179,8 +179,8 @@ func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest, 
 		FullyResolveDep: true,
 	}
 
-	aci.checkCompatibilityVersions(compatChecked)
-	aci.checkLatestVersions(latestChecked)
+	aci.checkCompatibilityVersions()
+	aci.checkLatestVersions()
 	return aci, nil
 }
 
@@ -189,7 +189,7 @@ func NewAci(path string, args BuildArgs) (*Aci, error) {
 	if err != nil {
 		return nil, errs.WithEF(err, data.WithField("path", path+PATH_CNT_MANIFEST), "Cannot read manifest")
 	}
-	return NewAciWithManifest(path, args, *manifest, nil, nil)
+	return NewAciWithManifest(path, args, *manifest)
 }
 
 //////////////////////////////////////////////////////////////////
@@ -222,7 +222,7 @@ func (aci *Aci) tarAci(zip bool) {
 	os.Chdir(dir)
 }
 
-func (aci *Aci) checkCompatibilityVersions(compatChecked *chan bool) {
+func (aci *Aci) checkCompatibilityVersions() {
 	froms, err := aci.manifest.GetFroms()
 	if err != nil {
 		logs.WithEF(err, aci.fields).Fatal("Invalid from")
@@ -285,9 +285,6 @@ func (aci *Aci) checkCompatibilityVersions(compatChecked *chan bool) {
 				Error("dependency aci was not build with a compatible version of cnt")
 		}
 	}
-	if compatChecked != nil {
-		*compatChecked <- true
-	}
 }
 
 func loadManifest(content string) schema.ImageManifest {
@@ -299,7 +296,7 @@ func loadManifest(content string) schema.ImageManifest {
 	return im
 }
 
-func (aci *Aci) checkLatestVersions(latestChecked *chan bool) {
+func (aci *Aci) checkLatestVersions() {
 	froms, err := aci.manifest.GetFroms()
 	if err != nil {
 		logs.WithEF(err, aci.fields).Fatal("Invalid from")
@@ -323,8 +320,5 @@ func (aci *Aci) checkLatestVersions(latestChecked *chan bool) {
 		if version != "" && utils.Version(dep.Version()).LessThan(utils.Version(version)) {
 			logs.WithF(aci.fields.WithField("version", dep.Name()+":"+version)).Warn("Newer 'dependency' version")
 		}
-	}
-	if latestChecked != nil {
-		*latestChecked <- true
 	}
 }
