@@ -15,7 +15,7 @@ func (aci *Aci) Update() error {
 
 	aci.copyRunlevelsScripts()
 	aci.copyAttributes()
-	aci.copyConfd()
+	aci.copyTemplates()
 	aci.copyFiles()
 
 	aci.tarAci(false)

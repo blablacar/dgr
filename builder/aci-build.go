@@ -12,6 +12,8 @@ import (
 )
 
 func (aci *Aci) Build() error {
+	aci.Clean()
+
 	logs.WithF(aci.fields).Info("Building")
 
 	os.MkdirAll(aci.rootfs, 0777)
@@ -27,7 +29,7 @@ func (aci *Aci) Build() error {
 
 	aci.runBuild()
 	aci.copyAttributes()
-	aci.copyConfd()
+	aci.copyTemplates()
 	aci.copyFiles()
 	aci.runBuildLate()
 
@@ -200,18 +202,9 @@ func (aci *Aci) runLevelBuildSetup() {
 	if err := utils.ExecCmd(aci.target + "/build-setup.sh"); err != nil {
 		logs.WithEF(err, aci.fields).Fatal("Build setup failed")
 	}
-
-	//	for _, f := range files {
-	//		if !f.IsDir() {
-	//			logs.WithF(aci.fields.WithField("file", f.Name())).Debug("Running Build setup level script")
-	//			if err := utils.ExecCmd(aci.path + PATH_RUNLEVELS + PATH_BUILD_SETUP + "/" + f.Name()); err != nil {
-	//				logs.WithEF(err, aci.fields).WithField("script", f.Name()).Fatal("Build setup runlevel script failed")
-	//			}
-	//		}
-	//	}
 }
 
-func (aci *Aci) copyConfd() {
+func (aci *Aci) copyTemplates() {
 	utils.CopyDir(aci.path+PATH_TEMPLATES, aci.rootfs+PATH_CNT+PATH_TEMPLATES)
 }
 
