@@ -37,6 +37,20 @@ cnt provides various resources to build and configure an ACI :
 
 ![demo](https://raw.githubusercontent.com/blablacar/cnt/gh-pages/aci-dummy.gif)
 
+## Ok, but concretely how should I use it
+
+Currently, linux distrib and package manager are not design to support container the way it should be used. Especially on the from/dependencies part
+
+So, here is how we are using it at blablacar:
+Where you want to use a package manager like *apt*, you should debootstrap a debian version in *build_setup* to create a **aci-debian**. Then use this image as *From* in the other aci to be able to run *apt get install* at *build* runlevel.
+
+When you want to install application without dependencies, like Go (with libc linking), or java application:
+create an **aci-base** image that will just copy the libc, and template minor stuff like */etc/hosts*, */etc/hostname* and */etc/resolv.conf* to this image. then use this tiny image as from for you go application. For a java application, use this image from and **aci-java** as dependencies.
+
+Globally, our rule is to have only basic images as from to provide package manager, and get hand maid dependencies using *dependencies* tag
+
+*We are working on a cleaner solution to install application in the container without the need of the package manager coming along*
+
 ## Comparison with alternatives
 
 ### cnt vs Dockerfiles
