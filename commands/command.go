@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/blablacar/cnt/cnt"
 	"github.com/blablacar/cnt/utils"
+	"github.com/n0rad/go-erlog/logs"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -13,6 +14,8 @@ var buildCmd = &cobra.Command{
 	Short: "build aci or pod",
 	Long:  `build an aci or a pod`,
 	Run: func(cmd *cobra.Command, args []string) {
+		checkNoArgs(args)
+
 		runCleanIfRequested(workPath, buildArgs)
 		buildAciOrPod(workPath, buildArgs).Build()
 	},
@@ -23,6 +26,8 @@ var cleanCmd = &cobra.Command{
 	Short: "clean build",
 	Long:  `clean build, including rootfs`,
 	Run: func(cmd *cobra.Command, args []string) {
+		checkNoArgs(args)
+
 		buildAciOrPod(workPath, buildArgs).Clean()
 	},
 }
@@ -32,6 +37,8 @@ var graphCmd = &cobra.Command{
 	Short: "generate graphviz part",
 	Long:  `generate graphviz part`,
 	Run: func(cmd *cobra.Command, args []string) {
+		checkNoArgs(args)
+
 		buildAciOrPod(workPath, buildArgs).Graph()
 	},
 }
@@ -41,6 +48,8 @@ var installCmd = &cobra.Command{
 	Short: "install image(s)",
 	Long:  `install image(s) to rkt local storage`,
 	Run: func(cmd *cobra.Command, args []string) {
+		checkNoArgs(args)
+
 		runCleanIfRequested(workPath, buildArgs)
 		buildAciOrPod(workPath, buildArgs).Install()
 	},
@@ -51,6 +60,8 @@ var pushCmd = &cobra.Command{
 	Short: "push image(s)",
 	Long:  `push images to repository`,
 	Run: func(cmd *cobra.Command, args []string) {
+		checkNoArgs(args)
+
 		runCleanIfRequested(workPath, buildArgs)
 		buildAciOrPod(workPath, buildArgs).Push()
 	},
@@ -61,6 +72,8 @@ var testCmd = &cobra.Command{
 	Short: "test image(s)",
 	Long:  `test image(s)`,
 	Run: func(cmd *cobra.Command, args []string) {
+		checkNoArgs(args)
+
 		runCleanIfRequested(workPath, buildArgs)
 		buildAciOrPod(workPath, buildArgs).Test()
 	},
@@ -71,6 +84,8 @@ var updateCmd = &cobra.Command{
 	Short: "update aci",
 	Long:  `update an aci`,
 	Run: func(cmd *cobra.Command, args []string) {
+		checkNoArgs(args)
+
 		runCleanIfRequested(workPath, buildArgs)
 		buildAciOrPod(workPath, buildArgs).Update()
 	},
@@ -95,6 +110,8 @@ var versionCmd = &cobra.Command{
 	Short: "Version of cnt",
 	Long:  `Print the version number of cnt`,
 	Run: func(cmd *cobra.Command, args []string) {
+		checkNoArgs(args)
+
 		fmt.Print("Cnt\n\n")
 		fmt.Printf("version    : %s\n", cnt.Version)
 		if cnt.BuildDate != "" {
@@ -105,6 +122,12 @@ var versionCmd = &cobra.Command{
 		}
 		os.Exit(0)
 	},
+}
+
+func checkNoArgs(args []string) {
+	if len(args) > 0 {
+		logs.WithField("args", args).Fatal("Unknown arguments")
+	}
 }
 
 func init() {
