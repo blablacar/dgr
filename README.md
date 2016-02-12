@@ -25,7 +25,7 @@ cnt provides various resources to build and configure an ACI :
 
 **Scripts** are executed at the image build, before your container is started and more. See [runlevels](#runlevels) for more information.
 
-**Templates** and **attributes** are the way cnt deals with environment-specific configurations. **Templates** are stored in the image and resolved at runtime ; **attributes** are inherited from different contexts (aci -> pod -> environement). 
+**Templates** and **attributes** are the way cnt deals with environment-specific configurations. **Templates** are stored in the image and resolved at runtime ; **attributes** are inherited from different contexts (aci -> pod -> environment). 
 
 **Static files** are copied to same path in the container.
 
@@ -164,7 +164,7 @@ apt-get update
 apt-get install -y myapp
 ```
 
-### The templates
+### Templates
 
 You can create templates in your ACI. Templates are stored in the ACI as long as attributes and are resolved at start of the container.
 
@@ -189,7 +189,7 @@ mode: 0644
 checkCmd: /cnt/bin/busybox true
 ```
 
-`checkCmd` is a command to run after the templating to check that the configuration is valid.
+`checkCmd` is a command to run after the templating to check that the configuration is valid or fail container start.
 
 When you have to reuse the same part in multiple templates, you can create a partial template like defined in the [go templating](https://golang.org/pkg/text/template/#hdr-Nested_template_definitions)
 
@@ -229,7 +229,7 @@ It also provide all function defined by [gtf project](https://github.com/leekcha
 
 *We can add functions on demand*
 
-### The attributes
+### Attributes
 
 All the YAML files in the directory **attributes** are read by cnt. The first node of the YAML has to be "default" as it can be overridden in a POD or with a json in the env variable TEMPLATER_OVERRIDE in the cmd line.
 
@@ -255,6 +255,26 @@ runlevels/prestart-late/init.sh
 #!/bin/bash
 set -e
 /usr/bin/myapp-init
+```
+
+## Troubleshoot
+
+cnt start by default with info log level. You can change this level with the `-L` command line argument.
+e
+the log level is also propaged to all runlevels with the environment variable : **LOG_LEVEL**.
+
+You can activate debug on demand by including this code in your scripts :
+
+```bash
+source /cnt/bin/functions.sh
+isLevelEnabled "debug" && set -x
+```
+
+and for build-setup runlevel (that is not running inside the container) :
+
+```bash
+source ${TARGET}/rootfs/cnt/bin/functions.sh
+isLevelEnabled "debug" && set -x
 ```
 
 ## Ok, but concretely how should I use it
@@ -286,6 +306,8 @@ Building a POD
 ├── cnt-pod-manifest.yml            # Pod Manifest
 
 ```
+
+TODO
 
 
 # caveats
