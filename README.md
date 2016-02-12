@@ -149,7 +149,7 @@ aci:
 
 The **from** points to an ACI that will be taken as the base for the ACI we are building. The rootfs of this ACI will be copied before executing the build scripts. Typically you can use there an ACI of your favorite distro.
 The **name**, well, is the name of the ACI you are building.
-Under the **aci** key, you can add every key that is defined in the APPC spec such as :
+Under the **aci** key, you can add every key that is defined in the [APPC spec](https://github.com/appc/spec/blob/master/spec/aci.md) such as :
   - **exec** which contains the absolute path to the executable your want to run at the start of the ACI and its args.
   - **mountPoints** even though you can do it on the command line with recent versions of RKT.
   - **isolators**...
