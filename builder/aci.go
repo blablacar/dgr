@@ -20,11 +20,11 @@ execute_files() {
   fdir=$1
   [ -d "$fdir" ] || return 0
 
-  for file in $fdir/*; do
+  for file in "$fdir"/*; do
     [ -e "$file" ] && {
      	[ -x "$file" ] || chmod +x "$file"
 		isLevelEnabled 4 && echo -e "\e[1m\e[32mRunning script -> $file\e[0m"
-     	$file
+     	"$file"
     }
   done
 }
@@ -108,10 +108,10 @@ execute_files ${CNT_PATH}/runlevels/prestart-late
 `
 const BUILD_SETUP = `#!/bin/sh
 set -e
-. ${TARGET}/rootfs/cnt/bin/functions.sh
+. "${TARGET}/rootfs/cnt/bin/functions.sh"
 isLevelEnabled "debug" && set -x
 
-execute_files ${BASEDIR}/runlevels/build-setup
+execute_files "${BASEDIR}/runlevels/build-setup"
 `
 
 const PATH_BIN = "/bin"
