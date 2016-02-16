@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-const BATS_ACI = "aci.blablacar.com/aci-bats:3"
+const BATS_ACI = "aci.blablacar.com/aci-bats:4"
 const PATH_RESULT = "/result"
 const STATUS_SUFFIX = "_status"
 const TEST_INIT_SCRIPT = `#!/bin/bash

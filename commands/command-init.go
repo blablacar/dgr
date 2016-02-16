@@ -104,7 +104,7 @@ world
 `
 	files[".gitignore"] = `target/
 `
-	files["dgr-manifest.yml"] = `from: ""
+	files["aci-manifest.yml"] = `from: ""
 name: aci.example.com/aci-dummy:1
 aci:
   app:

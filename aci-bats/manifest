@@ -5,7 +5,7 @@
     "labels": [
         {
             "name": "version",
-            "value": "3"
+            "value": "4"
         },
         {
             "name": "arch",
@@ -19,7 +19,7 @@
     "annotations":[
         {
             "name":"dgr-version",
-            "value":"51"
+            "value":"54"
         }
     ]
 }
