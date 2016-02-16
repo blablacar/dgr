@@ -3,7 +3,7 @@
 
 [![GoDoc](https://godoc.org/blablacar/dgr?status.png)](https://godoc.org/github.com/blablacar/dgr) [![Build Status](https://travis-ci.org/blablacar/dgr.svg?branch=master)](https://travis-ci.org/blablacar/dgr)
 
-<img src="https://github.com/blablacar/dgr/blob/gh-pages/dgr.png" width="200">
+<img src="https://raw.githubusercontent.com/blablacar/dgr/gh-pages/logo.png" width="300">
 
 **dgr** is a command line utility designed to build and to configure at runtime App Containers Images ([ACI](https://github.com/appc/spec/blob/master/spec/aci.md)) and App Container Pods ([POD](https://github.com/appc/spec/blob/master/spec/pods.md)) based on convention over configuration.
 
@@ -25,12 +25,12 @@ dgr provides various resources to build and configure an ACI :
 
 **Scripts** are executed at the image build, before your container is started and more. See [runlevels](#runlevels) for more information.
 
-**Templates** and **attributes** are the way dgr deals with environment-specific configurations. **Templates** are stored in the image and resolved at runtime ; **attributes** are inherited from different contexts (aci -> pod -> environment). 
+**Templates** and **attributes** are the way dgr deals with environment-specific configurations. **Templates** are stored in the image and resolved at runtime ; **attributes** are inherited from different contexts (aci -> pod -> environment).
 
 **Static files** are copied to same path in the container.
 
 **Images from** is the base filesystem to start building from.
-  
+
 **Image dependencies** are used as defined in [APPC spec](https://github.com/appc/spec/blob/master/spec/aci.md#dependency-matching).
 
 
@@ -302,7 +302,7 @@ Building a POD
 │   ├── attributes
 │   │   └── attributes.yml          # Attributes file for templating in this ACI
 │   ├── files                       # Files to be inserted into this ACI
-│   ...  
+│   ...
 ├── pod-manifest.yml            # Pod Manifest
 
 ```
