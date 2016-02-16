@@ -1,4 +1,4 @@
-#!/cnt/bin/busybox sh
+#!/dgr/bin/busybox sh
 set -x
 export TARGET=$( dirname $0 )
 export ROOTFS=%%ROOTFS%%
@@ -12,7 +12,7 @@ echo_green() {
   echo -e "\033[0;32m${1}\033[0m"
 }
 
-export PATH=/cnt/bin:$PATH
+export PATH=/dgr/bin:$PATH
 busybox --install &> /dev/null
 
 execute_tests() {
@@ -24,7 +24,7 @@ execute_tests() {
     [ "$filename" == "wait.sh" ] && continue
 
     echo -e "\e[1m\e[32mRunning test file -> $filename\e[0m"
-    res=$(/cnt/bin/bats -t $file)
+    res=$(/dgr/bin/bats -t $file)
     res_code=$?
     echo "$res" > /result/${filename}
     echo "$res_code" > /result/${filename}_status

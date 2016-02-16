@@ -3,7 +3,7 @@ package runner
 //
 //import (
 //	"bytes"
-//	"github.com/blablacar/cnt/utils"
+//	"github.com/blablacar/dgr/utils"
 //	"io"
 //	"os"
 //	"os/exec"
@@ -41,7 +41,7 @@ package runner
 //func (r *DockerRunner) Run(target string, imageName string, command ...string) {
 //	log.Get().Debug("Run Docker")
 //	cmd := []string{"run", "--name=" + imageName, "-v", target + ":/target", r.imageId, "/target/build.sh"}
-//	utils.ExecCmd("docker", "rm", ShortName(cnt.manifest.Name))
+//	utils.ExecCmd("docker", "rm", ShortName(dgr.manifest.Name))
 //	if err := utils.ExecCmd("docker", cmd...); err != nil {
 //		panic(err)
 //	}

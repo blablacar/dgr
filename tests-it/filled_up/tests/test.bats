@@ -1,4 +1,4 @@
-#!/cnt/bin/bats -x
+#!/dgr/bin/bats -x
 
 @test "just an echo" {
   run echo "hello!"

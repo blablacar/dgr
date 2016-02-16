@@ -1,9 +1,9 @@
 package builder
 
 import (
-	"github.com/blablacar/cnt/cnt"
-	"github.com/blablacar/cnt/dist"
-	"github.com/blablacar/cnt/utils"
+	"github.com/blablacar/dgr/dgr"
+	"github.com/blablacar/dgr/dist"
+	"github.com/blablacar/dgr/utils"
 	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"os"
@@ -64,7 +64,7 @@ func (aci *Aci) fullyResolveDependencies() {
 
 func (aci *Aci) runBuildLate() {
 	res, err := utils.IsDirEmpty(aci.target + PATH_RUNLEVELS + PATH_BUILD_LATE)
-	res2, err2 := utils.IsDirEmpty(aci.rootfs + PATH_CNT + PATH_RUNLEVELS + PATH_INHERIT_BUILD_LATE)
+	res2, err2 := utils.IsDirEmpty(aci.rootfs + PATH_DGR + PATH_RUNLEVELS + PATH_INHERIT_BUILD_LATE)
 	if (res && res2) || (err != nil && err2 != nil) {
 		return
 	}
@@ -145,26 +145,30 @@ func (aci *Aci) processFrom() {
 
 func (aci *Aci) copyInternals() {
 	logs.WithF(aci.fields).Debug("Copy internals")
-	os.MkdirAll(aci.rootfs+PATH_CNT+PATH_BIN, 0755)
+	dir, _ := os.Getwd()
+	os.Chdir(aci.rootfs)
+	os.Symlink("dgr", "cnt")
+	os.Chdir(dir)
+	os.MkdirAll(aci.rootfs+PATH_DGR+PATH_BIN, 0755)
 	os.MkdirAll(aci.rootfs+PATH_BIN, 0755)   // this is required or systemd-nspawn will create symlink on it
 	os.MkdirAll(aci.rootfs+"/usr/bin", 0755) // this is required by systemd-nspawn
 
 	busybox, _ := dist.Asset("dist/bindata/busybox")
-	if err := ioutil.WriteFile(aci.rootfs+PATH_CNT+PATH_BIN+"/busybox", busybox, 0777); err != nil {
+	if err := ioutil.WriteFile(aci.rootfs+PATH_DGR+PATH_BIN+"/busybox", busybox, 0777); err != nil {
 		panic(err)
 	}
 
 	templater, _ := dist.Asset("dist/bindata/templater")
-	if err := ioutil.WriteFile(aci.rootfs+PATH_CNT+PATH_BIN+"/templater", templater, 0777); err != nil {
+	if err := ioutil.WriteFile(aci.rootfs+PATH_DGR+PATH_BIN+"/templater", templater, 0777); err != nil {
 		logs.WithEF(err, aci.fields).Fatal("Failed to copy templater")
 	}
 
-	os.MkdirAll(aci.rootfs+PATH_CNT+"/prestart", 0755)
-	if err := ioutil.WriteFile(aci.rootfs+PATH_CNT+PATH_BIN+"/prestart", []byte(PRESTART), 0777); err != nil {
+	os.MkdirAll(aci.rootfs+PATH_DGR+"/prestart", 0755)
+	if err := ioutil.WriteFile(aci.rootfs+PATH_DGR+PATH_BIN+"/prestart", []byte(PRESTART), 0777); err != nil {
 		logs.WithEF(err, aci.fields).Fatal("Failed to write prestart")
 	}
 
-	if err := ioutil.WriteFile(aci.rootfs+PATH_CNT+PATH_BIN+"/functions.sh", []byte(SH_FUNCTIONS), 0777); err != nil {
+	if err := ioutil.WriteFile(aci.rootfs+PATH_DGR+PATH_BIN+"/functions.sh", []byte(SH_FUNCTIONS), 0777); err != nil {
 		logs.WithEF(err, aci.fields).Fatal("Failed to write functions.sh")
 	}
 }
@@ -177,10 +181,10 @@ func (aci *Aci) copyRunlevelsScripts() {
 	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_PRESTART_EARLY, aci.target+PATH_RUNLEVELS+PATH_PRESTART_EARLY)
 	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_PRESTART_LATE, aci.target+PATH_RUNLEVELS+PATH_PRESTART_LATE)
 
-	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_PRESTART_EARLY, aci.target+PATH_ROOTFS+PATH_CNT+PATH_RUNLEVELS+PATH_PRESTART_EARLY)
-	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_PRESTART_LATE, aci.target+PATH_ROOTFS+PATH_CNT+PATH_RUNLEVELS+PATH_PRESTART_LATE)
-	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_INHERIT_BUILD_EARLY, aci.target+PATH_ROOTFS+PATH_CNT+PATH_RUNLEVELS+PATH_INHERIT_BUILD_EARLY)
-	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_INHERIT_BUILD_LATE, aci.target+PATH_ROOTFS+PATH_CNT+PATH_RUNLEVELS+PATH_INHERIT_BUILD_LATE)
+	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_PRESTART_EARLY, aci.target+PATH_ROOTFS+PATH_DGR+PATH_RUNLEVELS+PATH_PRESTART_EARLY)
+	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_PRESTART_LATE, aci.target+PATH_ROOTFS+PATH_DGR+PATH_RUNLEVELS+PATH_PRESTART_LATE)
+	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_INHERIT_BUILD_EARLY, aci.target+PATH_ROOTFS+PATH_DGR+PATH_RUNLEVELS+PATH_INHERIT_BUILD_EARLY)
+	utils.CopyDir(aci.path+PATH_RUNLEVELS+PATH_INHERIT_BUILD_LATE, aci.target+PATH_ROOTFS+PATH_DGR+PATH_RUNLEVELS+PATH_INHERIT_BUILD_LATE)
 }
 
 func (aci *Aci) runLevelBuildSetup() {
@@ -205,7 +209,7 @@ func (aci *Aci) runLevelBuildSetup() {
 }
 
 func (aci *Aci) copyTemplates() {
-	utils.CopyDir(aci.path+PATH_TEMPLATES, aci.rootfs+PATH_CNT+PATH_TEMPLATES)
+	utils.CopyDir(aci.path+PATH_TEMPLATES, aci.rootfs+PATH_DGR+PATH_TEMPLATES)
 }
 
 func (aci *Aci) copyFiles() {
@@ -218,7 +222,7 @@ func (aci *Aci) copyAttributes() {
 		logs.WithEF(err, aci.fields).Fatal("Cannot read attribute files")
 	}
 	for _, file := range files {
-		targetPath := aci.rootfs + PATH_CNT + PATH_ATTRIBUTES + "/" + aci.manifest.NameAndVersion.ShortName()
+		targetPath := aci.rootfs + PATH_DGR + PATH_ATTRIBUTES + "/" + aci.manifest.NameAndVersion.ShortName()
 		err = os.MkdirAll(targetPath, 0755)
 		if err != nil {
 			logs.WithEF(err, aci.fields.WithField("path", targetPath)).Fatal("Cannot create target attribute directory")
@@ -231,7 +235,7 @@ func (aci *Aci) copyAttributes() {
 
 func (aci *Aci) writeAciManifest() {
 	logs.WithF(aci.fields).Debug("Writing aci manifest")
-	utils.WriteImageManifest(&aci.manifest, aci.target+PATH_MANIFEST, aci.manifest.NameAndVersion.Name(), cnt.Version)
+	utils.WriteImageManifest(&aci.manifest, aci.target+PATH_MANIFEST, aci.manifest.NameAndVersion.Name(), dgr.Version)
 }
 
 func checkSystemdNspawn() {

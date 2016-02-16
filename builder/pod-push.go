@@ -1,8 +1,8 @@
 package builder
 
 import (
-	"github.com/blablacar/cnt/cnt"
-	"github.com/blablacar/cnt/utils"
+	"github.com/blablacar/dgr/dgr"
+	"github.com/blablacar/dgr/utils"
 	"github.com/n0rad/go-erlog/logs"
 )
 
@@ -29,8 +29,8 @@ func (p *Pod) Push() {
 		"-F", "v="+p.manifest.Name.Version(),
 		"-F", "a="+p.manifest.Name.ShortName(),
 		"-F", "file=@"+p.target+"/pod-manifest.json",
-		"-u", cnt.Home.Config.Push.Username+":"+cnt.Home.Config.Push.Password,
-		cnt.Home.Config.Push.Url+"/service/local/artifact/maven/content"); err != nil {
+		"-u", dgr.Home.Config.Push.Username+":"+dgr.Home.Config.Push.Password,
+		dgr.Home.Config.Push.Url+"/service/local/artifact/maven/content"); err != nil {
 		logs.WithEF(err, p.fields).Fatal("Cannot push pod")
 	}
 

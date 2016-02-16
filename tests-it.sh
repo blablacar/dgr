@@ -17,11 +17,11 @@ else
 fi
 
 
-export CNT_PATH="${dir}/dist/linux-amd64/cnt"
+export dgr_PATH="${dir}/dist/linux-amd64/dgr"
 
 command -v rkt >/dev/null 2>&1 || { echo >&2 "rkt not found in path"; exit 1; }
 command -v bats >/dev/null 2>&1 || { echo >&2 "bats not found in path"; exit 1; }
-command -v ${CNT_PATH} >/dev/null 2>&1 || { echo >&2 "build cnt first"; exit 1; }
+command -v ${dgr_PATH} >/dev/null 2>&1 || { echo >&2 "build dgr first"; exit 1; }
 
 execute_tests() {
   fdir=$1

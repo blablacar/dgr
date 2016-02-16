@@ -3,7 +3,7 @@ package utils
 import (
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
-	"github.com/blablacar/cnt/spec"
+	"github.com/blablacar/dgr/spec"
 	"io/ioutil"
 )
 
@@ -19,7 +19,7 @@ import (
 //    return im
 //}
 
-func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName string, cntVersion string) {
+func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName string, dgrVersion string) {
 	name, err := types.NewACIdentifier(m.NameAndVersion.Name())
 	if err != nil {
 		panic(err)
@@ -45,15 +45,15 @@ func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName stri
 	im := schema.BlankImageManifest()
 	im.Annotations = m.Aci.Annotations
 
-	cntVersionIdentifier, _ := types.NewACIdentifier("cnt-version")
-	im.Annotations.Set(*cntVersionIdentifier, cntVersion)
+	dgrVersionIdentifier, _ := types.NewACIdentifier("dgr-version")
+	im.Annotations.Set(*dgrVersionIdentifier, dgrVersion)
 	im.Dependencies = toAppcDependencies(m.Aci.Dependencies)
 	im.Name = *name
 	im.Labels = labels
 
 	im.App = &types.App{
 		Exec:             m.Aci.App.Exec,
-		EventHandlers:    []types.EventHandler{{Name: "pre-start", Exec: []string{"/cnt/bin/prestart"}}},
+		EventHandlers:    []types.EventHandler{{Name: "pre-start", Exec: []string{"/dgr/bin/prestart"}}},
 		User:             m.Aci.App.User,
 		Group:            m.Aci.App.Group,
 		WorkingDirectory: m.Aci.App.WorkingDirectory,

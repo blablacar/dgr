@@ -21,7 +21,7 @@ type PodDefinition struct {
 type RuntimeApp struct {
 	Dependencies []ACFullname      `json:"dependencies"`
 	Name         string            `json:"name"`
-	App          CntApp            `json:"app"`
+	App          DgrApp            `json:"app"`
 	Mounts       []schema.Mount    `json:"mounts"`
 	Annotations  types.Annotations `json:"annotations"`
 }

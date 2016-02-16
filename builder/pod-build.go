@@ -4,8 +4,8 @@ import (
 	"errors"
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
-	"github.com/blablacar/cnt/spec"
-	"github.com/blablacar/cnt/utils"
+	"github.com/blablacar/dgr/spec"
+	"github.com/blablacar/dgr/utils"
 	"github.com/n0rad/go-erlog/logs"
 	"os"
 )

@@ -1,4 +1,4 @@
-package cnt
+package dgr
 
 var CommitHash = ""
 var Version = "0"

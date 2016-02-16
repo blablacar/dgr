@@ -1,7 +1,7 @@
 package builder
 
 import (
-	"github.com/blablacar/cnt/utils"
+	"github.com/blablacar/dgr/utils"
 	"io/ioutil"
 	"os"
 )

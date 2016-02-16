@@ -3,7 +3,7 @@ package template
 import (
 	"bufio"
 	"bytes"
-	"github.com/blablacar/cnt/utils"
+	"github.com/blablacar/dgr/utils"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
@@ -122,7 +122,7 @@ func (f *TemplateFile) runTemplate(dst string, attributes map[string]interface{}
 	}
 
 	if f.CheckCmd != "" {
-		if err = utils.ExecCmd("/cnt/bin/busybox", "sh", "-c", f.CheckCmd); err != nil {
+		if err = utils.ExecCmd("/dgr/bin/busybox", "sh", "-c", f.CheckCmd); err != nil {
 			return errs.WithEF(err, fields.WithField("file", dst), "Check command failed after templating")
 		}
 	}

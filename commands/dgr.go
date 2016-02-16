@@ -3,10 +3,10 @@ package commands
 import (
 	"bufio"
 	"fmt"
-	"github.com/blablacar/cnt/builder"
-	"github.com/blablacar/cnt/cnt"
-	"github.com/blablacar/cnt/spec"
-	"github.com/blablacar/cnt/utils"
+	"github.com/blablacar/dgr/builder"
+	"github.com/blablacar/dgr/dgr"
+	"github.com/blablacar/dgr/spec"
+	"github.com/blablacar/dgr/utils"
 	"github.com/coreos/go-semver/semver"
 	"github.com/n0rad/go-erlog/logs"
 	"github.com/spf13/cobra"
@@ -25,14 +25,14 @@ func Execute() {
 
 	var logLevel string
 	var rootCmd = &cobra.Command{
-		Use: "cnt",
+		Use: "dgr",
 	}
 	var homePath string
 	var targetRootPath string
 	rootCmd.PersistentFlags().BoolVarP(&buildArgs.Clean, "clean", "c", false, "Clean before doing anything")
 	rootCmd.PersistentFlags().StringVarP(&targetRootPath, "targets-root-path", "p", "", "Set targets root path")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "loglevel", "L", "info", "Set log level")
-	rootCmd.PersistentFlags().StringVarP(&homePath, "home-path", "H", cnt.DefaultHomeFolder(), "Set home folder")
+	rootCmd.PersistentFlags().StringVarP(&homePath, "home-path", "H", dgr.DefaultHomeFolder(""), "Set home folder")
 	rootCmd.PersistentFlags().StringVarP(&workPath, "work-path", "W", ".", "Set the work path")
 
 	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, updateCmd, graphCmd, aciVersion)
@@ -47,11 +47,11 @@ func Execute() {
 		}
 		logs.SetLevel(level)
 
-		cnt.Home = cnt.NewHome(homePath)
+		dgr.Home = dgr.NewHome(homePath)
 
 		// targetRootPath
 		if targetRootPath != "" {
-			cnt.Home.Config.TargetWorkDir = targetRootPath
+			dgr.Home.Config.TargetWorkDir = targetRootPath
 		}
 
 	}
@@ -92,7 +92,7 @@ func checkRktVersion() {
 
 }
 
-func buildAciOrPod(path string, args builder.BuildArgs) spec.CntCommand {
+func buildAciOrPod(path string, args builder.BuildArgs) spec.DgrCommand {
 	if aci, err := builder.NewAci(path, args); err == nil {
 		return aci
 	} else if pod, err2 := builder.NewPod(path, args); err2 == nil {

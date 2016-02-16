@@ -1,20 +1,20 @@
-# cnt - container build and runtime tool
+# dgr - container build and runtime tool
 
 
-[![GoDoc](https://godoc.org/blablacar/cnt?status.png)](https://godoc.org/github.com/blablacar/cnt) [![Build Status](https://travis-ci.org/blablacar/cnt.svg?branch=master)](https://travis-ci.org/blablacar/cnt)
+[![GoDoc](https://godoc.org/blablacar/dgr?status.png)](https://godoc.org/github.com/blablacar/dgr) [![Build Status](https://travis-ci.org/blablacar/dgr.svg?branch=master)](https://travis-ci.org/blablacar/dgr)
 
-<img src="https://github.com/blablacar/cnt/blob/gh-pages/cnt.png" width="200">
+<img src="https://github.com/blablacar/dgr/blob/gh-pages/dgr.png" width="200">
 
-**cnt** is a command line utility designed to build and to configure at runtime App Containers Images ([ACI](https://github.com/appc/spec/blob/master/spec/aci.md)) and App Container Pods ([POD](https://github.com/appc/spec/blob/master/spec/pods.md)) based on convention over configuration.
+**dgr** is a command line utility designed to build and to configure at runtime App Containers Images ([ACI](https://github.com/appc/spec/blob/master/spec/aci.md)) and App Container Pods ([POD](https://github.com/appc/spec/blob/master/spec/pods.md)) based on convention over configuration.
 
-cnt allows you to build generic container images for a service and to configure them at runtime. Therefore you can use the same image for different environments, clusters, or nodes by overriding the appropriate attributes when launching the container.
+dgr allows you to build generic container images for a service and to configure them at runtime. Therefore you can use the same image for different environments, clusters, or nodes by overriding the appropriate attributes when launching the container.
 
 
-_cnt is actively used at blablacar to build more than an hundred different aci and pod to [run all platforms](http://blablatech.com/blog/why-and-how-blablacar-went-full-containers)._
+_dgr is actively used at blablacar to build more than an hundred different aci and pod to [run all platforms](http://blablatech.com/blog/why-and-how-blablacar-went-full-containers)._
 
 ## Build the ACI once, configure your app at runtime.
 
-cnt provides various resources to build and configure an ACI :
+dgr provides various resources to build and configure an ACI :
 
   - scripts at runlevels (build, prestart...)
   - templates and attributes
@@ -25,7 +25,7 @@ cnt provides various resources to build and configure an ACI :
 
 **Scripts** are executed at the image build, before your container is started and more. See [runlevels](#runlevels) for more information.
 
-**Templates** and **attributes** are the way cnt deals with environment-specific configurations. **Templates** are stored in the image and resolved at runtime ; **attributes** are inherited from different contexts (aci -> pod -> environment). 
+**Templates** and **attributes** are the way dgr deals with environment-specific configurations. **Templates** are stored in the image and resolved at runtime ; **attributes** are inherited from different contexts (aci -> pod -> environment). 
 
 **Static files** are copied to same path in the container.
 
@@ -35,17 +35,17 @@ cnt provides various resources to build and configure an ACI :
 
 
 
-![demo](https://raw.githubusercontent.com/blablacar/cnt/gh-pages/aci-dummy.gif)
+![demo](https://raw.githubusercontent.com/blablacar/dgr/gh-pages/aci-dummy.gif)
 
 ## Comparison with alternatives
 
-### cnt vs Dockerfiles
+### dgr vs Dockerfiles
 
 A Dockerfile is purely configuration, describing the steps to build the container.
 It does not provide scripts levels, ending with very long bash scripting for the run option in the dockerfile.
 It does not handle configuration, nor build time nor at runtime. So users usually use sed in the bash script to replace parts of configuration.
 
-### cnt vs acbuild
+### dgr vs acbuild
 
 acbuild is a command line tools to build ACIs. It is more flexible than Dockerfiles as it can be wrapped by other tools such as Makefiles but like Dockerfiles it doesn't provide a standard way of configuring the images.
 
@@ -53,19 +53,19 @@ acbuild is a command line tools to build ACIs. It is more flexible than Dockerfi
 ## Commands
 
 ```bash
-$ cnt init          # init a sample project
-$ cnt build         # build the image
-$ cnt update        # update only template part for fast test iteration (use with caution)
-$ cnt clean         # clean the build
-$ cnt install       # store target image to rkt local store
-$ cnt push          # push target image to remote storage
-$ cnt test          # test the final image
+$ dgr init          # init a sample project
+$ dgr build         # build the image
+$ dgr update        # update only template part for fast test iteration (use with caution)
+$ dgr clean         # clean the build
+$ dgr install       # store target image to rkt local store
+$ dgr push          # push target image to remote storage
+$ dgr test          # test the final image
 ```
 
-## Cnt configuration file
+## dgr configuration file
 
-cnt global conf is a yaml file located at `~/.config/cnt/config.yml`. Home is the home of starting user (The caller user if running with sudo)
-It is used to indicate the target work directory where cnt will create the ACI and the push endpoint informations. Both are optional.
+dgr global conf is a yaml file located at `~/.config/dgr/config.yml`. Home is the home of starting user (The caller user if running with sudo)
+It is used to indicate the target work directory where dgr will create the ACI and the push endpoint informations. Both are optional.
 
 content :
 ```yml
@@ -86,7 +86,7 @@ Run the following commands to initialize a new project :
 ```bash
 $ mkdir aci-myapp
 $ cd aci-myapp
-$ cnt init
+$ dgr init
 ```
 
 It will generate the following file tree :
@@ -95,7 +95,7 @@ It will generate the following file tree :
 .
 |-- attributes
 |   `-- attributes.yml                 # Attributes files that will be merged and used to resolve templates
-|-- cnt-manifest.yml                   # Manifest
+|-- aci-manifest.yml                   # Manifest
 |-- templates
 |   |-- etc
 |   |   |-- templated.tmpl             # template file that will end up at /etc/templated
@@ -123,15 +123,15 @@ It will generate the following file tree :
     `-- wait.sh
 ```
 
-This project is already valid which means that you can build it and it will result in a runnable ACI. (cnt always adds busybox to the ACI). But you probably want to customize it at this point.
+This project is already valid which means that you can build it and it will result in a runnable ACI. (dgr always adds busybox to the ACI). But you probably want to customize it at this point.
 
 ## Customizing
 
 ### The manifest
 
-The cnt manifest looks like a light ACI manifest. cnt will take this manifest and convert it to the format defined in the APPC spec.
+The dgr manifest looks like a light ACI manifest. dgr will take this manifest and convert it to the format defined in the APPC spec.
 
-Example of a cnt-manifest.yml :
+Example of a aci-manifest.yml :
 ```yaml
 from: example.com/base:1
 name: example.com/myapp:0.1
@@ -186,7 +186,7 @@ templates/etc/resolv.conf.tmpl.cfg
 uid: 0
 gid: 0
 mode: 0644
-checkCmd: /cnt/bin/busybox true
+checkCmd: /dgr/bin/busybox true
 ```
 
 `checkCmd` is a command to run after the templating to check that the configuration is valid or fail container start.
@@ -231,7 +231,7 @@ It also provide all function defined by [gtf project](https://github.com/leekcha
 
 ### Attributes
 
-All the YAML files in the directory **attributes** are read by cnt. The first node of the YAML has to be "default" as it can be overridden in a POD or with a json in the env variable TEMPLATER_OVERRIDE in the cmd line.
+All the YAML files in the directory **attributes** are read by dgr. The first node of the YAML has to be "default" as it can be overridden in a POD or with a json in the env variable TEMPLATER_OVERRIDE in the cmd line.
 
 attributes/resolv.conf.yml
 ```
@@ -246,7 +246,7 @@ default:
 
 ### The prestart
 
-cnt uses the "pre-start" eventHandler of the ACI to customize the ACI rootfs before the run depending on the instance or the environment.
+dgr uses the "pre-start" eventHandler of the ACI to customize the ACI rootfs before the run depending on the instance or the environment.
 It resolves at that time the templates so it has all the context needed to do that.
 You can also run custom scripts before (prestart-early) or after (prestart-late) this template resolution. This is useful if you want to initialize a mountpoint with some data before running your app for instance.
 
@@ -259,21 +259,21 @@ set -e
 
 ## Troubleshoot
 
-cnt start by default with info log level. You can change this level with the `-L` command line argument.
+dgr start by default with info log level. You can change this level with the `-L` command line argument.
 e
 the log level is also propaged to all runlevels with the environment variable : **LOG_LEVEL**.
 
 You can activate debug on demand by including this code in your scripts :
 
 ```bash
-source /cnt/bin/functions.sh
+source /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 ```
 
 and for build-setup runlevel (that is not running inside the container) :
 
 ```bash
-source ${TARGET}/rootfs/cnt/bin/functions.sh
+source ${TARGET}/rootfs/dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 ```
 
@@ -303,7 +303,7 @@ Building a POD
 │   │   └── attributes.yml          # Attributes file for templating in this ACI
 │   ├── files                       # Files to be inserted into this ACI
 │   ...  
-├── cnt-pod-manifest.yml            # Pod Manifest
+├── pod-manifest.yml            # Pod Manifest
 
 ```
 

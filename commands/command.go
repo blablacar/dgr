@@ -2,8 +2,8 @@ package commands
 
 import (
 	"fmt"
-	"github.com/blablacar/cnt/cnt"
-	"github.com/blablacar/cnt/utils"
+	"github.com/blablacar/dgr/dgr"
+	"github.com/blablacar/dgr/utils"
 	"github.com/n0rad/go-erlog/logs"
 	"github.com/spf13/cobra"
 	"os"
@@ -107,18 +107,18 @@ var aciVersion = &cobra.Command{
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Version of cnt",
-	Long:  `Print the version number of cnt`,
+	Short: "Version of dgr",
+	Long:  `Print the version number of dgr`,
 	Run: func(cmd *cobra.Command, args []string) {
 		checkNoArgs(args)
 
-		fmt.Print("Cnt\n\n")
-		fmt.Printf("version    : %s\n", cnt.Version)
-		if cnt.BuildDate != "" {
-			fmt.Printf("build date : %s\n", cnt.BuildDate)
+		fmt.Print("dgr\n\n")
+		fmt.Printf("version    : %s\n", dgr.Version)
+		if dgr.BuildDate != "" {
+			fmt.Printf("build date : %s\n", dgr.BuildDate)
 		}
-		if cnt.CommitHash != "" {
-			fmt.Printf("CommitHash : %s\n", cnt.CommitHash)
+		if dgr.CommitHash != "" {
+			fmt.Printf("CommitHash : %s\n", dgr.CommitHash)
 		}
 		os.Exit(0)
 	},

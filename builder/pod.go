@@ -1,17 +1,17 @@
 package builder
 
 import (
-	"github.com/blablacar/cnt/cnt"
-	"github.com/blablacar/cnt/spec"
+	"github.com/blablacar/dgr/dgr"
+	"github.com/blablacar/dgr/spec"
 	"github.com/ghodss/yaml"
-	"github.com/juju/errors"
 	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"path/filepath"
 )
 
-const POD_MANIFEST = "/cnt-pod-manifest.yml"
+const POD_MANIFEST = "/pod-manifest.yml"
 
 type Pod struct {
 	fields   data.Fields
@@ -29,13 +29,18 @@ func NewPod(path string, args BuildArgs) (*Pod, error) {
 
 	manifest, err := readPodManifest(fullPath + POD_MANIFEST)
 	if err != nil {
-		return nil, errors.Annotate(err, "Failed to read pod manifest")
+		manifest2, err2 := readPodManifest(fullPath + "/cnt-pod-manifest.yml")
+		if err2 != nil {
+			return nil, errs.WithEF(err, data.WithField("path", fullPath+POD_MANIFEST).WithField("err2", err2), "Failed to read pod manifest")
+		}
+		logs.WithField("old", "cnt-pod-manifest.yml").WithField("new", "pod-manifest.yml").Warn("You are using the old aci configuration file")
+		manifest = manifest2
 	}
 	fields := data.WithField("pod", manifest.Name.String())
 
 	target := path + PATH_TARGET
-	if cnt.Home.Config.TargetWorkDir != "" {
-		currentAbsDir, err := filepath.Abs(cnt.Home.Config.TargetWorkDir + "/" + manifest.Name.ShortName())
+	if dgr.Home.Config.TargetWorkDir != "" {
+		currentAbsDir, err := filepath.Abs(dgr.Home.Config.TargetWorkDir + "/" + manifest.Name.ShortName())
 		if err != nil {
 			logs.WithEF(err, fields).Panic("invalid target path")
 		}

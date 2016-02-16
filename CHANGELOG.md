@@ -1,1 +1,1 @@
-Please see the [Issue Pages](https://github.com/blablacar/cnt/milestones?state=closed)
+Please see the [Issue Pages](https://github.com/blablacar/dgr/milestones?state=closed)

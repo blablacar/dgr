@@ -5,7 +5,7 @@ set -e
 DIR=$( dirname $0 )
 ROOTFS=$DIR/rootfs
 
-mkdir -p $ROOTFS/{bin,usr,usr/bin,usr/lib,lib64,cnt,cnt/bin}
+mkdir -p $ROOTFS/{bin,usr,usr/bin,usr/lib,lib64,dgr,dgr/bin}
 cp -R $DIR/files/* $ROOTFS/
 
 cp /bin/bash $ROOTFS/bin/
@@ -16,13 +16,13 @@ cp --preserve=links /usr/lib/libc.so.* $ROOTFS/usr/lib ||  cp --preserve=links /
 cp --preserve=links /lib64/ld-linux-x86-64.so.* $ROOTFS/lib64
 
 
-wget -O $ROOTFS/cnt/bin/bats https://raw.githubusercontent.com/sstephenson/bats/master/libexec/bats
-wget -O $ROOTFS/cnt/bin/bats-exec-suite https://raw.githubusercontent.com/sstephenson/bats/master/libexec/bats-exec-suite
-wget -O $ROOTFS/cnt/bin/bats-exec-test https://raw.githubusercontent.com/sstephenson/bats/master/libexec/bats-exec-test
-wget -O $ROOTFS/cnt/bin/bats-format-tap-stream https://raw.githubusercontent.com/sstephenson/bats/master/libexec/bats-format-tap-stream
-wget -O $ROOTFS/cnt/bin/bats-preprocess https://raw.githubusercontent.com/sstephenson/bats/master/libexec/bats-preprocess
+wget -O $ROOTFS/dgr/bin/bats https://raw.githubusercontent.com/sstephenson/bats/master/libexec/bats
+wget -O $ROOTFS/dgr/bin/bats-exec-suite https://raw.githubusercontent.com/sstephenson/bats/master/libexec/bats-exec-suite
+wget -O $ROOTFS/dgr/bin/bats-exec-test https://raw.githubusercontent.com/sstephenson/bats/master/libexec/bats-exec-test
+wget -O $ROOTFS/dgr/bin/bats-format-tap-stream https://raw.githubusercontent.com/sstephenson/bats/master/libexec/bats-format-tap-stream
+wget -O $ROOTFS/dgr/bin/bats-preprocess https://raw.githubusercontent.com/sstephenson/bats/master/libexec/bats-preprocess
 
-chmod +x $ROOTFS/cnt/bin/*
+chmod +x $ROOTFS/dgr/bin/*
 
 cd $DIR
 tar cpfz aci-bats.aci rootfs manifest

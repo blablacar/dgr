@@ -25,11 +25,11 @@ var (
 // ProcessEntry32 structure defined by the Win32 API
 type processEntry32 struct {
 	dwSize              uint32
-	cntUsage            uint32
+	dgrUsage            uint32
 	th32ProcessID       uint32
 	th32DefaultHeapID   int
 	th32ModuleID        uint32
-	cntThreads          uint32
+	dgrThreads          uint32
 	th32ParentProcessID uint32
 	pcPriClassBase      int32
 	dwFlags             uint32

@@ -55,7 +55,7 @@ for i in ${dir}/dist/*-amd64/ ; do
     if [ -d "$i" ]; then
         cd $i
         platform=${PWD##*/}
-        tar cvzf cnt-$platform-$version.tar.gz cnt
+        tar cvzf dgr-$platform-$version.tar.gz dgr
         cd -
     fi
 done
@@ -65,7 +65,7 @@ git push --tags
 
 sleep 5
 
-posturl=$(curl --data "{\"tag_name\": \"$1\",\"target_commitish\": \"master\",\"name\": \"$1\",\"body\": \"Release of version $1\",\"draft\": false,\"prerelease\": true}" https://api.github.com/repos/blablacar/cnt/releases?access_token=${access_token} | grep "\"upload_url\"" | sed -ne 's/.*\(http[^"]*\).*/\1/p')
+posturl=$(curl --data "{\"tag_name\": \"$1\",\"target_commitish\": \"master\",\"name\": \"$1\",\"body\": \"Release of version $1\",\"draft\": false,\"prerelease\": true}" https://api.github.com/repos/blablacar/dgr/releases?access_token=${access_token} | grep "\"upload_url\"" | sed -ne 's/.*\(http[^"]*\).*/\1/p')
 
 for i in ${dir}/dist/*-amd64/ ; do
     if [ -d "$i" ]; then

@@ -115,11 +115,11 @@ func PortFromString(pt string) (*Port, error) {
 			}
 			port.Port = uint(p)
 		case "count":
-			cnt, err := strconv.ParseUint(val[0], 10, 16)
+			dgr, err := strconv.ParseUint(val[0], 10, 16)
 			if err != nil {
 				return nil, err
 			}
-			port.Count = uint(cnt)
+			port.Count = uint(dgr)
 		case "socketActivated":
 			sa, err := strconv.ParseBool(val[0])
 			if err != nil {

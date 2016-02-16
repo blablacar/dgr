@@ -1,15 +1,15 @@
 package builder
 
 import (
-	"github.com/blablacar/cnt/cnt"
-	"github.com/blablacar/cnt/utils"
+	"github.com/blablacar/dgr/dgr"
+	"github.com/blablacar/dgr/utils"
 	"github.com/n0rad/go-erlog/logs"
 	"strings"
 )
 
 func (aci *Aci) Push() {
-	if cnt.Home.Config.Push.Type == "" {
-		panic("Can't push, push is not configured in cnt global configuration file")
+	if dgr.Home.Config.Push.Type == "" {
+		panic("Can't push, push is not configured in dgr global configuration file")
 	}
 
 	aci.CheckBuilt()
@@ -33,8 +33,8 @@ func (aci *Aci) Push() {
 		"-F", "v="+val,
 		"-F", "a="+strings.Split(string(im.Name), "/")[1],
 		"-F", "file=@"+aci.target+PATH_IMAGE_ACI_ZIP,
-		"-u", cnt.Home.Config.Push.Username+":"+cnt.Home.Config.Push.Password,
-		cnt.Home.Config.Push.Url+"/service/local/artifact/maven/content"); err != nil {
+		"-u", dgr.Home.Config.Push.Username+":"+dgr.Home.Config.Push.Password,
+		dgr.Home.Config.Push.Url+"/service/local/artifact/maven/content"); err != nil {
 		logs.WithEF(err, aci.fields).Error("Failed to push aci")
 	}
 }

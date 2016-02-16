@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/blablacar/cnt/templater/merger"
-	"github.com/blablacar/cnt/templater/template"
+	"github.com/blablacar/dgr/templater/merger"
+	"github.com/blablacar/dgr/templater/template"
 	"github.com/n0rad/go-erlog"
 	"github.com/n0rad/go-erlog/logs"
 	_ "github.com/n0rad/go-erlog/register"

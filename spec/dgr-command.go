@@ -1,6 +1,6 @@
 package spec
 
-type CntCommand interface {
+type DgrCommand interface {
 	Build() error
 	Clean()
 	Push()

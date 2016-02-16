@@ -1,7 +1,8 @@
-package cnt
+package dgr
 
 import (
-	"github.com/blablacar/cnt/utils"
+	"github.com/blablacar/dgr/utils"
+	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/logs"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -31,7 +32,13 @@ func NewHome(path string) HomeStruct {
 	if source, err := ioutil.ReadFile(path + "/config.yml"); err == nil {
 		err = yaml.Unmarshal([]byte(source), &config)
 		if err != nil {
-			panic(err)
+			logs.WithEF(err, data.WithField("path", path+"/config.yml")).Fatal("Failed to process configuration file")
+		}
+	} else if source, err := ioutil.ReadFile(DefaultHomeFolder("cnt") + "/config.yml"); err == nil {
+		logs.WithField("old", DefaultHomeFolder("cnt")+"/config.yml").WithField("new", DefaultHomeFolder("")).Warn("You are using old home folder")
+		err = yaml.Unmarshal([]byte(source), &config)
+		if err != nil {
+			logs.WithEF(err, data.WithField("path", path+"/config.yml")).Fatal("Failed to process configuration file")
 		}
 	}
 
@@ -41,26 +48,29 @@ func NewHome(path string) HomeStruct {
 	}
 }
 
-func DefaultHomeFolder() string {
+func DefaultHomeFolder(programName string) string {
+	if programName == "" {
+		programName = "dgr"
+	}
 	//	switch runtime.GOOS {
 	//	case "windows":
-	//		cntConfig.Path = utils.UserHomeOrFatal() + "/AppData/Local/Cnt"
+	//		dgrConfig.Path = utils.UserHomeOrFatal() + "/AppData/Local/dgr"
 	//	case "darwin":
-	//		cntConfig.Path = utils.UserHomeOrFatal() + "/Library/Cnt"
+	//		dgrConfig.Path = utils.UserHomeOrFatal() + "/Library/dgr"
 	//	case "linux":
-	//		cntConfig.Path = utils.UserHomeOrFatal() + "/.config/cnt"
+	//		dgrConfig.Path = utils.UserHomeOrFatal() + "/.config/dgr"
 	//	default:
 	//		log.Get().Panic("Unsupported OS, please fill a bug repost")
 	//	}
 
-	path := "/root/.config/cnt"
+	path := "/root/.config/" + programName
 	user := os.Getenv("SUDO_USER")
 	if user != "" {
 		home, err := utils.ExecCmdGetOutput("bash", "-c", "echo ~"+user)
 		if err != nil {
 			panic("Cannot find user home" + err.Error())
 		}
-		path = home + "/.config/cnt"
+		path = home + "/.config/" + programName
 	}
 	return path
 }

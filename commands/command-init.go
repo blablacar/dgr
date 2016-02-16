@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"github.com/blablacar/cnt/builder"
-	"github.com/blablacar/cnt/utils"
+	"github.com/blablacar/dgr/builder"
+	"github.com/blablacar/dgr/utils"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/logs"
 	"github.com/spf13/cobra"
@@ -43,44 +43,44 @@ func discoverAndRunInitType(path string, args builder.BuildArgs) {
 
 	files := make(map[string]string)
 
-	files[builder.PATH_RUNLEVELS+builder.PATH_PRESTART_EARLY+"/10.prestart-early.sh"] = `#!/cnt/bin/busybox sh
-source /cnt/bin/functions.sh
+	files[builder.PATH_RUNLEVELS+builder.PATH_PRESTART_EARLY+"/10.prestart-early.sh"] = `#!/dgr/bin/busybox sh
+source /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
 echo "I'm a prestart early script that is run before templating"
 `
-	files[builder.PATH_RUNLEVELS+builder.PATH_PRESTART_LATE+"/10.prestart-late.sh"] = `#!/cnt/bin/busybox sh
-source /cnt/bin/functions.sh
+	files[builder.PATH_RUNLEVELS+builder.PATH_PRESTART_LATE+"/10.prestart-late.sh"] = `#!/dgr/bin/busybox sh
+source /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
 echo "I'm a prestart late script that is run after templating"
 `
-	files[builder.PATH_RUNLEVELS+builder.PATH_BUILD+"/10.install.sh"] = `#!/cnt/bin/busybox sh
-source /cnt/bin/functions.sh
+	files[builder.PATH_RUNLEVELS+builder.PATH_BUILD+"/10.install.sh"] = `#!/dgr/bin/busybox sh
+source /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
 echo "I'm a build script that is run to install applications"
 `
 	files[builder.PATH_RUNLEVELS+builder.PATH_BUILD_SETUP+"/10.setup.sh"] = `#!/bin/sh
-source ${TARGET}/rootfs/cnt/bin/functions.sh
+source ${TARGET}/rootfs/dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
 echo "I'm build setup script file that is run from $BASEDIR to prepare $TARGET/rootfs before running build scripts"
 `
-	files[builder.PATH_RUNLEVELS+builder.PATH_BUILD_LATE+"/10.setup.sh"] = `#!/cnt/bin/busybox sh
-source /cnt/bin/functions.sh
+	files[builder.PATH_RUNLEVELS+builder.PATH_BUILD_LATE+"/10.setup.sh"] = `#!/dgr/bin/busybox sh
+source /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
 echo "I'm a build late script that is run to install applications after the copy of files,template,etc..."
 `
-	files[builder.PATH_RUNLEVELS+builder.PATH_INHERIT_BUILD_EARLY+"/10.inherit-build-early.sh"] = `#!/cnt/bin/busybox sh
-source /cnt/bin/functions.sh
+	files[builder.PATH_RUNLEVELS+builder.PATH_INHERIT_BUILD_EARLY+"/10.inherit-build-early.sh"] = `#!/dgr/bin/busybox sh
+source /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
 echo "I'm a inherit build early script that is run on this image and all images that have me as From during build"
 `
-	files[builder.PATH_RUNLEVELS+builder.PATH_INHERIT_BUILD_LATE+"/10.inherit-build-early.sh"] = `#!/cnt/bin/busybox sh
-source /cnt/bin/functions.sh
+	files[builder.PATH_RUNLEVELS+builder.PATH_INHERIT_BUILD_LATE+"/10.inherit-build-early.sh"] = `#!/dgr/bin/busybox sh
+source /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
 echo "I'm a inherit build late script that is run on this image and all images that have me as From during build"
@@ -104,20 +104,20 @@ world
 `
 	files[".gitignore"] = `target/
 `
-	files["cnt-manifest.yml"] = `from: ""
+	files["dgr-manifest.yml"] = `from: ""
 name: aci.example.com/aci-dummy:1
 aci:
   app:
-    exec: [ "/cnt/bin/busybox", "sh" ]
+    exec: [ "/dgr/bin/busybox", "sh" ]
 `
-	files[builder.PATH_TESTS+"/dummy.bats"] = `#!/cnt/bin/bats
+	files[builder.PATH_TESTS+"/dummy.bats"] = `#!/dgr/bin/bats
 
 @test "Prestart should template" {
   result="$(cat /etc/templated)"
   [ "$result" == "Hello world" ]
 }
 
-@test "Cnt should copy files" {
+@test "dgr should copy files" {
   result="$(cat /etc/dummy)"
   [ "$result" == "Dummy file" ]
 }

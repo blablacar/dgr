@@ -2,7 +2,7 @@ package runner
 
 //import (
 //	"bytes"
-//	"github.com/blablacar/cnt/utils"
+//	"github.com/blablacar/dgr/utils"
 //	"io"
 //	"os/exec"
 //	"strings"

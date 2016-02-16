@@ -1533,7 +1533,7 @@ var entity = map[string]rune{
 	"parsl;":                    '\U00002AFD',
 	"part;":                     '\U00002202',
 	"pcy;":                      '\U0000043F',
-	"percnt;":                   '\U00000025',
+	"perdgr;":                   '\U00000025',
 	"period;":                   '\U0000002E',
 	"permil;":                   '\U00002030',
 	"perp;":                     '\U000022A5',

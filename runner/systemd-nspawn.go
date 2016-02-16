@@ -1,6 +1,6 @@
 package runner
 
-//import "github.com/blablacar/cnt/utils"
+//import "github.com/blablacar/dgr/utils"
 //
 //type SystemdNspawn struct {
 //}

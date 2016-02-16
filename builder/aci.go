@@ -2,9 +2,9 @@ package builder
 
 import (
 	"github.com/appc/spec/schema"
-	"github.com/blablacar/cnt/cnt"
-	"github.com/blablacar/cnt/spec"
-	"github.com/blablacar/cnt/utils"
+	"github.com/blablacar/dgr/dgr"
+	"github.com/blablacar/dgr/spec"
+	"github.com/blablacar/dgr/utils"
 	"github.com/ghodss/yaml"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
@@ -54,22 +54,22 @@ isLevelEnabled() {
 export log_level=$(levelFromString ${LOG_LEVEL:-INFO})
 `
 
-const BUILD_SCRIPT = `#!/cnt/bin/busybox sh
+const BUILD_SCRIPT = `#!/dgr/bin/busybox sh
 set -e
-. /cnt/bin/functions.sh
+. /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
 export TARGET=$( dirname $0 )
 export ROOTFS=%%ROOTFS%%
 export TERM=xterm
 
-execute_files "$ROOTFS/cnt/runlevels/inherit-build-early"
+execute_files "$ROOTFS/dgr/runlevels/inherit-build-early"
 execute_files "$TARGET/runlevels/build"
 `
 
-const BUILD_SCRIPT_LATE = `#!/cnt/bin/busybox sh
+const BUILD_SCRIPT_LATE = `#!/dgr/bin/busybox sh
 set -e
-. /cnt/bin/functions.sh
+. /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
 
@@ -78,37 +78,37 @@ export ROOTFS=%%ROOTFS%%
 export TERM=xterm
 
 execute_files "$TARGET/runlevels/build-late"
-execute_files "$ROOTFS/cnt/runlevels/inherit-build-late"
+execute_files "$ROOTFS/dgr/runlevels/inherit-build-late"
 `
 
-const PRESTART = `#!/cnt/bin/busybox sh
+const PRESTART = `#!/dgr/bin/busybox sh
 set -e
-. /cnt/bin/functions.sh
+. /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
 BASEDIR=${0%/*}
-CNT_PATH=/cnt
+dgr_PATH=/dgr
 
-execute_files ${CNT_PATH}/runlevels/prestart-early
+execute_files ${dgr_PATH}/runlevels/prestart-early
 
 if [ -z ${LOG_LEVEL} ]; then
-	${BASEDIR}/templater -o TEMPLATER_OVERRIDE -t / /cnt
+	${BASEDIR}/templater -o TEMPLATER_OVERRIDE -t / /dgr
 else
-	${BASEDIR}/templater -o TEMPLATER_OVERRIDE -L "${LOG_LEVEL}" -t / /cnt
+	${BASEDIR}/templater -o TEMPLATER_OVERRIDE -L "${LOG_LEVEL}" -t / /dgr
 fi
 
-#if [ -d ${CNT_PATH}/attributes ]; then
+#if [ -d ${dgr_PATH}/attributes ]; then
 #	echo "$CONFD_OVERRIDE"
-#    ${BASEDIR}/attributes-merger -i ${CNT_PATH}/attributes -e CONFD_OVERRIDE
+#    ${BASEDIR}/attributes-merger -i ${dgr_PATH}/attributes -e CONFD_OVERRIDE
 #    export CONFD_DATA=$(cat attributes.json)
 #fi
-#${BASEDIR}/confd -onetime -config-file=${CNT_PATH}/prestart/confd.toml
+#${BASEDIR}/confd -onetime -config-file=${dgr_PATH}/prestart/confd.toml
 
-execute_files ${CNT_PATH}/runlevels/prestart-late
+execute_files ${dgr_PATH}/runlevels/prestart-late
 `
 const BUILD_SETUP = `#!/bin/sh
 set -e
-. "${TARGET}/rootfs/cnt/bin/functions.sh"
+. "${TARGET}/rootfs/dgr/bin/functions.sh"
 isLevelEnabled "debug" && set -x
 
 execute_files "${BASEDIR}/runlevels/build-setup"
@@ -122,8 +122,8 @@ const PATH_IMAGE_ACI = "/image.aci"
 const PATH_IMAGE_ACI_ZIP = "/image-zip.aci"
 const PATH_ROOTFS = "/rootfs"
 const PATH_TARGET = "/target"
-const PATH_CNT = "/cnt"
-const PATH_CNT_MANIFEST = "/cnt-manifest.yml"
+const PATH_DGR = "/dgr"
+const PATH_ACI_MANIFEST = "/aci-manifest.yml"
 const PATH_RUNLEVELS = "/runlevels"
 const PATH_PRESTART_EARLY = "/prestart-early"
 const PATH_PRESTART_LATE = "/prestart-late"
@@ -161,8 +161,8 @@ func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest) 
 	}
 
 	target := fullPath + PATH_TARGET
-	if cnt.Home.Config.TargetWorkDir != "" {
-		currentAbsDir, err := filepath.Abs(cnt.Home.Config.TargetWorkDir + "/" + manifest.NameAndVersion.ShortName())
+	if dgr.Home.Config.TargetWorkDir != "" {
+		currentAbsDir, err := filepath.Abs(dgr.Home.Config.TargetWorkDir + "/" + manifest.NameAndVersion.ShortName())
 		if err != nil {
 			return nil, errs.WithEF(err, fields.WithField("path", path), "Invalid target path")
 		}
@@ -185,9 +185,14 @@ func NewAciWithManifest(path string, args BuildArgs, manifest spec.AciManifest) 
 }
 
 func NewAci(path string, args BuildArgs) (*Aci, error) {
-	manifest, err := readAciManifest(path + PATH_CNT_MANIFEST)
+	manifest, err := readAciManifest(path + PATH_ACI_MANIFEST)
 	if err != nil {
-		return nil, errs.WithEF(err, data.WithField("path", path+PATH_CNT_MANIFEST), "Cannot read manifest")
+		manifest2, err2 := readAciManifest(path + "/cnt-manifest.yml")
+		if err2 != nil {
+			return nil, errs.WithEF(err, data.WithField("path", path+PATH_ACI_MANIFEST).WithField("err2", err2), "Cannot read manifest")
+		}
+		logs.WithField("old", "cnt-manifest.yml").WithField("new", "aci-manifest.yml").Warn("You are using the old aci configuration file")
+		manifest = manifest2
 	}
 	return NewAciWithManifest(path, args, *manifest)
 }
@@ -243,19 +248,22 @@ func (aci *Aci) checkCompatibilityVersions() {
 			logs.WithEF(err, fromFields).Fatal("Cannot find dependency")
 		}
 
-		version, ok := loadManifest(out).Annotations.Get("cnt-version")
+		version, ok := loadManifest(out).Annotations.Get("dgr-version")
+		if !ok {
+			version, ok = loadManifest(out).Annotations.Get("cnt-version")
+		}
 		var val int
 		if ok {
 			val, err = strconv.Atoi(version)
 			if err != nil {
-				logs.WithEF(err, fromFields).WithField("version", version).Fatal("Failed to parse cnt-version from manifest")
+				logs.WithEF(err, fromFields).WithField("version", version).Fatal("Failed to parse dgr-version from manifest")
 			}
 		}
 		if !ok || val < 51 {
 			logs.WithF(aci.fields).
 				WithField("from", from).
 				WithField("require", ">=51").
-				Error("from aci was not build with a compatible version of cnt")
+				Error("from aci was not build with a compatible version of dgr")
 		}
 	}
 
@@ -270,19 +278,22 @@ func (aci *Aci) checkCompatibilityVersions() {
 			logs.WithEF(err, depFields).Fatal("Cannot find dependency")
 		}
 
-		version, ok := loadManifest(out).Annotations.Get("cnt-version")
+		version, ok := loadManifest(out).Annotations.Get("dgr-version")
+		if !ok {
+			version, ok = loadManifest(out).Annotations.Get("cnt-version")
+		}
 		var val int
 		if ok {
 			val, err = strconv.Atoi(version)
 			if err != nil {
-				logs.WithEF(err, depFields).WithField("version", version).Fatal("Failed to parse cnt-version from manifest")
+				logs.WithEF(err, depFields).WithField("version", version).Fatal("Failed to parse dgr-version from manifest")
 			}
 		}
 		if !ok || val < 51 {
 			logs.WithF(aci.fields).
 				WithField("dependency", dep).
 				WithField("require", ">=51").
-				Error("dependency aci was not build with a compatible version of cnt")
+				Error("dependency aci was not build with a compatible version of dgr")
 		}
 	}
 }

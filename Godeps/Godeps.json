@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/blablacar/cnt",
+	"ImportPath": "github.com/blablacar/dgr",
 	"GoVersion": "go1.5.3",
 	"Packages": [
 		"./..."

@@ -6,18 +6,18 @@ import (
 	"github.com/n0rad/go-erlog/errs"
 )
 
-type CntBuild struct {
+type DgrBuild struct {
 	Image types.ACIdentifier `json:"image"`
 }
 
-func (b *CntBuild) NoBuildImage() bool {
+func (b *DgrBuild) NoBuildImage() bool {
 	return b.Image == ""
 }
 
 type AciManifest struct {
 	NameAndVersion ACFullname    `json:"name"`
 	From           interface{}   `json:"from"`
-	Build          CntBuild      `json:"build"`
+	Build          DgrBuild      `json:"build"`
 	Aci            AciDefinition `json:"aci"`
 }
 
@@ -39,13 +39,13 @@ func (m *AciManifest) GetFroms() ([]ACFullname, error) {
 }
 
 type AciDefinition struct {
-	App           CntApp            `json:"app,omitempty"`
+	App           DgrApp            `json:"app,omitempty"`
 	Annotations   types.Annotations `json:"annotations,omitempty"`
 	Dependencies  []ACFullname      `json:"dependencies,omitempty"`
 	PathWhitelist []string          `json:"pathWhitelist,omitempty"`
 }
 
-type CntApp struct {
+type DgrApp struct {
 	Exec             types.Exec         `json:"exec"`
 	User             string             `json:"user"`
 	Group            string             `json:"group"`
