@@ -259,10 +259,10 @@ func (aci *Aci) checkCompatibilityVersions() {
 				logs.WithEF(err, fromFields).WithField("version", version).Fatal("Failed to parse dgr-version from manifest")
 			}
 		}
-		if !ok || val < 51 {
+		if !ok || val < 55 {
 			logs.WithF(aci.fields).
 				WithField("from", from).
-				WithField("require", ">=51").
+				WithField("require", ">=55").
 				Error("from aci was not build with a compatible version of dgr")
 		}
 	}
@@ -289,10 +289,10 @@ func (aci *Aci) checkCompatibilityVersions() {
 				logs.WithEF(err, depFields).WithField("version", version).Fatal("Failed to parse dgr-version from manifest")
 			}
 		}
-		if !ok || val < 51 {
+		if !ok || val < 55 {
 			logs.WithF(aci.fields).
 				WithField("dependency", dep).
-				WithField("require", ">=51").
+				WithField("require", ">=55").
 				Error("dependency aci was not build with a compatible version of dgr")
 		}
 	}

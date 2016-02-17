@@ -145,10 +145,6 @@ func (aci *Aci) processFrom() {
 
 func (aci *Aci) copyInternals() {
 	logs.WithF(aci.fields).Debug("Copy internals")
-	dir, _ := os.Getwd()
-	os.Chdir(aci.rootfs)
-	os.Symlink("dgr", "cnt")
-	os.Chdir(dir)
 	os.MkdirAll(aci.rootfs+PATH_DGR+PATH_BIN, 0755)
 	os.MkdirAll(aci.rootfs+PATH_BIN, 0755)   // this is required or systemd-nspawn will create symlink on it
 	os.MkdirAll(aci.rootfs+"/usr/bin", 0755) // this is required by systemd-nspawn
