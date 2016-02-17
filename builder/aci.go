@@ -249,9 +249,6 @@ func (aci *Aci) checkCompatibilityVersions() {
 		}
 
 		version, ok := loadManifest(out).Annotations.Get("dgr-version")
-		if !ok {
-			version, ok = loadManifest(out).Annotations.Get("cnt-version")
-		}
 		var val int
 		if ok {
 			val, err = strconv.Atoi(version)
@@ -279,9 +276,6 @@ func (aci *Aci) checkCompatibilityVersions() {
 		}
 
 		version, ok := loadManifest(out).Annotations.Get("dgr-version")
-		if !ok {
-			version, ok = loadManifest(out).Annotations.Get("cnt-version")
-		}
 		var val int
 		if ok {
 			val, err = strconv.Atoi(version)
