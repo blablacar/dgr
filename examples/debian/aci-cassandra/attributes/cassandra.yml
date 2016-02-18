@@ -1,0 +1,33 @@
+default:
+  cassandra:
+    topology:
+      datacenter: DC1
+      rack: RAC1
+
+    cluster_name: Test Cluster
+    initial_token: ''
+
+    auto_bootstrap: true
+    join_ring: true
+    replace_address:
+
+    authenticator: AllowAllAuthenticator
+    authorizer: AllowAllAuthorizer
+
+    concurrent_reads: 32
+    concurrent_writes: 32
+    concurrent_counter_writes: 32
+    concurrent_materialized_view_writes: 32
+
+    memtable:
+      memtable_flush_writers:
+      memtable_heap_space_in_mb:
+      memtable_offheap_space_in_mb:
+      memtable_cleanup_threshold:
+
+    compaction:
+      compaction_throughput_mb_per_sec: 16
+      concurrent_compactors:
+
+    logs:
+      level: INFO
