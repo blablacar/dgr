@@ -2,7 +2,7 @@
 set -x
 set -e
 
-cat > /cnt/attributes/aci-cassandra/prestart.yml <<EOF
+cat > /dgr/attributes/aci-cassandra/prestart.yml <<EOF
 default:
   cassandra:
     seeds: $IP
