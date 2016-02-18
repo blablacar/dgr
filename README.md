@@ -41,9 +41,9 @@ dgr provides various resources to build and configure an ACI :
 
 ### dgr vs Dockerfiles
 
-A Dockerfile is purely configuration, describing the steps to build the container.
+A Dockerfile is purely configuration, describing the steps to build the container. It does not provide a common way of building containers across a team.
 It does not provide scripts levels, ending with very long bash scripting for the run option in the dockerfile.
-It does not handle configuration, nor build time nor at runtime. So users usually use sed in the bash script to replace parts of configuration.
+It does not handle configuration, nor at build time nor at runtime.
 
 ### dgr vs acbuild
 
