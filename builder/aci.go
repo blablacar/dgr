@@ -239,13 +239,11 @@ func (aci *Aci) checkCompatibilityVersions() {
 
 		fromFields := aci.fields.WithField("dependency", from.String())
 
-		err := utils.ExecCmd("rkt", "--insecure-options=image", "fetch", from.String())
-		if err != nil {
-			logs.WithEF(err, fromFields).Fatal("Cannot fetch from")
-		}
+		utils.ExecCmd("rkt", "--insecure-options=image", "fetch", from.String())
 		out, err := utils.ExecCmdGetOutput("rkt", "image", "cat-manifest", from.String())
 		if err != nil {
-			logs.WithEF(err, fromFields).Fatal("Cannot find dependency")
+			logs.WithF(fromFields).Error("Cannot check compatibility of from, from not found")
+			continue
 		}
 
 		version, ok := loadManifest(out).Annotations.Get("dgr-version")
@@ -266,13 +264,11 @@ func (aci *Aci) checkCompatibilityVersions() {
 
 	for _, dep := range aci.manifest.Aci.Dependencies {
 		depFields := aci.fields.WithField("dependency", dep.String())
-		err := utils.ExecCmd("rkt", "--insecure-options=image", "fetch", dep.String())
-		if err != nil {
-			logs.WithEF(err, depFields).Fatal("Cannot fetch dependency")
-		}
+		utils.ExecCmd("rkt", "--insecure-options=image", "fetch", dep.String())
 		out, err := utils.ExecCmdGetOutput("rkt", "image", "cat-manifest", dep.String())
 		if err != nil {
-			logs.WithEF(err, depFields).Fatal("Cannot find dependency")
+			logs.WithEF(err, depFields).Error("Cannot check compatibility of dependency, dependency not found")
+			continue
 		}
 
 		version, ok := loadManifest(out).Annotations.Get("dgr-version")
@@ -296,7 +292,7 @@ func loadManifest(content string) schema.ImageManifest {
 	im := schema.ImageManifest{}
 	err := im.UnmarshalJSON([]byte(content))
 	if err != nil {
-		logs.WithE(err).WithField("content", content).Fatal("Failed to read manifest content")
+		logs.WithField("content", content).Fatal("Failed to read manifest content")
 	}
 	return im
 }
