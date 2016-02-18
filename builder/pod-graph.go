@@ -39,12 +39,15 @@ func (p *Pod) Graph() {
 	buffer.WriteString("}\n")
 
 	ioutil.WriteFile(p.target+"/graph.dot", buffer.Bytes(), 0644)
-	_, err := os.Stat(p.target + "/graph.dot")
-	if os.IsNotExist(err) {
-		logs.WithF(p.fields).Error("No such file : " + p.target + "/graph.dot")
-		return
-	} else {
-		cmd := exec.Command("dot", "-Tpng", p.target+"/graph.dot", "-o", p.target+"/graph.png")
-		cmd.Run()
+	cmd := "dot -V"
+	if err := exec.Command(cmd).Run(); err != nil {
+		_, err := os.Stat(p.target + "/graph.dot")
+		if os.IsNotExist(err) {
+			logs.WithF(p.fields).Error("No such file : " + p.target + "/graph.dot")
+			return
+		} else {
+			cmd := exec.Command("dot", "-Tpng", p.target+"/graph.dot", "-o", p.target+"/graph.png")
+			cmd.Run()
+		}
 	}
 }
