@@ -1,0 +1,6 @@
+{{ range .dns.nameservers }}
+nameserver {{ . -}}
+{{ end }}
+{{ if .dns.search }}
+search {{ range .dns.search }} {{.}} {{end}}
+{{end}}

@@ -1,0 +1,4 @@
+default:
+  prometheus:
+    zkpaths:
+      - /monitoring

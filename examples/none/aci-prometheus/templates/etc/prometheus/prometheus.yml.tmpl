@@ -1,0 +1,31 @@
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+
+scrape_configs:
+  - job_name: 'prometheus'
+
+    scrape_interval: 5s
+    scrape_timeout: 10s
+
+    target_groups:
+      - targets: ['{{.pod.ip}}:9090']
+
+{{if .zk}}
+  - job_name: discovery_zk
+    nerve_sd_configs:
+      - servers:
+{{range $i, $node := .zk.hosts}}
+        - {{$node.host}}{{end}}
+        paths:
+{{range $i, $node := .prometheus.zkpaths}}
+        - {{$node}}{{end}}
+
+    relabel_configs:
+      - source_labels: [__meta_nerve_endpoint_name]
+        target_label: name
+      - source_labels: [__meta_nerve_endpoint_name]
+        regex: ([a-z\-]+).*
+        replacement: ${1}
+        target_label: service
+{{end}}

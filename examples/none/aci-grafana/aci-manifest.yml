@@ -1,0 +1,10 @@
+from: dgrtool.com/aci-base:1
+name: dgrtool.com/aci-grafana:2.6.0-1
+aci:
+  app:
+    exec: [ /grafana/bin/grafana-server ]
+    workingDirectory: /grafana/bin
+    environment:
+      - { name: GODEBUG, value: "netdns=cgo" }
+    mountPoints:
+      - {name: data, path: /grafana/data, readOnly: false}
