@@ -51,6 +51,10 @@ func WriteImageManifest(m *spec.AciManifest, targetFile string, projectName stri
 	im.Name = *name
 	im.Labels = labels
 
+	if len(m.Aci.App.Exec) == 0 {
+		m.Aci.App.Exec = []string{"/dgr/bin/busybox", "sh"}
+	}
+
 	im.App = &types.App{
 		Exec:             m.Aci.App.Exec,
 		EventHandlers:    []types.EventHandler{{Name: "pre-start", Exec: []string{"/dgr/bin/prestart"}}},
