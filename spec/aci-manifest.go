@@ -6,18 +6,10 @@ import (
 	"github.com/n0rad/go-erlog/errs"
 )
 
-type DgrBuild struct {
-	Image types.ACIdentifier `json:"image"`
-}
-
-func (b *DgrBuild) NoBuildImage() bool {
-	return b.Image == ""
-}
-
 type AciManifest struct {
 	NameAndVersion ACFullname    `json:"name"`
 	From           interface{}   `json:"from"`
-	Build          DgrBuild      `json:"build"`
+	Builder        ACFullname    `json:"builder"`
 	Aci            AciDefinition `json:"aci"`
 }
 

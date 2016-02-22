@@ -54,28 +54,30 @@ isLevelEnabled() {
 export log_level=$(levelFromString ${LOG_LEVEL:-INFO})
 `
 
-const BUILD_SCRIPT = `#!/dgr/bin/busybox sh
+const BUILD_SCRIPT = `#!%%ROOTFS%%/dgr/bin/busybox sh
 set -e
-. /dgr/bin/functions.sh
-isLevelEnabled "debug" && set -x
-
 export TARGET=$( dirname $0 )
 export ROOTFS=%%ROOTFS%%
 export TERM=xterm
+
+. ${ROOTFS}/dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
 
 execute_files "$ROOTFS/dgr/runlevels/inherit-build-early"
 execute_files "$TARGET/runlevels/build"
 `
 
-const BUILD_SCRIPT_LATE = `#!/dgr/bin/busybox sh
+const BUILD_SCRIPT_LATE = `#!%%ROOTFS%%/dgr/bin/busybox sh
 set -e
-. /dgr/bin/functions.sh
-isLevelEnabled "debug" && set -x
-
-
 export TARGET=$( dirname $0 )
 export ROOTFS=%%ROOTFS%%
 export TERM=xterm
+
+. ${ROOTFS}/dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
+
 
 execute_files "$TARGET/runlevels/build-late"
 execute_files "$ROOTFS/dgr/runlevels/inherit-build-late"
@@ -135,6 +137,8 @@ const PATH_BUILD_LATE = "/build-late"
 const PATH_BUILD_SETUP = "/build-setup"
 const PATH_BUILD = "/build"
 const PATH_TEMPLATES = "/templates"
+const PATH_BUILDER = "/builder"
+const PATH_TMP = "/tmp"
 
 type Aci struct {
 	fields          data.Fields

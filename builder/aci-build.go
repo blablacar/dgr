@@ -17,21 +17,23 @@ func (aci *Aci) Build() error {
 	logs.WithF(aci.fields).Info("Building")
 
 	os.MkdirAll(aci.rootfs, 0777)
+	os.MkdirAll(aci.target+PATH_BUILDER, 0777)
 
 	aci.fullyResolveDependencies()
+	aci.processBuilder()
 	aci.processFrom()
 	aci.copyInternals()
 	aci.copyRunlevelsScripts()
 
 	aci.runLevelBuildSetup()
 
-	aci.writeAciManifest()
-
 	aci.runBuild()
 	aci.copyAttributes()
 	aci.copyTemplates()
 	aci.copyFiles()
 	aci.runBuildLate()
+
+	aci.writeAciManifest()
 
 	aci.tarAci(false)
 	//	ExecCmd("chown " + os.Getenv("SUDO_USER") + ": " + target + "/*") //TODO chown
@@ -47,6 +49,26 @@ func (aci *Aci) CheckBuilt() {
 }
 
 ///////////////////////////////////////////////////////
+
+func (aci *Aci) processBuilder() {
+	if aci.manifest.Builder.String() == "" {
+		return
+	}
+	logs.WithF(aci.fields).WithField("builder", aci.manifest.Builder.String()).Debug("Process builder")
+
+	if err := utils.ExecCmd("bash", "-c", "rkt image list --fields name --no-legend | grep -q "+aci.manifest.Builder.String()); err != nil {
+		utils.ExecCmd("rkt", "--insecure-options=image", "fetch", aci.manifest.Builder.String())
+	}
+	if err := utils.ExecCmd("rkt", "image", "render", "--overwrite", aci.manifest.Builder.String(), aci.target+PATH_TMP); err != nil {
+		logs.WithEF(err, aci.fields).WithField("builder", aci.manifest.Builder.String()).Fatal("Failed to render builder aci")
+	}
+
+	err := utils.ExecCmd("bash", "mv", aci.target+PATH_TMP+PATH_ROOTFS, aci.target+PATH_BUILDER)
+	if err != nil {
+		logs.WithEF(err, aci.fields).Fatal("Failed to move rendered build rootfs")
+	}
+	os.RemoveAll(aci.target + PATH_TMP)
+}
 
 func (aci *Aci) fullyResolveDependencies() {
 	if !aci.FullyResolveDep {
@@ -68,24 +90,26 @@ func (aci *Aci) runBuildLate() {
 	if (res && res2) || (err != nil && err2 != nil) {
 		return
 	}
-
-	{
-		rootfs := "${TARGET}/rootfs"
-		if aci.manifest.Build.NoBuildImage() {
-			rootfs = ""
-		}
-		build := strings.Replace(BUILD_SCRIPT_LATE, "%%ROOTFS%%", rootfs, 1)
-		ioutil.WriteFile(aci.target+"/build-late.sh", []byte(build), 0777)
-	}
+	logs.WithF(aci.fields).Debug("Running build late")
 
 	checkSystemdNspawn()
+
+	rootfs := ""
+	builderRootfs := aci.target + PATH_ROOTFS
+	if res, _ := utils.IsDirEmpty(aci.target + PATH_BUILDER); !res && err == nil {
+		builderRootfs = aci.target + PATH_BUILDER
+		rootfs = "/target/rootfs"
+	}
+
+	build := strings.Replace(BUILD_SCRIPT_LATE, "%%ROOTFS%%", rootfs, -1)
+	ioutil.WriteFile(aci.target+"/build-late.sh", []byte(build), 0777)
 
 	logs.WithF(aci.fields).Info("Starting systemd-nspawn to run Build late scripts")
 	if err := utils.ExecCmd("systemd-nspawn",
 		"--setenv=LOG_LEVEL="+logs.GetLevel().String(),
 		"--register=no",
 		"-q",
-		"--directory="+aci.rootfs,
+		"--directory="+builderRootfs,
 		"--capability=all",
 		"--bind="+aci.target+"/:/target",
 		"target/build-late.sh"); err != nil {
@@ -93,18 +117,22 @@ func (aci *Aci) runBuildLate() {
 	}
 }
 
-func (aci *Aci) runBuild() {
+func (aci *Aci) runBuild() { // TODO merge with runBuildLate
 	if res, err := utils.IsDirEmpty(aci.target + PATH_RUNLEVELS + PATH_BUILD); res || err != nil {
 		return
 	}
+	logs.WithF(aci.fields).Debug("Running build")
 
 	checkSystemdNspawn()
 
-	rootfs := "${TARGET}/rootfs"
-	if aci.manifest.Build.NoBuildImage() {
-		rootfs = ""
+	rootfs := ""
+	builderRootfs := aci.target + PATH_ROOTFS
+	if res, err := utils.IsDirEmpty(aci.target + PATH_BUILDER); !res && err == nil {
+		builderRootfs = aci.target + PATH_BUILDER
+		rootfs = "/target/rootfs"
 	}
-	build := strings.Replace(BUILD_SCRIPT, "%%ROOTFS%%", rootfs, 1)
+
+	build := strings.Replace(BUILD_SCRIPT, "%%ROOTFS%%", rootfs, -1)
 	ioutil.WriteFile(aci.target+"/build.sh", []byte(build), 0777)
 
 	logs.WithF(aci.fields).Info("Starting systemd-nspawn to run Build scripts")
@@ -112,7 +140,7 @@ func (aci *Aci) runBuild() {
 		"--setenv=LOG_LEVEL="+logs.GetLevel().String(),
 		"--register=no",
 		"-q",
-		"--directory="+aci.rootfs,
+		"--directory="+builderRootfs,
 		"--capability=all",
 		"--bind="+aci.target+"/:/target",
 		"target/build.sh"); err != nil {
@@ -146,7 +174,7 @@ func (aci *Aci) processFrom() {
 func (aci *Aci) copyInternals() {
 	logs.WithF(aci.fields).Debug("Copy internals")
 	os.MkdirAll(aci.rootfs+PATH_DGR+PATH_BIN, 0755)
-	os.MkdirAll(aci.rootfs+PATH_BIN, 0755)   // this is required or systemd-nspawn will create symlink on it
+	//	os.MkdirAll(aci.rootfs+PATH_BIN, 0755)   // this is required or systemd-nspawn will create symlink on it
 	os.MkdirAll(aci.rootfs+"/usr/bin", 0755) // this is required by systemd-nspawn
 
 	busybox, _ := dist.Asset("dist/bindata/busybox")
