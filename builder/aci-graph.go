@@ -5,10 +5,11 @@ import (
 	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"os"
+	"os/exec"
 )
 
 func (aci *Aci) Graph() {
-	logs.WithF(aci.fields).Debug("Graphing")
+	logs.WithF(aci.fields).Info("Graphing")
 
 	os.MkdirAll(aci.target, 0777)
 
@@ -50,4 +51,15 @@ func (aci *Aci) Graph() {
 	buffer.WriteString("}\n")
 
 	ioutil.WriteFile(aci.target+"/graph.dot", buffer.Bytes(), 0644)
+	cmd := "dot -V"
+	if err := exec.Command(cmd).Run(); err != nil {
+		_, err := os.Stat(aci.target + "/graph.dot")
+		if os.IsNotExist(err) {
+			logs.WithF(aci.fields).Error("No such file : " + aci.target + "/graph.dot")
+			return
+		} else {
+			cmd := exec.Command("dot", "-Tpng", aci.target+"/graph.dot", "-o", aci.target+"/graph.png")
+			cmd.Run()
+		}
+	}
 }
