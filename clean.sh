@@ -1,4 +1,6 @@
 #!/bin/bash
+set -x
+set -e
+dir=$( dirname $0 )
 
-rm -Rf dist/
-aci-bats/clean.sh
+rm -Rf ${dir}/dist/

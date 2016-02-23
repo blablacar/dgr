@@ -41,7 +41,7 @@ require_clean_work_tree () {
     fi
 }
 
-VERSION=$version go generate
+export VERSION=$version
 
 ${dir}/clean.sh
 ${dir}/build.sh

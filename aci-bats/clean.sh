@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x
 set -e
-
-DIR=$( dirname $0 )
-
-rm -Rf $DIR/rootfs/ $DIR/aci-bats.aci
+dir=$( dirname $0 )
+target=${dir}/../dist/aci-bats
+rm -Rf ${target}
+rm -f ${dir}/../dist/bindata/aci-bats.aci

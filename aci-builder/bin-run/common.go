@@ -1,0 +1,25 @@
+package main
+
+const PATH_ACIHOME = "/acihome"
+const PATH_OPT = "/opt"
+const PATH_BUILDER = "/builder"
+const PATH_DGR = "/dgr"
+const PATH_BIN = "/bin"
+const PATH_TARGET = "/target"
+const PATH_OVERLAY = "/overlay"
+const PATH_UPPER = "/upper"
+
+const PATH_PRESTART_EARLY = "/prestart-early"
+const PATH_PRESTART_LATE = "/prestart-late"
+const PATH_INHERIT_BUILD_LATE = "/inherit-build-late"
+const PATH_INHERIT_BUILD_EARLY = "/inherit-build-early"
+const PATH_ATTRIBUTES = "/attributes"
+const PATH_TEMPLATES = "/templates"
+const PATH_FILES = "/files"
+const PATH_RUNLEVELS = "/runlevels"
+const PATH_BUILD_LATE = "/build-late"
+const PATH_BUILD_SETUP = "/build-setup"
+const PATH_BUILD = "/build"
+
+const SUDO_UID = "SUDO_UID"
+const SUDO_GID = "SUDO_GID"
