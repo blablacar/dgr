@@ -111,6 +111,7 @@ func (aci *Aci) runBuildLate() {
 		"-q",
 		"--directory="+builderRootfs,
 		"--capability=all",
+		"--link-journal=auto",
 		"--bind="+aci.target+"/:/target",
 		"target/build-late.sh"); err != nil {
 		logs.WithEF(err, aci.fields).Fatal("Build late part failed")
@@ -124,7 +125,6 @@ func (aci *Aci) runBuild() { // TODO merge with runBuildLate
 	logs.WithF(aci.fields).Debug("Running build")
 
 	checkSystemdNspawn()
-
 	rootfs := ""
 	builderRootfs := aci.target + PATH_ROOTFS
 	if res, err := utils.IsDirEmpty(aci.target + PATH_BUILDER); !res && err == nil {
@@ -142,6 +142,7 @@ func (aci *Aci) runBuild() { // TODO merge with runBuildLate
 		"-q",
 		"--directory="+builderRootfs,
 		"--capability=all",
+		"--link-journal=auto",
 		"--bind="+aci.target+"/:/target",
 		"target/build.sh"); err != nil {
 		logs.WithEF(err, aci.fields).Fatal("Build part failed")
