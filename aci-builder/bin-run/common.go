@@ -20,6 +20,7 @@ const PATH_RUNLEVELS = "/runlevels"
 const PATH_BUILD_LATE = "/build-late"
 const PATH_BUILD_SETUP = "/build-setup"
 const PATH_BUILD = "/build"
+const PATH_STAGE2 = "/stage2"
 
 const SUDO_UID = "SUDO_UID"
 const SUDO_GID = "SUDO_GID"

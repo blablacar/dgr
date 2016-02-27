@@ -91,6 +91,15 @@ func (b *Builder) Build() error {
 ////////////////////////////////////////////
 
 func (b *Builder) writeManifest() error {
+	upperId, err := b.upperTreeStoreId()
+	if err != nil {
+		return err
+	}
+
+	if err := common.CopyFile(b.stage1Rootfs+PATH_OPT+PATH_STAGE2+"/"+b.pod.Manifest.Apps[0].Name.String()+common.PATH_MANIFEST,
+		b.pod.Root+PATH_OVERLAY+"/"+upperId+PATH_UPPER+common.PATH_MANIFEST); err != nil {
+		return errs.WithEF(err, b.fields, "Failed to copy manifest")
+	}
 	return nil
 }
 
@@ -105,13 +114,12 @@ func (b *Builder) chownTargetFiles() {
 }
 
 func (b *Builder) tarAci() error {
-	treeStoreIDFilePath := rktcommon.AppTreeStoreIDPath(b.pod.Root, b.pod.Manifest.Apps[0].Name)
-	treeStoreID, err := ioutil.ReadFile(treeStoreIDFilePath)
+	upperId, err := b.upperTreeStoreId()
 	if err != nil {
-		return errs.WithEF(err, b.fields.WithField("path", treeStoreIDFilePath), "Failed to read treeStoreID from file")
+		return err
 	}
 
-	upperPath := b.pod.Root + PATH_OVERLAY + "/" + string(treeStoreID) + PATH_UPPER
+	upperPath := b.pod.Root + PATH_OVERLAY + "/" + upperId + PATH_UPPER
 	upperNamedRootfs := upperPath + "/" + b.pod.Manifest.Apps[0].Name.String()
 	upperRootfs := upperPath + common.PATH_ROOTFS
 
@@ -134,7 +142,7 @@ func (b *Builder) tarAci() error {
 	if err := os.Chdir(upperPath); err != nil {
 		return errs.WithEF(err, b.fields.WithField("path", upperPath), "Failed to chdir to upper base path")
 	}
-	if err := common.Tar(false, b.aciHomePath+PATH_TARGET+common.PATH_IMAGE_ACI /*PATH_MANIFEST[1:],*/, common.PATH_ROOTFS[1:]+"/"); err != nil {
+	if err := common.Tar(false, b.aciHomePath+PATH_TARGET+common.PATH_IMAGE_ACI, common.PATH_MANIFEST[1:], common.PATH_ROOTFS[1:]+"/"); err != nil {
 		return errs.WithEF(err, b.fields, "Failed to tar aci")
 	}
 	logs.WithField("path", dir).Debug("chdir")
@@ -224,4 +232,13 @@ func (b *Builder) prepareNspawnArgsAndEnv() ([]string, []string) {
 	args = append(args, "/dgr/builder/builder.sh")
 
 	return args, env
+}
+
+func (b *Builder) upperTreeStoreId() (string, error) {
+	treeStoreIDFilePath := rktcommon.AppTreeStoreIDPath(b.pod.Root, b.pod.Manifest.Apps[0].Name)
+	treeStoreID, err := ioutil.ReadFile(treeStoreIDFilePath)
+	if err != nil {
+		return "", errs.WithEF(err, b.fields.WithField("path", treeStoreIDFilePath), "Failed to read treeStoreID from file")
+	}
+	return string(treeStoreID), nil
 }

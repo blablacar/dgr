@@ -25,18 +25,20 @@ systemd-nspawn --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${ro
 
 
 # prestart
-mkdir -p ${rootfs}/dgr/prestart/{prestart-early,prestart-late}
+mkdir -p ${rootfs}/dgr/prestart/prestart-early
 if [ -d /opt/aci-home/runlevels/prestart-early ]; then
     cp -Rf /opt/aci-home/runlevels/prestart-early/. ${rootfs}/dgr/prestart/prestart-early
 fi
+mkdir -p ${rootfs}/dgr/prestart/prestart-late
 if [ -d /opt/aci-home/runlevels/prestart-late ]; then
     cp -Rf /opt/aci-home/runlevels/prestart-late/. ${rootfs}/dgr/prestart/prestart-late
 fi
 # attributes
 mkdir -p ${rootfs}/dgr/attributes/${ACI_NAME}
-if [ -d ${acihome}/attributes ]; then
-    cp -Rf ${acihome}/attributes/. ${rootfs}/dgr/attributes/${ACI_NAME} # TODO do not copy no .yml .yaml
-fi
+find ${acihome}/attributes \( -name "*.yml" -o -name "*.yaml" \) -exec cp {} ${rootfs}/dgr/attributes/${ACI_NAME} \;
+#if [ -d ${acihome}/attributes ]; then
+#    cp -Rf ${acihome}/attributes/. ${rootfs}/dgr/attributes/${ACI_NAME} # TODO do not copy no .yml .yaml
+#fi
 
 # files
 if [ -d ${acihome}/files ]; then
