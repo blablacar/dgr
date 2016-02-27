@@ -12,6 +12,6 @@ func (aci *Aci) Clean() {
 	aci.checkLatestVersions()
 
 	if err := os.RemoveAll(aci.target + "/"); err != nil {
-		panic("Cannot clean " + aci.manifest.NameAndVersion.String() + err.Error())
+		logs.WithEF(err, aci.fields).WithField("dir", aci.target).Warn("Cannot remove directory")
 	}
 }

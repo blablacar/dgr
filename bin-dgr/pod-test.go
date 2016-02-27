@@ -2,7 +2,7 @@ package main
 
 import "github.com/n0rad/go-erlog/logs"
 
-func (p *Pod) Test() {
+func (p *Pod) Test() error {
 	logs.WithF(p.fields).Info("Testing")
 
 	for _, e := range p.manifest.Pod.Apps {
@@ -11,7 +11,9 @@ func (p *Pod) Test() {
 			logs.WithEF(err, p.fields).WithField("name", e.Name).Fatal("Cannot prepare aci")
 		}
 		aci.podName = &p.manifest.Name
-		aci.Test()
+		if err := aci.Test(); err != nil {
+			return err
+		}
 	}
-
+	return nil
 }

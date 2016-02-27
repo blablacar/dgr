@@ -14,11 +14,4 @@ else
 	${BASEDIR}/templater -o TEMPLATER_OVERRIDE -L "${LOG_LEVEL}" -t / /dgr
 fi
 
-#if [ -d ${dgr_PATH}/attributes ]; then
-#	echo "$CONFD_OVERRIDE"
-#    ${BASEDIR}/attributes-merger -i ${dgr_PATH}/attributes -e CONFD_OVERRIDE
-#    export CONFD_DATA=$(cat attributes.json)
-#fi
-#${BASEDIR}/confd -onetime -config-file=${dgr_PATH}/prestart/confd.toml
-
 execute_files ${dgr_PATH}/runlevels/prestart-late

@@ -11,10 +11,10 @@ import (
 type DgrCommand interface {
 	Build() error
 	Clean()
-	Push()
-	Install()
-	Test()
-	Graph()
+	Push() error
+	Install() error
+	Test() error
+	Graph() error
 }
 
 type PodManifest struct {
@@ -47,6 +47,7 @@ type AciManifest struct {
 	NameAndVersion common.ACFullname `json:"name"`
 	From           interface{}       `json:"from"`
 	Builder        common.ACFullname `json:"builder"`
+	TestBuilder    common.ACFullname `json:"testBuilder"`
 	Aci            AciDefinition     `json:"aci"`
 }
 

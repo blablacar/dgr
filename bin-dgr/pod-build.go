@@ -5,6 +5,7 @@ import (
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/dgr/bin-dgr/common"
+	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"os"
@@ -19,7 +20,10 @@ func (p *Pod) Build() error {
 	os.MkdirAll(p.target, 0777)
 
 	p.preparePodVersion()
-	apps := p.processAci()
+	apps, err := p.processAci()
+	if err != nil {
+		return err
+	}
 
 	p.writePodManifest(apps)
 	return nil
@@ -31,17 +35,23 @@ func (p *Pod) preparePodVersion() {
 	}
 }
 
-func (p *Pod) processAci() []schema.RuntimeApp {
+func (p *Pod) processAci() ([]schema.RuntimeApp, error) {
 	apps := []schema.RuntimeApp{}
 	for _, e := range p.manifest.Pod.Apps {
 
-		aci := p.buildAci(e)
-
-		name, _ := types.NewACName(e.Name)
-
-		sum, err := Sha512sum(aci.target + "/image.aci")
+		aci, err := p.buildAci(e)
 		if err != nil {
-			panic(err)
+			return nil, err
+		}
+
+		name, err := types.NewACName(e.Name)
+		if err != nil {
+			return nil, errs.WithEF(err, p.fields.WithField("name", e.Name), "Invalid name format")
+		}
+
+		sum, err := Sha512sum(aci.target + PATH_IMAGE_ACI)
+		if err != nil {
+			return nil, errs.WithEF(err, p.fields.WithField("file", aci.target+PATH_IMAGE_ACI), "Failed to calculate sha512 of aci")
 		}
 
 		tmp, _ := types.NewHash("sha512-" + sum)
@@ -75,23 +85,25 @@ func (p *Pod) processAci() []schema.RuntimeApp {
 			Annotations: e.Annotations})
 	}
 
-	return apps
+	return apps, nil
 }
 
-func (p *Pod) buildAci(e RuntimeApp) *Aci {
+func (p *Pod) buildAci(e RuntimeApp) (*Aci, error) {
 	path := p.path + "/" + e.Name
 	if dir, err := os.Stat(path); err != nil || !dir.IsDir() {
 		if err := os.Mkdir(path, 0777); err != nil {
-			logs.WithEF(err, p.fields).WithField("path", path).Fatal("Cannot created pod's aci directory")
+			return nil, errs.WithEF(err, p.fields.WithField("path", path), "Cannot created pod's aci directory")
 		}
 	}
 	aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e))
 	if err != nil {
-		logs.WithEF(err, p.fields).WithField("aci", path).Fatal("Failed to prepare aci")
+		return nil, errs.WithEF(err, p.fields.WithField("aci", path), "Failed to prepare aci")
 	}
 	aci.podName = &p.manifest.Name
-	aci.Build()
-	return aci
+	if err := aci.Build(); err != nil {
+		return nil, errs.WithEF(err, p.fields.WithField("name", e.Name), "build of  pod's aci failed")
+	}
+	return aci, nil
 }
 
 func (p *Pod) writePodManifest(apps []schema.RuntimeApp) {

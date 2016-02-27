@@ -1,6 +1,8 @@
-package main
+package builder
 
 import (
+	"encoding/json"
+	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/dgr/bin-dgr/common"
 	rktcommon "github.com/coreos/rkt/common"
@@ -13,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 type Builder struct {
@@ -33,15 +36,14 @@ func NewBuilder(podRoot string, podUUID *types.UUID) (*Builder, error) {
 		logs.Fatal("dgr builder support only 1 application")
 	}
 
-	fields := data.WithField("aci", pod.Manifest.Apps[0].Name)
-
+	fields := data.WithField("aci", manifestApp(pod).Name)
 	logs.WithF(fields).WithField("path", pod.Root).Info("Loading aci builder")
 
-	aciPath, ok := pod.Manifest.Apps[0].App.Environment.Get(common.ENV_ACI_PATH)
+	aciPath, ok := manifestApp(pod).App.Environment.Get(common.ENV_ACI_PATH)
 	if !ok || aciPath == "" {
 		return nil, errs.WithF(fields, "Builder image require "+common.ENV_ACI_PATH+" environment variable")
 	}
-	aciTarget, ok := pod.Manifest.Apps[0].App.Environment.Get(common.ENV_ACI_TARGET)
+	aciTarget, ok := manifestApp(pod).App.Environment.Get(common.ENV_ACI_TARGET)
 	if !ok || aciPath == "" {
 		return nil, errs.WithF(fields, "Builder image require "+common.ENV_ACI_TARGET+" environment variable")
 	}
@@ -52,7 +54,7 @@ func NewBuilder(podRoot string, podUUID *types.UUID) (*Builder, error) {
 		aciTargetPath: aciTarget,
 		pod:           pod,
 		stage1Rootfs:  rktcommon.Stage1RootfsPath(pod.Root),
-		stage2Rootfs:  filepath.Join(rktcommon.AppPath(pod.Root, pod.Manifest.Apps[0].Name), "rootfs"),
+		stage2Rootfs:  filepath.Join(rktcommon.AppPath(pod.Root, manifestApp(pod).Name), "rootfs"),
 	}, nil
 }
 
@@ -69,7 +71,7 @@ func (b *Builder) Build() error {
 		return errs.WithEF(err, b.fields, "can't set FD_CLOEXEC on rkt lock")
 	}
 
-	if err := b.runBuildSetup(); err != nil { // TODO run as non-root
+	if err := b.runBuildSetup(); err != nil { // TODO run as non-root ???
 		return err // TODO DO NOT EVEN RUN HERE
 	}
 
@@ -96,9 +98,22 @@ func (b *Builder) writeManifest() error {
 		return err
 	}
 
-	if err := common.CopyFile(b.stage1Rootfs+PATH_OPT+PATH_STAGE2+"/"+b.pod.Manifest.Apps[0].Name.String()+common.PATH_MANIFEST,
-		b.pod.Root+PATH_OVERLAY+"/"+upperId+PATH_UPPER+common.PATH_MANIFEST); err != nil {
-		return errs.WithEF(err, b.fields, "Failed to copy manifest")
+	manifestPath := b.stage1Rootfs + PATH_OPT + PATH_STAGE2 + "/" + manifestApp(b.pod).Name.String() + common.PATH_MANIFEST
+	content, err := ioutil.ReadFile(manifestPath)
+	if err != nil {
+		return errs.WithEF(err, b.fields.WithField("file", manifestPath), "Failed to read manifest file")
+	}
+	im := &schema.ImageManifest{}
+	err = im.UnmarshalJSON(content)
+	if err != nil {
+		return errs.WithEF(err, data.WithField("content", string(content)), "Cannot unmarshall json content")
+	}
+
+	im.Name.Set(strings.Replace(im.Name.String(), "builder/", "", 1))
+	if content, err := json.MarshalIndent(im, "", "  "); err != nil {
+		return errs.WithEF(err, b.fields, "Failed to write manifest")
+	} else if err := ioutil.WriteFile(b.pod.Root+PATH_OVERLAY+"/"+upperId+PATH_UPPER+common.PATH_MANIFEST, content, 0644); err != nil {
+		return errs.WithEF(err, b.fields, "Failed to write manifest")
 	}
 	return nil
 }
@@ -106,7 +121,7 @@ func (b *Builder) writeManifest() error {
 func (b *Builder) chownTargetFiles() {
 	if os.Getenv(SUDO_UID) != "" {
 		logs.WithF(b.fields).Debug("Give back ownership of target directory")
-		if err := common.ExecCmd("chown", os.Getenv(SUDO_UID)+":"+os.Getenv(SUDO_GID), "-R", b.aciHomePath+PATH_TARGET); err != nil { // TODO path target may not be there
+		if err := common.ExecCmd("chown", os.Getenv(SUDO_UID)+":"+os.Getenv(SUDO_GID), "-R", b.aciTargetPath); err != nil { // TODO path target may not be there
 			logs.WithEF(err, b.fields).WithField("uid", os.Getenv(SUDO_UID)).WithField("gid", os.Getenv(SUDO_GID)).
 				Warn("Cannot give back ownership of target directory")
 		}
@@ -120,7 +135,7 @@ func (b *Builder) tarAci() error {
 	}
 
 	upperPath := b.pod.Root + PATH_OVERLAY + "/" + upperId + PATH_UPPER
-	upperNamedRootfs := upperPath + "/" + b.pod.Manifest.Apps[0].Name.String()
+	upperNamedRootfs := upperPath + "/" + manifestApp(b.pod).Name.String()
 	upperRootfs := upperPath + common.PATH_ROOTFS
 
 	if err := os.Rename(upperNamedRootfs, upperRootfs); err != nil { // TODO this is dirty and can probably be renamed during tar
@@ -142,14 +157,14 @@ func (b *Builder) tarAci() error {
 	if err := os.Chdir(upperPath); err != nil {
 		return errs.WithEF(err, b.fields.WithField("path", upperPath), "Failed to chdir to upper base path")
 	}
-	if err := common.Tar(false, b.aciHomePath+PATH_TARGET+common.PATH_IMAGE_ACI, common.PATH_MANIFEST[1:], common.PATH_ROOTFS[1:]+"/"); err != nil {
+	if err := common.Tar(false, b.aciTargetPath+common.PATH_IMAGE_ACI, common.PATH_MANIFEST[1:], common.PATH_ROOTFS[1:]+"/"); err != nil {
 		return errs.WithEF(err, b.fields, "Failed to tar aci")
 	}
 	logs.WithField("path", dir).Debug("chdir")
 	return nil
 }
 
-func (b *Builder) runBuildSetup() error { // TODO do not run as root
+func (b *Builder) runBuildSetup() error { // TODO do not run as root ??
 	if empty, err := common.IsDirEmpty(b.aciHomePath + PATH_RUNLEVELS + PATH_BUILD_SETUP); empty || err != nil {
 		return nil
 	}
@@ -160,7 +175,7 @@ func (b *Builder) runBuildSetup() error { // TODO do not run as root
 	os.Setenv("TARGET", b.stage2Rootfs+"/..") //TODO
 	os.Setenv(common.ENV_LOG_LEVEL, logs.GetLevel().String())
 
-	if err := common.ExecCmd(b.stage1Rootfs + PATH_DGR + PATH_BUILDER + "/build-setup.sh"); err != nil {
+	if err := common.ExecCmd(b.stage1Rootfs + PATH_DGR + PATH_BUILDER + "/stage2/build-setup.sh"); err != nil { // TODO this sux
 		return errs.WithEF(err, b.fields, "Build setup failed")
 	}
 
@@ -183,7 +198,7 @@ func (b *Builder) runBuild() error {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		return errs.WithEF(err, b.fields, "Build failed")
+		return errs.WithEF(err, b.fields, "Builder run failed")
 	}
 
 	return nil
@@ -224,21 +239,27 @@ func (b *Builder) prepareNspawnArgsAndEnv() ([]string, []string) {
 	env = append(env, "SYSTEMD_LOG_LEVEL="+lvl)
 
 	args = append(args, "--setenv=LOG_LEVEL="+logs.GetLevel().String())
-	args = append(args, "--setenv=ACI_NAME="+b.pod.Manifest.Apps[0].Name.String())
+	args = append(args, "--setenv=ACI_NAME="+manifestApp(b.pod).Name.String())
 	args = append(args, "--capability=all")
 	args = append(args, "--directory="+b.stage1Rootfs)
 	args = append(args, "--bind="+b.aciTargetPath+"/:/opt/aci-target")
 	args = append(args, "--bind="+b.aciHomePath+"/:/opt/aci-home")
-	args = append(args, "/dgr/builder/builder.sh")
+	args = append(args, "/build")
 
 	return args, env
 }
 
 func (b *Builder) upperTreeStoreId() (string, error) {
-	treeStoreIDFilePath := rktcommon.AppTreeStoreIDPath(b.pod.Root, b.pod.Manifest.Apps[0].Name)
+	treeStoreIDFilePath := rktcommon.AppTreeStoreIDPath(b.pod.Root, manifestApp(b.pod).Name)
 	treeStoreID, err := ioutil.ReadFile(treeStoreIDFilePath)
 	if err != nil {
 		return "", errs.WithEF(err, b.fields.WithField("path", treeStoreIDFilePath), "Failed to read treeStoreID from file")
 	}
 	return string(treeStoreID), nil
+}
+
+/////////////////////////////////////////
+
+func manifestApp(pod *stage1commontypes.Pod) schema.RuntimeApp {
+	return pod.Manifest.Apps[0]
 }

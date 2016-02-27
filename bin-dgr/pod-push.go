@@ -2,21 +2,26 @@ package main
 
 import (
 	"github.com/blablacar/dgr/bin-dgr/common"
+	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 )
 
-func (p *Pod) Push() {
+func (p *Pod) Push() error {
 	logs.WithF(p.fields).Info("Pushing")
 
-	p.Build()
+	if err := p.Build(); err != nil {
+		return err
+	}
 
 	for _, e := range p.manifest.Pod.Apps {
 		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e))
 		if err != nil {
-			logs.WithEF(err, p.fields.WithField("name", e.Name)).Fatal("Cannot prepare aci")
+			return errs.WithEF(err, p.fields.WithField("name", e.Name), "Cannot prepare aci")
 		}
 		aci.podName = &p.manifest.Name
-		aci.Push()
+		if err := aci.Push(); err != nil {
+			return err
+		}
 	}
 
 	if err := common.ExecCmd("curl", "-i",
@@ -30,7 +35,9 @@ func (p *Pod) Push() {
 		"-F", "file=@"+p.target+"/pod-manifest.json",
 		"-u", Home.Config.Push.Username+":"+Home.Config.Push.Password,
 		Home.Config.Push.Url+"/service/local/artifact/maven/content"); err != nil {
-		logs.WithEF(err, p.fields).Fatal("Cannot push pod")
+
+		return errs.WithEF(err, p.fields, "Failed to push pod")
 	}
 
+	return nil
 }

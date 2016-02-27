@@ -2,38 +2,20 @@ package main
 
 import (
 	"bytes"
+	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"os"
 )
 
-func (aci *Aci) Graph() {
+func (aci *Aci) Graph() error {
+	defer aci.giveBackUserRightsToTarget()
 	logs.WithF(aci.fields).Debug("Graphing")
 
 	os.MkdirAll(aci.target, 0777)
 
 	var buffer bytes.Buffer
 	buffer.WriteString("digraph {\n")
-
-	//	froms, err := aci.manifest.GetFroms()
-	//	if err != nil {
-	//		logs.WithEF(err, aci.fields).Fatal("Cannot render from part of grapth")
-	//	}
-	//	for _, from := range froms {
-	//		if from == "" {
-	//			continue
-	//		}
-	//		buffer.WriteString("  ")
-	//		buffer.WriteString("\"")
-	//		buffer.WriteString(from.ShortNameId())
-	//		buffer.WriteString("\"")
-	//		buffer.WriteString(" -> ")
-	//		buffer.WriteString("\"")
-	//		buffer.WriteString(aci.manifest.NameAndVersion.ShortNameId())
-	//		buffer.WriteString("\"")
-	//		buffer.WriteString("[color=red,penwidth=2.0]")
-	//		buffer.WriteString("\n")
-	//	}
 
 	for _, dep := range aci.manifest.Aci.Dependencies {
 		buffer.WriteString("  ")
@@ -49,5 +31,9 @@ func (aci *Aci) Graph() {
 
 	buffer.WriteString("}\n")
 
-	ioutil.WriteFile(aci.target+"/graph.dot", buffer.Bytes(), 0644)
+	if err := ioutil.WriteFile(aci.target+PATH_GRAPH_DOT, buffer.Bytes(), 0644); err != nil {
+		return errs.WithEF(err, aci.fields.WithField("file", aci.target+PATH_GRAPH_DOT), "Failed to write file")
+	}
+
+	return nil
 }

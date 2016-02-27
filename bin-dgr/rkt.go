@@ -9,7 +9,7 @@ import (
 )
 
 var ACI_BUILDER = common.NewACFullName("dgrtool.com/aci-builder:1")
-var ACI_BATS = common.NewACFullName("dgrtool.com/aci-bats:5")
+var ACI_TESTER = common.NewACFullName("dgrtool.com/aci-tester:1")
 
 //var internalAcis = []*spec.ACFullname{ACI_BATS, ACI_BUILDER}
 
@@ -17,6 +17,13 @@ func ImportInternalBuilderIfNeeded(manifest *AciManifest) {
 	if manifest.Builder.String() == "" {
 		manifest.Builder = *ACI_BUILDER
 		importInternalAci("aci-builder.aci") // TODO
+	}
+}
+
+func ImportInternalTesterIfNeeded(manifest *AciManifest) {
+	if manifest.TestBuilder.String() == "" {
+		manifest.TestBuilder = *ACI_TESTER
+		importInternalAci("aci-tester.aci") // TODO
 	}
 }
 

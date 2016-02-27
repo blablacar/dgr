@@ -2,20 +2,20 @@ package main
 
 import (
 	"github.com/blablacar/dgr/bin-dgr/common"
-	"io/ioutil"
-	"os"
+	"github.com/n0rad/go-erlog/errs"
 )
 
-func (aci *Aci) Install() {
-	aci.CheckBuilt()
+func (aci *Aci) Install() error {
+	if err := aci.EnsureBuilt(); err != nil {
+		return err
+	}
 	if aci.args.Test {
 		aci.args.Test = false
 		aci.Test()
 	}
-	os.Remove(aci.target + PATH_INSTALLED)
-	hash, err := common.ExecCmdGetOutput("rkt", "--insecure-options=image", "fetch", aci.target+PATH_IMAGE_ACI)
+	_, err := common.ExecCmdGetOutput("rkt", "--insecure-options=image", "fetch", aci.target+PATH_IMAGE_ACI)
 	if err != nil {
-		panic("Cannot install" + err.Error())
+		return errs.WithEF(err, aci.fields, "Failed to install aci")
 	}
-	ioutil.WriteFile(aci.target+PATH_INSTALLED, []byte(hash), 0644)
+	return nil
 }

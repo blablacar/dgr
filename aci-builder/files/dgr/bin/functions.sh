@@ -1,14 +1,28 @@
+echo_green() {
+  echo -e "\033[0;32m${1}\033[0m"
+}
+
+echo_red() {
+  echo -e "\033[0;31m${1}\033[0m"
+}
+
+echo_purple() {
+  echo -e "\033[0;35m${1}\033[0m"
+}
+
 execute_files() {
   fdir=$1
   [ -d "$fdir" ] || return 0
 
-  for file in "$fdir"/*; do
-    [ -e "$file" ] && {
-     	[ -x "$file" ] || chmod +x "$file"
-		isLevelEnabled 4 && echo -e "\e[1m\e[32mRunning script -> $file\e[0m"
-     	"$file"
-    }
-  done
+  if [ "$(ls -A ${fdir})" ]; then
+      for file in "${fdir}"/*; do
+        [ -e "$file" ] && {
+            [ -x "$file" ] || chmod +x "$file"
+            isLevelEnabled 4 && echo_green "Running script -> $file"
+            "$file"
+        }
+      done
+  fi
 }
 
 levelFromString() {

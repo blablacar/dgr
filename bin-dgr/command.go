@@ -16,7 +16,7 @@ var buildCmd = &cobra.Command{
 		checkNoArgs(args)
 
 		runCleanIfRequested(workPath, Args)
-		buildAciOrPod(workPath, Args).Build()
+		NewAciOrPod(workPath, Args).Build()
 	},
 }
 
@@ -27,7 +27,7 @@ var cleanCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		checkNoArgs(args)
 
-		buildAciOrPod(workPath, Args).Clean()
+		NewAciOrPod(workPath, Args).Clean()
 	},
 }
 
@@ -38,7 +38,7 @@ var graphCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		checkNoArgs(args)
 
-		buildAciOrPod(workPath, Args).Graph()
+		NewAciOrPod(workPath, Args).Graph()
 	},
 }
 
@@ -50,7 +50,7 @@ var installCmd = &cobra.Command{
 		checkNoArgs(args)
 
 		runCleanIfRequested(workPath, Args)
-		buildAciOrPod(workPath, Args).Install()
+		NewAciOrPod(workPath, Args).Install()
 	},
 }
 
@@ -62,7 +62,7 @@ var pushCmd = &cobra.Command{
 		checkNoArgs(args)
 
 		runCleanIfRequested(workPath, Args)
-		buildAciOrPod(workPath, Args).Push()
+		NewAciOrPod(workPath, Args).Push()
 	},
 }
 
@@ -74,7 +74,8 @@ var testCmd = &cobra.Command{
 		checkNoArgs(args)
 
 		runCleanIfRequested(workPath, Args)
-		buildAciOrPod(workPath, Args).Test()
+		dgrCommand := NewAciOrPod(workPath, Args)
+		dgrCommand.Test()
 	},
 }
 
@@ -86,7 +87,10 @@ var aciVersion = &cobra.Command{
 			cmd.Usage()
 			os.Exit(1)
 		}
-		im := ExtractManifestFromAci(args[0])
+		im, err := common.ExtractManifestFromAci(args[0])
+		if err != nil {
+			logs.WithE(err).Fatal("Failed to get manifest from file")
+		}
 		val, _ := im.Labels.Get("version")
 		println(val)
 	},

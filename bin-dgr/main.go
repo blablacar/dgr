@@ -84,9 +84,9 @@ func Execute() {
 }
 
 func checkRktVersion() {
-	output, err := common.ExecCmdGetOutput("rkt")
+	output, err := common.ExecCmdGetOutput("rkt", "version")
 	if err != nil {
-		panic("rkt is required in PATH")
+		logs.Fatal("rkt is required in PATH")
 	}
 
 	scanner := bufio.NewScanner(strings.NewReader(output))
@@ -109,7 +109,7 @@ func checkRktVersion() {
 
 }
 
-func buildAciOrPod(path string, args BuildArgs) DgrCommand {
+func NewAciOrPod(path string, args BuildArgs) DgrCommand {
 	if aci, err := NewAci(path, args); err == nil {
 		return aci
 	} else if pod, err2 := NewPod(path, args); err2 == nil {
@@ -122,6 +122,6 @@ func buildAciOrPod(path string, args BuildArgs) DgrCommand {
 
 func runCleanIfRequested(path string, args BuildArgs) {
 	if args.Clean {
-		buildAciOrPod(path, args).Clean()
+		NewAciOrPod(path, args).Clean()
 	}
 }

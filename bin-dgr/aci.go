@@ -13,20 +13,31 @@ import (
 	"strconv"
 )
 
+const PATH_GRAPH_DOT = "/graph.dot"
 const PATH_INSTALLED = "/installed"
 const PATH_IMAGE_ACI = "/image.aci"
 const PATH_IMAGE_ACI_ZIP = "/image-zip.aci"
 const PATH_TARGET = "/target"
 const PATH_ACI_MANIFEST = "/aci-manifest.yml"
-const PATH_BUILDER = "/builder"
+const PATH_MANIFEST_JSON = "/manifest.json"
 const PATH_TMP = "/tmp"
+
+const PATH_BUILDER = "/builder"
 const PATH_BUILDER_UUID = "/builder.uuid"
+
+const PATH_TEST_BUILDER = "/test-builder"
+const PATH_TEST_BUILDER_UUID = "/test-builder.uuid"
+
+const MANIFEST_DRG_BUILDER = "dgr-builder"
+const MANIFEST_DRG_VERSION = "dgr-version"
+
+const PREFIX_TEST_BUILDER = "test-builder/"
+const PREFIX_BUILDER = "builder/"
 
 type Aci struct {
 	fields          data.Fields
 	path            string
 	target          string
-	rootfs          string
 	podName         *common.ACFullname
 	manifest        *AciManifest
 	args            BuildArgs
@@ -73,8 +84,8 @@ func NewAciWithManifest(path string, args BuildArgs, manifest *AciManifest) (*Ac
 		aci.manifest.Aci.Dependencies = append(froms, aci.manifest.Aci.Dependencies...)
 	}
 
-	aci.checkCompatibilityVersions()
-	aci.checkLatestVersions()
+	go aci.checkCompatibilityVersions()
+	go aci.checkLatestVersions()
 	return aci, nil
 }
 
@@ -122,93 +133,59 @@ func (aci *Aci) tarAci(path string, zip bool) {
 }
 
 func (aci *Aci) checkCompatibilityVersions() {
-	//	froms, err := aci.manifest.GetFroms()
-	//	if err != nil {
-	//		logs.WithEF(err, aci.fields).Fatal("Invalid from")
-	//	}
-	//	for _, from := range froms {
-	//		if from == "" {
-	//			continue
-	//		}
-	//
-	//		fromFields := aci.fields.WithField("dependency", from.String())
-	//
-	//		common.ExecCmd("rkt", "--insecure-options=image", "fetch", from.String())
-	//		out, err := common.ExecCmdGetOutput("rkt", "image", "cat-manifest", from.String())
-	//		if err != nil {
-	//			logs.WithF(fromFields).Error("Cannot check compatibility of from, from not found")
-	//			continue
-	//		}
-	//
-	//		version, ok := loadManifest(out).Annotations.Get("dgr-version")
-	//		var val int
-	//		if ok {
-	//			val, err = strconv.Atoi(version)
-	//			if err != nil {
-	//				logs.WithEF(err, fromFields).WithField("version", version).Fatal("Failed to parse dgr-version from manifest")
-	//			}
-	//		}
-	//		if !ok || val < 55 {
-	//			logs.WithF(aci.fields).
-	//				WithField("from", from).
-	//				WithField("require", ">=55").
-	//				Error("from aci was not build with a compatible version of dgr")
-	//		}
-	//	}
-
 	for _, dep := range aci.manifest.Aci.Dependencies {
 		depFields := aci.fields.WithField("dependency", dep.String())
 		common.ExecCmd("rkt", "--insecure-options=image", "fetch", dep.String())
-		out, err := common.ExecCmdGetOutput("rkt", "image", "cat-manifest", dep.String())
-		if err != nil {
-			logs.WithEF(err, depFields).Error("Cannot check compatibility of dependency, dependency not found")
-			continue
-		}
 
-		version, ok := loadManifest(out).Annotations.Get("dgr-version")
-		var val int
-		if ok {
-			val, err = strconv.Atoi(version)
-			if err != nil {
-				logs.WithEF(err, depFields).WithField("version", version).Fatal("Failed to parse dgr-version from manifest")
+		version, err := GetDependencyDgrVersion(dep)
+		if err != nil {
+			logs.WithEF(err, depFields).Error("Failed to check compatibility version of dependency")
+		} else {
+			if version < 55 {
+				logs.WithF(aci.fields).
+					WithField("dependency", dep).
+					WithField("require", ">=55").
+					Error("dependency was not build with a compatible version of dgr")
 			}
 		}
-		if !ok || val < 55 {
-			logs.WithF(aci.fields).
-				WithField("dependency", dep).
-				WithField("require", ">=55").
-				Error("dependency aci was not build with a compatible version of dgr")
-		}
+
 	}
 }
 
-func loadManifest(content string) schema.ImageManifest {
-	im := schema.ImageManifest{}
-	err := im.UnmarshalJSON([]byte(content))
+func GetDependencyDgrVersion(acName common.ACFullname) (int, error) {
+	depFields := data.WithField("dependency", acName.String())
+	out, err := common.ExecCmdGetOutput("rkt", "image", "cat-manifest", acName.String())
 	if err != nil {
-		logs.WithField("content", content).Fatal("Failed to read manifest content")
+		return 0, errs.WithEF(err, depFields, "Dependency not found")
 	}
-	return im
+
+	im := schema.ImageManifest{}
+	if err := im.UnmarshalJSON([]byte(out)); err != nil {
+		return 0, errs.WithEF(err, depFields.WithField("content", out), "Cannot read manifest cat by rkt image")
+	}
+
+	version, ok := im.Annotations.Get(MANIFEST_DRG_VERSION)
+	var val int
+	if ok {
+		val, err = strconv.Atoi(version)
+		if err != nil {
+			return 0, errs.WithEF(err, depFields.WithField("version", version), "Failed to parse "+MANIFEST_DRG_VERSION+" from manifest")
+		}
+	}
+	return val, nil
+}
+
+func (aci *Aci) giveBackUserRightsToTarget() {
+	uid := "0"
+	gid := "0"
+	if os.Getenv("SUDO_UID") != "" {
+		uid = os.Getenv("SUDO_UID")
+		gid = os.Getenv("SUDO_GID")
+	}
+	common.ExecCmd("chown", "-R", uid+":"+gid, aci.target)
 }
 
 func (aci *Aci) checkLatestVersions() {
-	//	froms, err := aci.manifest.GetFroms()
-	//	if err != nil {
-	//		logs.WithEF(err, aci.fields).Fatal("Invalid from")
-	//	}
-	//	for _, from := range froms {
-	//		if from == "" {
-	//			continue
-	//		}
-	//
-	//		version, _ := from.LatestVersion()
-	//		logs.WithField("version", from.Name()+":"+version).Debug("Discovered from latest verion")
-	//		if version != "" && Version(from.Version()).LessThan(Version(version)) {
-	//			logs.WithField("newer", from.Name()+":"+version).
-	//				WithField("current", from.String()).
-	//				Warn("Newer 'from' version")
-	//		}
-	//	}
 	for _, dep := range aci.manifest.Aci.Dependencies {
 		if dep.Version() == "" {
 			continue

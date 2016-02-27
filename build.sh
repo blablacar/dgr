@@ -20,7 +20,7 @@ gofmt -w -s .
 # bin
 mkdir -p ${dir}/dist/bindata/aci/dgrtool.com
 [ -f ${dir}/dist/templater ] || ${dir}/bin-templater/build.sh
-[ -f ${dir}/dist/bindata/aci-bats.aci ] || ${dir}/aci-bats/build.sh
+[ -f ${dir}/dist/bindata/aci-tester.aci ] || ${dir}/aci-tester/build.sh
 [ -f ${dir}/dist/bindata/aci-builder.aci ] || ${dir}/aci-builder/build.sh
 
 # binary

@@ -1,7 +1,7 @@
 {
     "acKind": "ImageManifest",
-    "acVersion": "0.7.4",
-    "name": "dgrtool.com/aci-builder",
+    "acVersion": "0.6.1",
+    "name": "dgrtool.com/aci-tester",
     "labels": [
         {
             "name": "version",
@@ -16,7 +16,7 @@
             "value": "linux"
         }
     ],
-    "annotations": [
+    "annotations":[
         {
             "name": "coreos.com/rkt/stage1/run",
             "value": "/dgr/builder/stage1/run"
@@ -32,7 +32,7 @@
     ],
     "dependencies": [
         {
-            "imageName": "coreos.com/rkt/stage1-coreos",
+            "imageName": "dgrtool.com/aci-builder",
             "labels": [
                 {
                     "name": "os",
@@ -41,6 +41,10 @@
                 {
                     "name": "arch",
                     "value": "amd64"
+                },
+                {
+                    "name": "version",
+                    "value": "1"
                 }
             ]
         }

@@ -1,0 +1,5 @@
+#!/dgr/bin/busybox sh
+set -e
+
+export aci_home="/opt/aci-home"
+/dgr/builder/stage2/builder.sh

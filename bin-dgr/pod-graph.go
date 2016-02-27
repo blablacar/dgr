@@ -2,12 +2,13 @@ package main
 
 import (
 	"bytes"
+	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"os"
 )
 
-func (p *Pod) Graph() {
+func (p *Pod) Graph() error {
 	logs.WithF(p.fields).Info("Graphing")
 	os.MkdirAll(p.target, 0777)
 
@@ -37,6 +38,9 @@ func (p *Pod) Graph() {
 
 	buffer.WriteString("}\n")
 
-	ioutil.WriteFile(p.target+"/graph.dot", buffer.Bytes(), 0644)
+	if err := ioutil.WriteFile(p.target+PATH_GRAPH_DOT, buffer.Bytes(), 0644); err != nil {
+		return errs.WithEF(err, p.fields.WithField("file", p.target+PATH_GRAPH_DOT), "Failed to write file")
+	}
+	return nil
 
 }

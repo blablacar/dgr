@@ -71,7 +71,7 @@ func (t *TemplateDir) LoadPartial() error {
 
 func (t *TemplateDir) Process(attributes map[string]interface{}) error {
 	if err := t.processSingleDir(t.src, t.dst, attributes); err != nil {
-		return errs.WithEF(err, t.fields, "Failed to process templating of directory")
+		return err
 	}
 	return nil
 }
@@ -108,7 +108,7 @@ func (t *TemplateDir) processSingleDir(src string, dst string, attributes map[st
 				return err
 			}
 			if err := template.runTemplate(dstObj, attributes); err != nil {
-				return errs.WithEF(err, t.fields, "File templating failed")
+				return err
 			}
 		}
 	}

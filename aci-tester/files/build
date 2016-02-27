@@ -1,0 +1,15 @@
+#!/dgr/bin/busybox sh
+set -e
+
+export aci_home="/opt/aci-home/tests"
+/dgr/builder/stage2/builder.sh
+
+rootfs="/opt/stage2/${ACI_NAME}/rootfs"
+
+mkdir -p ${rootfs}/dgr/tests
+cp ${aci_home}/* ${rootfs}/dgr/tests
+
+cp "/dgr/test-builder/init.sh" ${rootfs}
+cp "/dgr/test-builder/test.sh" ${rootfs}
+
+mkdir ${rootfs}/results

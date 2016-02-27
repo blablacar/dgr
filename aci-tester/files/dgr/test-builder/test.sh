@@ -1,16 +1,8 @@
 #!/dgr/bin/busybox sh
-set -x
-export TARGET=$( dirname $0 )
-export ROOTFS=%%ROOTFS%%
-export TERM=xterm
+set -e
 
-echo_red() {
-  echo -e "\033[0;31m${1}\033[0m"
-}
-
-echo_green() {
-  echo -e "\033[0;32m${1}\033[0m"
-}
+. /dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
 
 export PATH=/dgr/bin:$PATH
 busybox --install &> /dev/null

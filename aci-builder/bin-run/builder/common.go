@@ -1,11 +1,9 @@
-package main
+package builder
 
 const PATH_ACIHOME = "/acihome"
 const PATH_OPT = "/opt"
 const PATH_BUILDER = "/builder"
 const PATH_DGR = "/dgr"
-const PATH_BIN = "/bin"
-const PATH_TARGET = "/target"
 const PATH_OVERLAY = "/overlay"
 const PATH_UPPER = "/upper"
 
