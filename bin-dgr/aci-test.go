@@ -75,7 +75,7 @@ func (aci *Aci) checkResult() error {
 
 func (aci *Aci) runTestAci() error {
 	os.MkdirAll(aci.target+PATH_TESTS_RESULT, 0777)
-	if err := common.ExecCmd("rkt",
+	if stderr, err := common.ExecCmdGetStderr("rkt",
 		"--set-env="+common.ENV_LOG_LEVEL+"="+logs.GetLevel().String(),
 		"--insecure-options=image",
 		"run",
@@ -86,9 +86,8 @@ func (aci *Aci) runTestAci() error {
 		aci.target+PATH_TESTS_TARGET+PATH_IMAGE_ACI,
 		"--exec", "/test",
 	); err != nil {
-
 		// rkt+systemd cannot exit with fail status yet, so will not happen
-		return errs.WithEF(err, aci.fields, "run of test aci failed")
+		return errs.WithEF(err, aci.fields.WithField("stderr", stderr), "run of test aci failed")
 	}
 	return nil
 }
@@ -104,7 +103,7 @@ func (aci *Aci) buildTestAci() error {
 				MountPoints:      []types.MountPoint{{Path: PATH_TESTS_RESULT, Name: *resultMountName}},
 				WorkingDirectory: aci.manifest.Aci.App.WorkingDirectory,
 			},
-			Dependencies: []common.ACFullname{ /* TODO BATS_ACI, */ aci.manifest.NameAndVersion},
+			Dependencies: []common.ACFullname{aci.manifest.NameAndVersion},
 		},
 		NameAndVersion: *fullname,
 	})

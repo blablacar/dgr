@@ -80,7 +80,7 @@ func NewAciWithManifest(path string, args BuildArgs, manifest *AciManifest) (*Ac
 		logs.WithEF(err, aci.fields).Fatal("Invalid from data")
 	}
 	if len(froms) != 0 {
-		logs.WithF(aci.fields).Warn("From is deprecated and processed as dependencies. move from to dependencies")
+		logs.WithF(aci.fields).Warn("From is deprecated and processed as dependency. move from to dependencies")
 		aci.manifest.Aci.Dependencies = append(froms, aci.manifest.Aci.Dependencies...)
 	}
 
@@ -135,7 +135,7 @@ func (aci *Aci) tarAci(path string, zip bool) {
 func (aci *Aci) checkCompatibilityVersions() {
 	for _, dep := range aci.manifest.Aci.Dependencies {
 		depFields := aci.fields.WithField("dependency", dep.String())
-		common.ExecCmd("rkt", "--insecure-options=image", "fetch", dep.String())
+		common.ExecCmdGetStdoutAndStderr("rkt", "--insecure-options=image", "fetch", dep.String())
 
 		version, err := GetDependencyDgrVersion(dep)
 		if err != nil {

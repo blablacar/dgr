@@ -37,6 +37,20 @@ func ExecCmdGetOutput(head string, parts ...string) (string, error) {
 	return strings.TrimSpace(stdout.String()), err
 }
 
+func ExecCmdGetStderr(head string, parts ...string) (string, error) {
+	var stderr bytes.Buffer
+
+	if logs.IsDebugEnabled() {
+		logs.WithField("command", strings.Join([]string{head, " ", strings.Join(parts, " ")}, " ")).Debug("Running external command")
+	}
+	cmd := exec.Command(head, parts...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = &stderr
+	cmd.Start()
+	err := cmd.Wait()
+	return strings.TrimSpace(stderr.String()), err
+}
+
 func ExecCmd(head string, parts ...string) error {
 	if logs.IsDebugEnabled() {
 		logs.WithField("command", strings.Join([]string{head, " ", strings.Join(parts, " ")}, " ")).Debug("Running external command")

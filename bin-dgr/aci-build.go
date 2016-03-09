@@ -36,7 +36,7 @@ func (aci *Aci) Build() error {
 	if logs.IsDebugEnabled() {
 		debug = "true"
 	}
-	if err := common.ExecCmd("rkt",
+	if stderr, err := common.ExecCmdGetStderr("rkt",
 		"--debug="+debug,
 		"--set-env="+common.ENV_LOG_LEVEL+"="+logs.GetLevel().String(),
 		"--set-env="+common.ENV_ACI_PATH+"="+aci.path,
@@ -50,7 +50,7 @@ func (aci *Aci) Build() error {
 		"--stage1-name="+aci.manifest.Builder.String(),
 		hash,
 	); err != nil {
-		logs.WithF(aci.fields).Fatal("Builder container return with failed status")
+		logs.WithF(aci.fields.WithField("stderr", stderr)).Fatal("Builder container return with failed status")
 	}
 
 	if !Args.KeepBuilder {
@@ -90,7 +90,11 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 	WriteImageManifest(aci.manifest, aci.target+PATH_BUILDER+common.PATH_MANIFEST, PREFIX_BUILDER+aci.manifest.NameAndVersion.Name())
 	aci.tarAci(aci.target+PATH_BUILDER, false)
 
-	return common.ExecCmdGetOutput("rkt", "--insecure-options=image", "fetch", aci.target+PATH_BUILDER+PATH_IMAGE_ACI) // TODO may not have to fetch
+	stdout, stderr, err := common.ExecCmdGetStdoutAndStderr("rkt", "--insecure-options=image", "fetch", aci.target+PATH_BUILDER+PATH_IMAGE_ACI) // TODO may not have to fetch
+	if err != nil {
+		return "", errs.WithEF(err, aci.fields.WithField("stderr", stderr), "fetch of builder aci failed")
+	}
+	return stdout, err
 }
 
 func (aci *Aci) EnsureBuilt() error {
