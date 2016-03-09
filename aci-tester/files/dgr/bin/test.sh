@@ -18,8 +18,8 @@ execute_tests() {
     echo -e "\e[1m\e[32mRunning test file -> $filename\e[0m"
     res=$(/dgr/bin/bats -t $file)
     res_code=$?
-    echo "$res" > /result/${filename}
-    echo "$res_code" > /result/${filename}_status
+    echo "$res" > /tests-result/${filename}
+    echo "$res_code" > /tests-result/${filename}_status
 
     if [ "$res_code" == "0" ]; then
       echo_green "$res"

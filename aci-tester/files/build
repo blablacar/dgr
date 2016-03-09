@@ -6,6 +6,8 @@ rootfs="/opt/stage2/${ACI_NAME}/rootfs"
 export aci_home="/opt/aci-home/tests"
 /dgr/builder/stage2/builder.sh
 
+# bats
+cp /dgr/bin/bats* ${rootfs}/dgr/bin
 
 # tests
 mkdir -p ${rootfs}/dgr/tests
@@ -20,10 +22,10 @@ EOF
 
 # template
 mkdir -p ${rootfs}/dgr/templates
-cp "/dgr/test-builder/stage2/test.tmpl" ${rootfs}/dgr/templates
+cp /dgr/test-builder/stage2/test.tmpl ${rootfs}/dgr/templates
 
 # file
-cp "/dgr/bin/test.sh" ${rootfs}/dgr/bin
+cp /dgr/bin/test.sh ${rootfs}/dgr/bin
 
 # results
 mkdir ${rootfs}/results
