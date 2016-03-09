@@ -23,7 +23,8 @@ func (aci *Aci) Test() error {
 
 	logs.WithF(aci.fields).Info("Testing")
 
-	ImportInternalTesterIfNeeded(aci.manifest)
+	ImportInternalBuilderIfNeeded(aci.manifest) // TODO remove this hack
+	ImportInternalTesterIfNeeded(aci.manifest)  // TODO import builder dependency
 
 	logs.WithF(aci.fields).Info("Building test aci")
 	if err := aci.buildTestAci(); err != nil {
@@ -75,13 +76,16 @@ func (aci *Aci) checkResult() error {
 func (aci *Aci) runTestAci() error {
 	os.MkdirAll(aci.target+PATH_TESTS_RESULT, 0777)
 	if err := common.ExecCmd("rkt",
+		"--set-env="+common.ENV_LOG_LEVEL+"="+logs.GetLevel().String(),
 		"--insecure-options=image",
 		"run",
 		"--net=host",
 		"--mds-register=false",
 		"--no-overlay=true",
 		"--volume="+MOUNT_ACNAME+",kind=host,source="+aci.target+PATH_TESTS_RESULT,
-		aci.target+PATH_TESTS_TARGET+PATH_IMAGE_ACI); err != nil {
+		aci.target+PATH_TESTS_TARGET+PATH_IMAGE_ACI,
+		"--exec", "/test",
+	); err != nil {
 
 		// rkt+systemd cannot exit with fail status yet, so will not happen
 		return errs.WithEF(err, aci.fields, "run of test aci failed")
@@ -96,8 +100,8 @@ func (aci *Aci) buildTestAci() error {
 		Builder: aci.manifest.TestBuilder,
 		Aci: AciDefinition{
 			App: DgrApp{
-				Exec:        []string{"/init.sh"},
-				MountPoints: []types.MountPoint{{Path: PATH_TESTS_RESULT, Name: *resultMountName}},
+				Exec:             aci.manifest.Aci.App.Exec,
+				MountPoints:      []types.MountPoint{{Path: PATH_TESTS_RESULT, Name: *resultMountName}},
 				WorkingDirectory: aci.manifest.Aci.App.WorkingDirectory,
 			},
 			Dependencies: []common.ACFullname{ /* TODO BATS_ACI, */ aci.manifest.NameAndVersion},

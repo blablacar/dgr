@@ -1,15 +1,29 @@
 #!/dgr/bin/busybox sh
 set -e
+rootfs="/opt/stage2/${ACI_NAME}/rootfs"
 
+# dgr builder
 export aci_home="/opt/aci-home/tests"
 /dgr/builder/stage2/builder.sh
 
-rootfs="/opt/stage2/${ACI_NAME}/rootfs"
 
+# tests
 mkdir -p ${rootfs}/dgr/tests
-cp ${aci_home}/* ${rootfs}/dgr/tests
+find ${aci_home} -maxdepth 1 -type f -exec cp {} ${rootfs}/dgr/tests \;
 
-cp "/dgr/test-builder/init.sh" ${rootfs}
-cp "/dgr/test-builder/test.sh" ${rootfs}
+# attributes
+mkdir -p ${rootfs}/dgr/attributes/tests
+cat > ${rootfs}/dgr/attributes/tests/tests.yml <<EOF
+default:
+  command: "${ACI_EXEC}"
+EOF
 
+# template
+mkdir -p ${rootfs}/dgr/templates
+cp "/dgr/test-builder/stage2/test.tmpl" ${rootfs}/dgr/templates
+
+# file
+cp "/dgr/bin/test.sh" ${rootfs}/dgr/bin
+
+# results
 mkdir ${rootfs}/results

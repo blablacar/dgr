@@ -1,4 +1,4 @@
-#!/dgr/bin/busybox sh
+#!/bin/bash
 set -e
 
 . /dgr/bin/functions.sh
@@ -29,4 +29,4 @@ execute_tests() {
   done
 }
 
-execute_tests "/tests"
+execute_tests "/dgr/tests"

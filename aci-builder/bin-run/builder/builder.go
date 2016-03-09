@@ -24,6 +24,7 @@ type Builder struct {
 	stage2Rootfs  string
 	aciHomePath   string
 	aciTargetPath string
+	upperId       string
 	pod           *stage1commontypes.Pod
 }
 
@@ -109,7 +110,7 @@ func (b *Builder) writeManifest() error {
 		return errs.WithEF(err, data.WithField("content", string(content)), "Cannot unmarshall json content")
 	}
 
-	im.Name.Set(strings.Replace(im.Name.String(), "builder/", "", 1))
+	im.Name.Set(strings.Replace(im.Name.String(), "builder/", "", 1)) //TODO dirty and will not work for inherited builds
 	if content, err := json.MarshalIndent(im, "", "  "); err != nil {
 		return errs.WithEF(err, b.fields, "Failed to write manifest")
 	} else if err := ioutil.WriteFile(b.pod.Root+PATH_OVERLAY+"/"+upperId+PATH_UPPER+common.PATH_MANIFEST, content, 0644); err != nil {
@@ -191,6 +192,9 @@ func (b *Builder) runBuild() error {
 
 	args, env := b.prepareNspawnArgsAndEnv()
 
+	if logs.IsDebugEnabled() {
+		logs.WithField("command", strings.Join([]string{args[0], " ", strings.Join(args[1:], " ")}, " ")).Debug("Running external command")
+	}
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Env = env
 	cmd.Stdout = os.Stdout
@@ -240,6 +244,7 @@ func (b *Builder) prepareNspawnArgsAndEnv() ([]string, []string) {
 
 	args = append(args, "--setenv=LOG_LEVEL="+logs.GetLevel().String())
 	args = append(args, "--setenv=ACI_NAME="+manifestApp(b.pod).Name.String())
+	args = append(args, "--setenv=ACI_EXEC="+"'"+strings.Join(manifestApp(b.pod).App.Exec, "' '")+"'") // TODO hum
 	args = append(args, "--capability=all")
 	args = append(args, "--directory="+b.stage1Rootfs)
 	args = append(args, "--bind="+b.aciTargetPath+"/:/opt/aci-target")
@@ -250,12 +255,15 @@ func (b *Builder) prepareNspawnArgsAndEnv() ([]string, []string) {
 }
 
 func (b *Builder) upperTreeStoreId() (string, error) {
-	treeStoreIDFilePath := rktcommon.AppTreeStoreIDPath(b.pod.Root, manifestApp(b.pod).Name)
-	treeStoreID, err := ioutil.ReadFile(treeStoreIDFilePath)
-	if err != nil {
-		return "", errs.WithEF(err, b.fields.WithField("path", treeStoreIDFilePath), "Failed to read treeStoreID from file")
+	if b.upperId == "" {
+		treeStoreIDFilePath := rktcommon.AppTreeStoreIDPath(b.pod.Root, manifestApp(b.pod).Name)
+		treeStoreID, err := ioutil.ReadFile(treeStoreIDFilePath)
+		if err != nil {
+			return "", errs.WithEF(err, b.fields.WithField("path", treeStoreIDFilePath), "Failed to read treeStoreID from file")
+		}
+		b.upperId = string(treeStoreID)
 	}
-	return string(treeStoreID), nil
+	return b.upperId, nil
 }
 
 /////////////////////////////////////////
