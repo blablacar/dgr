@@ -99,7 +99,7 @@ func checkRktVersion() {
 			}
 			supported, _ := semver.NewVersion(RKT_SUPPORTED_VERSION)
 			if version.LessThan(*supported) {
-				logs.WithField("requires", ">=" + RKT_SUPPORTED_VERSION).Fatal("rkt version in your path is too old")
+				logs.WithField("requires", ">="+RKT_SUPPORTED_VERSION).Fatal("rkt version in your path is too old")
 			}
 			break
 		}
