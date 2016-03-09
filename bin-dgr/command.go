@@ -41,43 +41,6 @@ var graphCmd = &cobra.Command{
 	},
 }
 
-var installCmd = &cobra.Command{
-	Use:   "install",
-	Short: "install image(s)",
-	Long:  `install image(s) to rkt local storage`,
-	Run: func(cmd *cobra.Command, args []string) {
-		checkNoArgs(args)
-
-		runCleanIfRequested(workPath, Args)
-		NewAciOrPod(workPath, Args).Install()
-	},
-}
-
-var pushCmd = &cobra.Command{
-	Use:   "push",
-	Short: "push image(s)",
-	Long:  `push images to repository`,
-	Run: func(cmd *cobra.Command, args []string) {
-		checkNoArgs(args)
-
-		runCleanIfRequested(workPath, Args)
-		NewAciOrPod(workPath, Args).Push()
-	},
-}
-
-var testCmd = &cobra.Command{
-	Use:   "test",
-	Short: "test image(s)",
-	Long:  `test image(s)`,
-	Run: func(cmd *cobra.Command, args []string) {
-		checkNoArgs(args)
-
-		runCleanIfRequested(workPath, Args)
-		dgrCommand := NewAciOrPod(workPath, Args)
-		dgrCommand.Test()
-	},
-}
-
 var aciVersion = &cobra.Command{
 	Use:   "aci-version file",
 	Short: "display version of aci",
@@ -120,22 +83,87 @@ var initCmd = &cobra.Command{
 	},
 }
 
+var installCmd = newInstallCommand(false)
+var pushCmd = newPushCommand(false)
+var testCmd = newTestCommand(false)
+
 func checkNoArgs(args []string) {
 	if len(args) > 0 {
 		logs.WithField("args", args).Fatal("Unknown arguments")
 	}
 }
 
+func newInstallCommand(underClean bool) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "install",
+		Short: "install image(s)",
+		Long:  `install image(s) to rkt local storage`,
+		Run: func(cmd *cobra.Command, args []string) {
+			checkNoArgs(args)
+
+			command := NewAciOrPod(workPath, Args)
+			if underClean {
+				command.Clean()
+			} else {
+				runCleanIfRequested(workPath, Args)
+			}
+			command.Install()
+		},
+	}
+
+	cmd.Flags().BoolVarP(&Args.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")
+	cmd.Flags().BoolVarP(&Args.Test, "test", "t", false, "Run tests before install")
+	return cmd
+}
+
+func newPushCommand(underClean bool) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "push",
+		Short: "push image(s)",
+		Long:  `push images to repository`,
+		Run: func(cmd *cobra.Command, args []string) {
+			checkNoArgs(args)
+
+			command := NewAciOrPod(workPath, Args)
+			if underClean {
+				command.Clean()
+			} else {
+				runCleanIfRequested(workPath, Args)
+			}
+			command.Push()
+		},
+	}
+	cmd.Flags().BoolVarP(&Args.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")
+	cmd.Flags().BoolVarP(&Args.Test, "test", "t", false, "Run tests before push")
+	return cmd
+}
+
+func newTestCommand(underClean bool) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "test",
+		Short: "test image(s)",
+		Long:  `test image(s)`,
+		Run: func(cmd *cobra.Command, args []string) {
+			checkNoArgs(args)
+
+			command := NewAciOrPod(workPath, Args)
+			if underClean {
+				command.Clean()
+			} else {
+				runCleanIfRequested(workPath, Args)
+			}
+			command.Test()
+		},
+	}
+	cmd.Flags().BoolVarP(&Args.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")
+	return cmd
+}
+
 func init() {
+	cleanCmd.AddCommand(newInstallCommand(true))
+	cleanCmd.AddCommand(newPushCommand(true))
+	cleanCmd.AddCommand(newTestCommand(true))
+
 	buildCmd.Flags().BoolVarP(&Args.KeepBuilder, "keep-builder", "k", false, "Keep builder container after exit")
-
-	installCmd.Flags().BoolVarP(&Args.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")
-	installCmd.Flags().BoolVarP(&Args.Test, "test", "t", false, "Run tests before install")
-
-	pushCmd.Flags().BoolVarP(&Args.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")
-	pushCmd.Flags().BoolVarP(&Args.Test, "test", "t", false, "Run tests before push")
-
 	initCmd.Flags().BoolVarP(&Args.Force, "force", "f", false, "Force init command if path is not empty")
-
-	testCmd.Flags().BoolVarP(&Args.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")
 }

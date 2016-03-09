@@ -131,6 +131,7 @@ func NewAciOrPod(path string, args BuildArgs) DgrCommand {
 
 func runCleanIfRequested(path string, args BuildArgs) {
 	if args.Clean {
+		logs.Warn("-c is deprecated and will be removed. Use 'dgr clean test', 'dgr clean install', 'dgr clean push' instead")
 		NewAciOrPod(path, args).Clean()
 	}
 }
