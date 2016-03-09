@@ -40,43 +40,41 @@ const RKT_SUPPORTED_VERSION = "0.12.0"
 func Execute() {
 	checkRktVersion()
 
-	var logLevel string
-	var rootCmd = &cobra.Command{
-		Use: "dgr",
-	}
+	var version bool
 	var homePath string
 	var targetRootPath string
+	var logLevel string
+
+	var rootCmd = &cobra.Command{
+		Use: "dgr",
+		Run: func(cmd *cobra.Command, args []string) {},
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			if version {
+				displayVersionAndExit()
+			}
+
+			level, err := logs.ParseLevel(logLevel)
+			if err != nil {
+				fmt.Printf("Unknown log level : %s", logLevel)
+				os.Exit(1)
+			}
+			logs.SetLevel(level)
+
+			Home = NewHome(homePath)
+
+			if targetRootPath != "" {
+				Home.Config.TargetWorkDir = targetRootPath
+			}
+		},
+	}
 	rootCmd.PersistentFlags().BoolVarP(&Args.Clean, "clean", "c", false, "Clean before doing anything")
 	rootCmd.PersistentFlags().StringVarP(&targetRootPath, "targets-root-path", "p", "", "Set targets root path")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "loglevel", "L", "info", "Set log level")
 	rootCmd.PersistentFlags().StringVarP(&homePath, "home-path", "H", DefaultHomeFolder(""), "Set home folder")
 	rootCmd.PersistentFlags().StringVarP(&workPath, "work-path", "W", ".", "Set the work path")
+	rootCmd.PersistentFlags().BoolVarP(&version, "version", "V", false, "Display dgr version")
 
 	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, graphCmd, aciVersion)
-	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-
-		// logs
-
-		level, err := logs.ParseLevel(logLevel)
-		if err != nil {
-			fmt.Printf("Unknown log level : %s", logLevel)
-			os.Exit(1)
-		}
-		logs.SetLevel(level)
-
-		Home = NewHome(homePath)
-
-		// targetRootPath
-		if targetRootPath != "" {
-			Home.Config.TargetWorkDir = targetRootPath
-		}
-
-	}
-
-	//
-	//	if config.GetConfig().TargetWorkDir != "" {
-	//		buildArgs.TargetsRootPath = config.GetConfig().TargetWorkDir
-	//	}
 
 	rootCmd.Execute()
 
@@ -97,16 +95,27 @@ func checkRktVersion() {
 			versionString := strings.TrimSpace(scanner.Text())
 			version, err := semver.NewVersion(versionString)
 			if err != nil {
-				panic("Cannot parse version of rkt" + versionString)
+				logs.WithField("content", version).Fatal("Cannot parse version of rkt")
 			}
 			supported, _ := semver.NewVersion(RKT_SUPPORTED_VERSION)
 			if version.LessThan(*supported) {
-				panic("rkt version in your path is too old. Require >= " + RKT_SUPPORTED_VERSION)
+				logs.WithField("requires", ">=" + RKT_SUPPORTED_VERSION).Fatal("rkt version in your path is too old")
 			}
 			break
 		}
 	}
+}
 
+func displayVersionAndExit() {
+	fmt.Print("dgr\n\n")
+	fmt.Printf("version    : %s\n", DgrVersion)
+	if BuildDate != "" {
+		fmt.Printf("build date : %s\n", BuildDate)
+	}
+	if CommitHash != "" {
+		fmt.Printf("CommitHash : %s\n", CommitHash)
+	}
+	os.Exit(0)
 }
 
 func NewAciOrPod(path string, args BuildArgs) DgrCommand {

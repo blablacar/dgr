@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/n0rad/go-erlog/logs"
 	"github.com/spf13/cobra"
@@ -101,17 +100,7 @@ var versionCmd = &cobra.Command{
 	Short: "Version of dgr",
 	Long:  `Print the version number of dgr`,
 	Run: func(cmd *cobra.Command, args []string) {
-		checkNoArgs(args)
-
-		fmt.Print("dgr\n\n")
-		fmt.Printf("version    : %s\n", DgrVersion)
-		if BuildDate != "" {
-			fmt.Printf("build date : %s\n", BuildDate)
-		}
-		if CommitHash != "" {
-			fmt.Printf("CommitHash : %s\n", CommitHash)
-		}
-		os.Exit(0)
+		displayVersionAndExit()
 	},
 }
 
