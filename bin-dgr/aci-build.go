@@ -9,10 +9,10 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strconv"
+	"time"
 )
 
-func (aci *Aci) Build() error {
+func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 	defer aci.giveBackUserRightsToTarget()
 	aci.Clean()
 
@@ -29,7 +29,7 @@ func (aci *Aci) Build() error {
 
 	hash, err := aci.prepareBuildAci()
 	if err != nil {
-		logs.WithEF(err, aci.fields).Fatal("Failed to prepare build image")
+		return errs.WithEF(err, aci.fields, "Failed to prepare build image")
 	}
 
 	debug := "false"
@@ -41,6 +41,7 @@ func (aci *Aci) Build() error {
 		"--set-env="+common.ENV_LOG_LEVEL+"="+logs.GetLevel().String(),
 		"--set-env="+common.ENV_ACI_PATH+"="+aci.path,
 		"--set-env="+common.ENV_ACI_TARGET+"="+aci.target,
+		"--set-env="+common.ENV_BUILDER_COMMAND+"="+string(command),
 		"--net=host",
 		"--insecure-options=image",
 		"run",
@@ -50,7 +51,7 @@ func (aci *Aci) Build() error {
 		"--stage1-name="+aci.manifest.Builder.String(),
 		hash,
 	); err != nil {
-		logs.WithF(aci.fields.WithField("stderr", stderr)).Fatal("Builder container return with failed status")
+		return errs.WithEF(err, aci.fields.WithField("stderr", stderr), "Builder container return with failed status")
 	}
 
 	if !Args.KeepBuilder {
@@ -60,26 +61,22 @@ func (aci *Aci) Build() error {
 				Warn("Failed to remove build container")
 		}
 	}
-	if stdout, stderr, err := common.ExecCmdGetStdoutAndStderr("rkt", "image", "rm", hash); err != nil {
-		logs.WithEF(err, aci.fields.WithField("hash", hash).WithField("stdout", stdout).WithField("stderr", stderr)).
-			Warn("Failed to remove build container image")
-	}
+	//	if stdout, stderr, err := common.ExecCmdGetStdoutAndStderr("rkt", "image", "rm", hash); err != nil {
+	//		logs.WithEF(err, aci.fields.WithField("hash", hash).WithField("stdout", stdout).WithField("stderr", stderr)).
+	//			Warn("Failed to remove build container image")
+	//	}
 
 	if content, err := common.ExtractManifestContentFromAci(aci.target + PATH_IMAGE_ACI); err != nil {
 		logs.WithEF(err, aci.fields).Warn("Failed to write manifest.json")
 	} else if err := ioutil.WriteFile(aci.target+PATH_MANIFEST_JSON, content, 0644); err != nil {
 		logs.WithEF(err, aci.fields).Warn("Failed to write manifest.json")
-	} else {
-		uid, err := strconv.Atoi(os.Getenv("SUDO_UID")) // TODO defer chown globally
-		gid, err2 := strconv.Atoi(os.Getenv("SUDO_GID"))
-		if err == nil && err2 == nil {
-			os.Chown(aci.target+PATH_MANIFEST_JSON, uid, gid)
-		} else {
-			logs.WithEF(err, aci.fields.WithField("err2", err2)).Warn("Failed to write manifest.json")
-		}
 	}
 
 	return nil
+}
+
+func (aci *Aci) Build() error {
+	return aci.RunBuilderCommand(common.COMMAND_BUILD)
 }
 
 func (aci *Aci) prepareBuildAci() (string, error) {
@@ -134,8 +131,10 @@ func WriteImageManifest(m *AciManifest, targetFile string, projectName string) {
 
 	dgrBuilderIdentifier, _ := types.NewACIdentifier(MANIFEST_DRG_BUILDER)
 	dgrVersionIdentifier, _ := types.NewACIdentifier(MANIFEST_DRG_VERSION)
+	buildDateIdentifier, _ := types.NewACIdentifier("build-date")
 	im.Annotations.Set(*dgrVersionIdentifier, DgrVersion)
 	im.Annotations.Set(*dgrBuilderIdentifier, m.Builder.String())
+	im.Annotations.Set(*buildDateIdentifier, time.Now().Format(time.RFC3339))
 	im.Dependencies = toAppcDependencies(m.Aci.Dependencies)
 	im.Name = *name
 	im.Labels = labels

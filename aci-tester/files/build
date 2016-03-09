@@ -1,10 +1,28 @@
 #!/dgr/bin/busybox sh
 set -e
+. /dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
 rootfs="/opt/stage2/${ACI_NAME}/rootfs"
 
 # dgr builder
 export aci_home="/opt/aci-home/tests"
 /dgr/builder/stage2/builder.sh
+
+mkdir -p ${rootfs}/usr/bin
+mkdir -p ${rootfs}/usr/lib64
+
+cd ${rootfs}
+ln -s usr/lib64 lib64 || true
+cd -
+
+# bash
+cp -P /usr/bin/bash ${rootfs}/usr/bin/bash
+cp -P /usr/lib64/libreadline*.so* ${rootfs}/usr/lib64
+cp -P /usr/lib64/libncurses*.so* ${rootfs}/usr/lib64
+cp -P /usr/lib64/libdl*.so* ${rootfs}/usr/lib64
+cp -P /usr/lib64/libc*.so* ${rootfs}/usr/lib64
+cp -P /usr/lib64/ld-*.so* ${rootfs}/lib64
 
 # bats
 cp /dgr/bin/bats* ${rootfs}/dgr/bin

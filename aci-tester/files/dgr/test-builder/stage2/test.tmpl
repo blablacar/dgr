@@ -1,5 +1,7 @@
 #!/bin/bash
-set -x
+set -e
+
+/dgr/bin/busybox --install &> /dev/null
 
 {{.command}} &
 cd /
@@ -15,6 +17,7 @@ if [ -f "/dgr/tests/wait.sh" ]; then
 	  fi
 	  i=$[$i+1]
 	  sleep 1
+	  echo -n "."
 	done
 fi
 

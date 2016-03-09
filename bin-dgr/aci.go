@@ -176,13 +176,7 @@ func GetDependencyDgrVersion(acName common.ACFullname) (int, error) {
 }
 
 func (aci *Aci) giveBackUserRightsToTarget() {
-	uid := "0"
-	gid := "0"
-	if os.Getenv("SUDO_UID") != "" {
-		uid = os.Getenv("SUDO_UID")
-		gid = os.Getenv("SUDO_GID")
-	}
-	common.ExecCmd("chown", "-R", uid+":"+gid, aci.target)
+	giveBackUserRights(aci.target)
 }
 
 func (aci *Aci) checkLatestVersions() {

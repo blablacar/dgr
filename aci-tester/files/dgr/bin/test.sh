@@ -5,7 +5,6 @@ set -e
 isLevelEnabled "debug" && set -x
 
 export PATH=/dgr/bin:$PATH
-busybox --install &> /dev/null
 
 execute_tests() {
   fdir=$1

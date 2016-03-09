@@ -67,22 +67,6 @@ var versionCmd = &cobra.Command{
 	},
 }
 
-var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "init files-tree",
-	Long:  `init files-tree`,
-	Run: func(cmd *cobra.Command, args []string) {
-		//TODO
-		uid := "0"
-		gid := "0"
-		if os.Getenv("SUDO_UID") != "" {
-			uid = os.Getenv("SUDO_UID")
-			gid = os.Getenv("SUDO_GID")
-		}
-		common.ExecCmd("chown", "-R", uid+":"+gid, workPath)
-	},
-}
-
 var installCmd = newInstallCommand(false)
 var pushCmd = newPushCommand(false)
 var testCmd = newTestCommand(false)
@@ -165,5 +149,4 @@ func init() {
 	cleanCmd.AddCommand(newTestCommand(true))
 
 	buildCmd.Flags().BoolVarP(&Args.KeepBuilder, "keep-builder", "k", false, "Keep builder container after exit")
-	initCmd.Flags().BoolVarP(&Args.Force, "force", "f", false, "Force init command if path is not empty")
 }

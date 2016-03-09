@@ -15,6 +15,7 @@ type DgrCommand interface {
 	Install() error
 	Test() error
 	Graph() error
+	Init() error
 }
 
 type PodManifest struct {

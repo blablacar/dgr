@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/coreos/go-semver/semver"
+	"github.com/n0rad/go-erlog"
 	"github.com/n0rad/go-erlog/logs"
 	_ "github.com/n0rad/go-erlog/register"
 	"github.com/spf13/cobra"
@@ -27,6 +28,8 @@ type BuildArgs struct {
 }
 
 func main() {
+	logs.GetDefaultLog().(*erlog.ErlogLogger).Appenders[0].(*erlog.ErlogWriterAppender).Out = os.Stdout
+
 	if os.Getuid() != 0 {
 		println("dgr needs to be run as root")
 		os.Exit(1)
@@ -134,4 +137,14 @@ func runCleanIfRequested(path string, args BuildArgs) {
 		logs.Warn("-c is deprecated and will be removed. Use 'dgr clean test', 'dgr clean install', 'dgr clean push' instead")
 		NewAciOrPod(path, args).Clean()
 	}
+}
+
+func giveBackUserRights(path string) {
+	uid := "0"
+	gid := "0"
+	if os.Getenv("SUDO_UID") != "" {
+		uid = os.Getenv("SUDO_UID")
+		gid = os.Getenv("SUDO_GID")
+	}
+	common.ExecCmd("chown", "-R", uid+":"+gid, path)
 }

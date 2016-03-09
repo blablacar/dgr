@@ -185,13 +185,20 @@ func (b *Builder) runBuildSetup() error { // TODO do not run as root ??
 }
 
 func (b *Builder) runBuild() error {
-	if empty, err := common.IsDirEmpty(b.aciHomePath + PATH_RUNLEVELS + PATH_BUILD); empty || err != nil {
-		return nil
+	command, err := b.findCommand()
+	if err != nil {
+		return err
 	}
 
-	logs.WithF(b.fields).Debug("Running build")
+	if command == common.COMMAND_BUILD {
+		if empty, err := common.IsDirEmpty(b.aciHomePath + PATH_RUNLEVELS + PATH_BUILD); empty || err != nil {
+			return nil
+		}
+	}
 
-	args, env := b.prepareNspawnArgsAndEnv()
+	logs.WithF(b.fields).Debug("Running build command")
+
+	args, env := b.prepareNspawnArgsAndEnv(command)
 
 	if logs.IsDebugEnabled() {
 		logs.WithField("command", strings.Join([]string{args[0], " ", strings.Join(args[1:], " ")}, " ")).Debug("Running external command")
@@ -204,13 +211,13 @@ func (b *Builder) runBuild() error {
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		return errs.WithEF(err, b.fields.WithField("stderr", stderr), "Builder run failed")
+		return errs.WithEF(err, b.fields.WithField("stderr", stderr.String()), "Builder run failed")
 	}
 
 	return nil
 }
 
-func (b *Builder) prepareNspawnArgsAndEnv() ([]string, []string) {
+func (b *Builder) prepareNspawnArgsAndEnv(command common.BuilderCommand) ([]string, []string) {
 	var args []string
 	env := os.Environ()
 
@@ -246,14 +253,31 @@ func (b *Builder) prepareNspawnArgsAndEnv() ([]string, []string) {
 
 	args = append(args, "--setenv=LOG_LEVEL="+logs.GetLevel().String())
 	args = append(args, "--setenv=ACI_NAME="+manifestApp(b.pod).Name.String())
-	args = append(args, "--setenv=ACI_EXEC="+"'"+strings.Join(manifestApp(b.pod).App.Exec, "' '")+"'") // TODO hum
+	args = append(args, "--setenv=ACI_EXEC="+"'"+strings.Join(manifestApp(b.pod).App.Exec, "' '")+"'")
 	args = append(args, "--capability=all")
 	args = append(args, "--directory="+b.stage1Rootfs)
 	args = append(args, "--bind="+b.aciTargetPath+"/:/opt/aci-target")
 	args = append(args, "--bind="+b.aciHomePath+"/:/opt/aci-home")
-	args = append(args, "/build")
+	switch command {
+	case common.COMMAND_BUILD:
+		args = append(args, "/build") // TODO read command path from stage1 manifest annotations
+	case common.COMMAND_INIT:
+		args = append(args, "/init") // TODO read command path from stage1 manifest annotations
+	default:
+		logs.WithField("command", command).Fatal("Not implemented command in builder")
+	}
 
 	return args, env
+}
+
+func (b *Builder) findCommand() (common.BuilderCommand, error) {
+	command, ok := manifestApp(b.pod).App.Environment.Get(common.ENV_BUILDER_COMMAND)
+	if !ok {
+		return common.COMMAND_BUILD, errs.WithF(b.fields.WithField("env_name", common.ENV_BUILDER_COMMAND), "No command sent to builder using environment var")
+	}
+	return common.BuilderCommand(command), nil
+	//	v, ok := common.BuilderCommand(command)
+	//	return v, errs.WithF(b.fields.WithField("command", command), "Unknown builder command received")
 }
 
 func (b *Builder) upperTreeStoreId() (string, error) {

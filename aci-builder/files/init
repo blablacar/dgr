@@ -1,0 +1,113 @@
+#!/dgr/bin/busybox sh
+set -e
+
+aci_home="/opt/aci-home"
+
+mkdir -p ${aci_home}/runlevels/prestart-early
+mkdir -p ${aci_home}/runlevels/prestart-late
+mkdir -p ${aci_home}/runlevels/build-setup
+mkdir -p ${aci_home}/runlevels/build
+mkdir -p ${aci_home}/runlevels/build-late
+mkdir -p ${aci_home}/runlevels/inherit-build-late
+mkdir -p ${aci_home}/runlevels/inherit-build-early
+mkdir -p ${aci_home}/attributes
+mkdir -p ${aci_home}/files/etc
+mkdir -p ${aci_home}/templates/etc
+mkdir -p ${aci_home}/tests
+
+cat > ${aci_home}/runlevels/prestart-early/10.prestart-early.sh <<EOF
+#!/dgr/bin/busybox sh
+. /dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
+echo "I'm a prestart early script that is run before templating"
+EOF
+
+cat > ${aci_home}/runlevels/prestart-late/10.prestart-late.sh <<EOF
+#!/dgr/bin/busybox sh
+. /dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
+echo "I'm a prestart late script that is run after templating"
+EOF
+
+cat > ${aci_home}/runlevels/build/10.install.sh <<EOF
+#!/dgr/bin/busybox sh
+. /dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
+echo "I'm a build script that is run to install applications"
+EOF
+
+cat > ${aci_home}/runlevels/build-setup/10.setup.sh <<EOF
+#!/bin/sh
+.  stage1/rootfs/dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
+echo "I'm build setup script file that is run from $BASEDIR to prepare $TARGET/rootfs before running build scripts"
+EOF
+
+cat > ${aci_home}/runlevels/build-late/10.build-late.sh <<EOF
+#!/dgr/bin/busybox sh
+. /dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
+echo "I'm a build late script that is run to install applications after the copy of files,template,etc..."
+EOF
+
+cat > ${aci_home}/runlevels/inherit-build-late/10.inherit-build-early.sh <<EOF
+#!/dgr/bin/busybox sh
+. /dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
+echo "I'm a inherit build late script that is run on this image and all images that have me as From during build"
+EOF
+
+cat > ${aci_home}/files/etc/dummy <<EOF
+Dummy file
+EOF
+
+cat > ${aci_home}/attributes/attributes.yml <<EOF
+default:
+  dummy: world
+EOF
+
+cat > ${aci_home}/templates/etc/templated.tmpl.cfg <<EOF
+---
+uid: 0
+gid: 0
+mode: 0644
+checkCmd: true
+EOF
+
+cat > ${aci_home}/templates/etc/templated.tmpl <<EOF
+Hello {{ .dummy }}
+EOF
+
+cat > ${aci_home}/templates/header.partial <<EOF
+{{define "header"}}
+world
+{{end}}
+EOF
+
+cat > ${aci_home}/.gitignore <<EOF
+target/
+EOF
+
+cat > ${aci_home}/tests/dummy.bats <<EOF
+#!/dgr/bin/bats
+
+@test "Prestart should template" {
+  result="$(cat /etc/templated)"
+  [ "$result" == "Hello world" ]
+}
+
+@test "dgr should copy files" {
+  result="$(cat /etc/dummy)"
+  [ "$result" == "Dummy file" ]
+}
+EOF
+
+cat > ${aci_home}/tests/wait.sh <<EOF
+exit 0
+EOF
