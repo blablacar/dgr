@@ -26,7 +26,7 @@ execute_tests() {
   done
 }
 
-if [ "$(ls -A /path/to/directory)" ]; then
+if [ "$(ls -A /dgr/tests)" ]; then
     execute_tests "/dgr/tests"
 fi
 touch /tests-result/end-of-tests
