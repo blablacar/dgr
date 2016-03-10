@@ -14,6 +14,7 @@ const PATH_TESTS_TARGET = "/tests-target"
 const PATH_TESTS_RESULT = "/tests-result"
 const MOUNT_ACNAME = "test-result"
 const STATUS_SUFFIX = "_status"
+const FILE_END_OF_TESTS = "end-of-tests"
 
 func (aci *Aci) Test() error {
 	defer aci.giveBackUserRightsToTarget()
@@ -49,7 +50,12 @@ func (aci *Aci) checkResult() error {
 		return errs.WithEF(err, aci.fields, "Cannot read test result directory")
 	}
 	testFound := false
+	getToTheEnd := false
 	for _, f := range files {
+		if f.Name() == FILE_END_OF_TESTS {
+			getToTheEnd = true
+			continue
+		}
 		testFields := aci.fields.WithField("file", f.Name())
 		fullPath := aci.target + PATH_TESTS_RESULT + "/" + f.Name()
 		content, err := ioutil.ReadFile(fullPath)
@@ -65,6 +71,9 @@ func (aci *Aci) checkResult() error {
 		if string(content) != "0\n" {
 			return errs.WithEF(err, testFields, "Failed test")
 		}
+	}
+	if !getToTheEnd {
+		return errs.WithF(aci.fields, "Something goes wrong while running tests")
 	}
 
 	if Args.NoTestFail && !testFound {

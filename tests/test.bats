@@ -41,5 +41,5 @@
   run $DGR_PATH -W with_failed_test test
   echo -e "$output"
   echo "$output" | grep "Failed test"
-  [ "$status" -eq 2 ]
+  [ "$status" -eq 1 ]
 }

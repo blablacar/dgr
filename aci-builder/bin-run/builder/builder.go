@@ -190,14 +190,7 @@ func (b *Builder) runBuild() error {
 		return err
 	}
 
-	if command == common.COMMAND_BUILD {
-		if empty, err := common.IsDirEmpty(b.aciHomePath + PATH_RUNLEVELS + PATH_BUILD); empty || err != nil {
-			return nil
-		}
-	}
-
 	logs.WithF(b.fields).Debug("Running build command")
-
 	args, env := b.prepareNspawnArgsAndEnv(command)
 
 	if logs.IsDebugEnabled() {

@@ -1,17 +1,16 @@
 #!/bin/bash
 set -e
-
 pushd `dirname $0` > /dev/null
 dir=`pwd`
 popd > /dev/null
-
-
-$dir/templater/tests.sh
 
 if [ "$(id -u)" != "0" ]; then
 	echo "Sorry, you are not root."
 	exit 1
 fi
+
+${dir}/bin-templater/tests.sh
+
 
 if [ -z "$DEBUG" ]; then
     trap "rm -Rf ${dir}/tests/*/target/; exit" EXIT HUP INT QUIT PIPE TERM

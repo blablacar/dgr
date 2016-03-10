@@ -27,3 +27,4 @@ execute_tests() {
 }
 
 execute_tests "/dgr/tests"
+touch /tests-result/end-of-tests

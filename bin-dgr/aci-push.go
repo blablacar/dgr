@@ -19,7 +19,9 @@ func (aci *Aci) Push() error {
 
 	if aci.args.Test {
 		aci.args.Test = false
-		aci.Test()
+		if err := aci.Test(); err != nil {
+			return err
+		}
 	}
 
 	logs.WithF(aci.fields).Info("Gzipping aci before upload")
