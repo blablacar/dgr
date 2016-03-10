@@ -80,8 +80,12 @@ func NewAciWithManifest(path string, args BuildArgs, manifest *AciManifest) (*Ac
 		logs.WithEF(err, aci.fields).Fatal("Invalid from data")
 	}
 	if len(froms) != 0 {
-		logs.WithF(aci.fields).Warn("From is deprecated and processed as dependency. move from to dependencies")
-		aci.manifest.Aci.Dependencies = append(froms, aci.manifest.Aci.Dependencies...)
+		if froms[0].String() != "" {
+			logs.WithF(aci.fields).Warn("From is deprecated and empty, remove it")
+		} else {
+			logs.WithF(aci.fields).Warn("From is deprecated and processed as dependency. move from to dependencies")
+			aci.manifest.Aci.Dependencies = append(froms, aci.manifest.Aci.Dependencies...)
+		}
 	}
 
 	go aci.checkCompatibilityVersions()
