@@ -84,7 +84,7 @@ func (aci *Aci) checkResult() error {
 
 func (aci *Aci) runTestAci() error {
 	os.MkdirAll(aci.target+PATH_TESTS_RESULT, 0777)
-	if stderr, err := common.ExecCmdGetStderr("rkt",
+	if err := common.ExecCmd("rkt",
 		"--set-env="+common.ENV_LOG_LEVEL+"="+logs.GetLevel().String(),
 		"--insecure-options=image",
 		"run",
@@ -96,7 +96,7 @@ func (aci *Aci) runTestAci() error {
 		"--exec", "/test",
 	); err != nil {
 		// rkt+systemd cannot exit with fail status yet, so will not happen
-		return errs.WithEF(err, aci.fields.WithField("stderr", stderr), "run of test aci failed")
+		return errs.WithEF(err, aci.fields, "run of test aci failed")
 	}
 	return nil
 }

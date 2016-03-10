@@ -15,9 +15,9 @@ func (aci *Aci) Install() error {
 			return err
 		}
 	}
-	_, stderr, err := common.ExecCmdGetStdoutAndStderr("rkt", "--insecure-options=image", "fetch", aci.target+PATH_IMAGE_ACI)
+	_, err := common.ExecCmdGetOutput("rkt", "--insecure-options=image", "fetch", aci.target+PATH_IMAGE_ACI)
 	if err != nil {
-		return errs.WithEF(err, aci.fields.WithField("stderr", stderr), "Failed to install aci")
+		return errs.WithEF(err, aci.fields, "Failed to install aci")
 	}
 	return nil
 }
