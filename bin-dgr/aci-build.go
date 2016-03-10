@@ -92,9 +92,9 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 		return "", err
 	}
 
-	stdout, stderr, err := common.ExecCmdGetStdoutAndStderr("rkt", "--insecure-options=image", "fetch", aci.target+PATH_BUILDER+PATH_IMAGE_ACI) // TODO may not have to fetch
+	stdout, err := common.ExecCmdGetOutput("rkt", "--insecure-options=image", "fetch", aci.target+PATH_BUILDER+PATH_IMAGE_ACI) // TODO may not have to fetch
 	if err != nil {
-		return "", errs.WithEF(err, aci.fields.WithField("stderr", stderr), "fetch of builder aci failed")
+		return "", errs.WithEF(err, aci.fields, "fetch of builder aci failed")
 	}
 	return stdout, err
 }

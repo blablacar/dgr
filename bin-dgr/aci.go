@@ -88,8 +88,8 @@ func NewAciWithManifest(path string, args BuildArgs, manifest *AciManifest) (*Ac
 		}
 	}
 
-	go aci.checkCompatibilityVersions()
-	go aci.checkLatestVersions()
+	aci.checkCompatibilityVersions()
+	aci.checkLatestVersions()
 	return aci, nil
 }
 
@@ -142,7 +142,7 @@ func (aci *Aci) tarAci(path string, zip bool) error {
 func (aci *Aci) checkCompatibilityVersions() {
 	for _, dep := range aci.manifest.Aci.Dependencies {
 		depFields := aci.fields.WithField("dependency", dep.String())
-		common.ExecCmdGetStdoutAndStderr("rkt", "--insecure-options=image", "fetch", dep.String())
+		common.ExecCmdGetOutput("rkt", "--insecure-options=image", "fetch", dep.String())
 
 		version, err := GetDependencyDgrVersion(dep)
 		if err != nil {
@@ -161,9 +161,9 @@ func (aci *Aci) checkCompatibilityVersions() {
 
 func GetDependencyDgrVersion(acName common.ACFullname) (int, error) {
 	depFields := data.WithField("dependency", acName.String())
-	out, stderr, err := common.ExecCmdGetStdoutAndStderr("rkt", "image", "cat-manifest", acName.String())
+	out, err := common.ExecCmdGetOutput("rkt", "image", "cat-manifest", acName.String())
 	if err != nil {
-		return 0, errs.WithEF(err, depFields.WithField("stderr", stderr), "Dependency not found")
+		return 0, errs.WithEF(err, depFields, "Dependency not found")
 	}
 
 	im := schema.ImageManifest{}
