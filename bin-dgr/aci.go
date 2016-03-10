@@ -80,7 +80,7 @@ func NewAciWithManifest(path string, args BuildArgs, manifest *AciManifest) (*Ac
 		logs.WithEF(err, aci.fields).Fatal("Invalid from data")
 	}
 	if len(froms) != 0 {
-		if froms[0].String() != "" {
+		if froms[0].String() == "" {
 			logs.WithF(aci.fields).Warn("From is deprecated and empty, remove it")
 		} else {
 			logs.WithF(aci.fields).Warn("From is deprecated and processed as dependency. move from to dependencies")
@@ -161,9 +161,9 @@ func (aci *Aci) checkCompatibilityVersions() {
 
 func GetDependencyDgrVersion(acName common.ACFullname) (int, error) {
 	depFields := data.WithField("dependency", acName.String())
-	out, err := common.ExecCmdGetOutput("rkt", "image", "cat-manifest", acName.String())
+	out, stderr, err := common.ExecCmdGetStdoutAndStderr("rkt", "image", "cat-manifest", acName.String())
 	if err != nil {
-		return 0, errs.WithEF(err, depFields, "Dependency not found")
+		return 0, errs.WithEF(err, depFields.WithField("stderr", stderr), "Dependency not found")
 	}
 
 	im := schema.ImageManifest{}
