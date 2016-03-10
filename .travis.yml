@@ -9,6 +9,7 @@ install:
   - sudo apt-get install -qq bats
   - sudo apt-get install busybox-static
   - sudo ./.travis-install-rkt.sh
+  - sudo apt-get install upx
 
 script:
   - ./build.sh
