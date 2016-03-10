@@ -38,7 +38,7 @@ func main() {
 	Execute()
 }
 
-const RKT_SUPPORTED_VERSION = "0.12.0"
+const RKT_SUPPORTED_VERSION = "1.0.0"
 
 func Execute() {
 	checkRktVersion()
