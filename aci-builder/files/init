@@ -44,7 +44,7 @@ cat > ${aci_home}/runlevels/build-setup/10.setup.sh <<EOF
 .  stage1/rootfs/dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
-echo "I'm build setup script file that is run from $BASEDIR to prepare $TARGET/rootfs before running build scripts"
+echo "I'm build setup script file that is run from \$BASEDIR to prepare \$TARGET/rootfs before running build scripts"
 EOF
 
 cat > ${aci_home}/runlevels/build-late/10.build-late.sh <<EOF
@@ -98,13 +98,13 @@ cat > ${aci_home}/tests/dummy.bats <<EOF
 #!/dgr/bin/bats
 
 @test "Prestart should template" {
-  result="$(cat /etc/templated)"
-  [ "$result" == "Hello world" ]
+  result="\$(cat /etc/templated)"
+  [ "\$result" == "Hello world" ]
 }
 
 @test "dgr should copy files" {
-  result="$(cat /etc/dummy)"
-  [ "$result" == "Dummy file" ]
+  result="\$(cat /etc/dummy)"
+  [ "\$result" == "Dummy file" ]
 }
 EOF
 

@@ -119,7 +119,7 @@ func readAciManifest(manifestPath string) (*AciManifest, error) {
 	return &manifest, nil
 }
 
-func (aci *Aci) tarAci(path string, zip bool) {
+func (aci *Aci) tarAci(path string, zip bool) error {
 	target := PATH_IMAGE_ACI[1:]
 	if zip {
 		target = PATH_IMAGE_ACI_ZIP[1:]
@@ -127,9 +127,12 @@ func (aci *Aci) tarAci(path string, zip bool) {
 	dir, _ := os.Getwd()
 	logs.WithField("path", path).Debug("chdir")
 	os.Chdir(path)
-	common.Tar(zip, target, common.PATH_MANIFEST[1:], common.PATH_ROOTFS[1:])
+	if err := common.Tar(zip, target, common.PATH_MANIFEST[1:], common.PATH_ROOTFS[1:]); err != nil {
+		return errs.WithEF(err, aci.fields.WithField("path", path), "Failed to tar container")
+	}
 	logs.WithField("path", dir).Debug("chdir")
 	os.Chdir(dir)
+	return nil
 }
 
 func (aci *Aci) checkCompatibilityVersions() {

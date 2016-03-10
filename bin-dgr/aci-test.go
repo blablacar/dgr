@@ -46,7 +46,7 @@ func (aci *Aci) Test() error {
 func (aci *Aci) checkResult() error {
 	files, err := ioutil.ReadDir(aci.target + PATH_TESTS_RESULT)
 	if err != nil {
-		panic("Cannot read test result directory" + err.Error())
+		return errs.WithEF(err, aci.fields, "Cannot read test result directory")
 	}
 	testFound := false
 	for _, f := range files {

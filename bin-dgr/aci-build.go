@@ -4,6 +4,7 @@ import (
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/dgr/bin-dgr/common"
+	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
@@ -61,10 +62,10 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 				Warn("Failed to remove build container")
 		}
 	}
-	//	if stdout, stderr, err := common.ExecCmdGetStdoutAndStderr("rkt", "image", "rm", hash); err != nil {
-	//		logs.WithEF(err, aci.fields.WithField("hash", hash).WithField("stdout", stdout).WithField("stderr", stderr)).
-	//			Warn("Failed to remove build container image")
-	//	}
+	if stdout, stderr, err := common.ExecCmdGetStdoutAndStderr("rkt", "image", "rm", hash); err != nil {
+		logs.WithEF(err, aci.fields.WithField("hash", hash).WithField("stdout", stdout).WithField("stderr", stderr)).
+			Warn("Failed to remove build container image")
+	}
 
 	if content, err := common.ExtractManifestContentFromAci(aci.target + PATH_IMAGE_ACI); err != nil {
 		logs.WithEF(err, aci.fields).Warn("Failed to write manifest.json")
@@ -84,8 +85,12 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+PATH_BUILDER), "Failed to create builder path")
 	}
 
-	WriteImageManifest(aci.manifest, aci.target+PATH_BUILDER+common.PATH_MANIFEST, PREFIX_BUILDER+aci.manifest.NameAndVersion.Name())
-	aci.tarAci(aci.target+PATH_BUILDER, false)
+	if err := aci.WriteImageManifest(aci.manifest, aci.target+PATH_BUILDER+common.PATH_MANIFEST, PREFIX_BUILDER+aci.manifest.NameAndVersion.Name()); err != nil {
+		return "", err
+	}
+	if err := aci.tarAci(aci.target+PATH_BUILDER, false); err != nil {
+		return "", err
+	}
 
 	stdout, stderr, err := common.ExecCmdGetStdoutAndStderr("rkt", "--insecure-options=image", "fetch", aci.target+PATH_BUILDER+PATH_IMAGE_ACI) // TODO may not have to fetch
 	if err != nil {
@@ -103,10 +108,10 @@ func (aci *Aci) EnsureBuilt() error {
 	return nil
 }
 
-func WriteImageManifest(m *AciManifest, targetFile string, projectName string) {
+func (aci *Aci) WriteImageManifest(m *AciManifest, targetFile string, projectName string) error {
 	name, err := types.NewACIdentifier(projectName)
 	if err != nil {
-		panic(err)
+		return errs.WithEF(err, aci.fields.WithField("name", projectName), "aci name is not a valid identifier for rkt")
 	}
 
 	version := m.NameAndVersion.Version()
@@ -135,7 +140,10 @@ func WriteImageManifest(m *AciManifest, targetFile string, projectName string) {
 	im.Annotations.Set(*dgrVersionIdentifier, DgrVersion)
 	im.Annotations.Set(*dgrBuilderIdentifier, m.Builder.String())
 	im.Annotations.Set(*buildDateIdentifier, time.Now().Format(time.RFC3339))
-	im.Dependencies = toAppcDependencies(m.Aci.Dependencies)
+	im.Dependencies, err = toAppcDependencies(m.Aci.Dependencies)
+	if err != nil {
+		return errs.WithEF(err, aci.fields, "Failed to prepare dependencies for manifest")
+	}
 	im.Name = *name
 	im.Labels = labels
 
@@ -157,20 +165,21 @@ func WriteImageManifest(m *AciManifest, targetFile string, projectName string) {
 
 	buff, err := im.MarshalJSON()
 	if err != nil {
-		panic(err)
+		return errs.WithEF(err, aci.fields.WithField("object", im), "Failed to marshal manifest")
 	}
 	err = ioutil.WriteFile(targetFile, buff, 0644)
 	if err != nil {
-		panic(err)
+		return errs.WithEF(err, aci.fields.WithField("file", targetFile), "Failed to write manifest file")
 	}
+	return nil
 }
 
-func toAppcDependencies(dependencies []common.ACFullname) types.Dependencies {
+func toAppcDependencies(dependencies []common.ACFullname) (types.Dependencies, error) {
 	appcDependencies := types.Dependencies{}
 	for _, dep := range dependencies {
 		id, err := types.NewACIdentifier(dep.Name())
 		if err != nil {
-			panic(err)
+			return nil, errs.WithEF(err, data.WithField("name", dep.Name()), "invalid identifer name for rkt")
 		}
 		t := types.Dependency{ImageName: *id}
 		if dep.Version() != "" {
@@ -180,5 +189,5 @@ func toAppcDependencies(dependencies []common.ACFullname) types.Dependencies {
 
 		appcDependencies = append(appcDependencies, t)
 	}
-	return appcDependencies
+	return appcDependencies, nil
 }

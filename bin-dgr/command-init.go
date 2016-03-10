@@ -42,7 +42,9 @@ var initCmd = &cobra.Command{
 		}
 
 		defer giveBackUserRights(workPath)
-		NewAciOrPod(workPath, Args).Init()
+		if err := NewAciOrPod(workPath, Args).Init(); err != nil {
+			logs.WithE(err).Fatal("Init command failed")
+		}
 	},
 }
 

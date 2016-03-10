@@ -15,7 +15,9 @@ var buildCmd = &cobra.Command{
 		checkNoArgs(args)
 
 		runCleanIfRequested(workPath, Args)
-		NewAciOrPod(workPath, Args).Build()
+		if err := NewAciOrPod(workPath, Args).Build(); err != nil {
+			logs.WithE(err).Fatal("Build command failed")
+		}
 	},
 }
 
@@ -37,7 +39,9 @@ var graphCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		checkNoArgs(args)
 
-		NewAciOrPod(workPath, Args).Graph()
+		if err := NewAciOrPod(workPath, Args).Graph(); err != nil {
+			logs.WithE(err).Fatal("Install command failed")
+		}
 	},
 }
 
@@ -91,7 +95,9 @@ func newInstallCommand(underClean bool) *cobra.Command {
 			} else {
 				runCleanIfRequested(workPath, Args)
 			}
-			command.Install()
+			if err := command.Install(); err != nil {
+				logs.WithE(err).Fatal("Install command failed")
+			}
 		},
 	}
 
@@ -114,7 +120,9 @@ func newPushCommand(underClean bool) *cobra.Command {
 			} else {
 				runCleanIfRequested(workPath, Args)
 			}
-			command.Push()
+			if err := command.Push(); err != nil {
+				logs.WithE(err).Fatal("Push command failed")
+			}
 		},
 	}
 	cmd.Flags().BoolVarP(&Args.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")
@@ -136,7 +144,9 @@ func newTestCommand(underClean bool) *cobra.Command {
 			} else {
 				runCleanIfRequested(workPath, Args)
 			}
-			command.Test()
+			if err := command.Test(); err != nil {
+				logs.WithE(err).Fatal("Test command failed")
+			}
 		},
 	}
 	cmd.Flags().BoolVarP(&Args.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")

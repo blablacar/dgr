@@ -11,7 +11,9 @@ func (aci *Aci) Install() error {
 	}
 	if aci.args.Test {
 		aci.args.Test = false
-		aci.Test()
+		if err := aci.Test(); err != nil {
+			return err
+		}
 	}
 	_, err := common.ExecCmdGetOutput("rkt", "--insecure-options=image", "fetch", aci.target+PATH_IMAGE_ACI)
 	if err != nil {
