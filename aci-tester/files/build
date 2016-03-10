@@ -9,20 +9,18 @@ rootfs="/opt/stage2/${ACI_NAME}/rootfs"
 export aci_home="/opt/aci-home/tests"
 /dgr/builder/stage2/builder.sh
 
-mkdir -p ${rootfs}/usr/bin
-mkdir -p ${rootfs}/usr/lib64
-
-cd ${rootfs}
-ln -s usr/lib64 lib64 || true
-cd -
-
 # bash
-cp -P /usr/bin/bash ${rootfs}/usr/bin/bash
-cp -P /usr/lib64/libreadline*.so* ${rootfs}/usr/lib64
-cp -P /usr/lib64/libncurses*.so* ${rootfs}/usr/lib64
-cp -P /usr/lib64/libdl*.so* ${rootfs}/usr/lib64
-cp -P /usr/lib64/libc*.so* ${rootfs}/usr/lib64
-cp -P /usr/lib64/ld-*.so* ${rootfs}/lib64
+stat ${rootfs}/bin/bash &> /dev/null || {
+    stat ${rootfs}/bin &> /dev/null || mkdir -p ${rootfs}/bin
+    stat ${rootfs}/lib64 &> /dev/null || mkdir -p ${rootfs}/lib64
+
+    cp -P /usr/bin/bash ${rootfs}/bin/bash
+    cp -P /usr/lib64/libreadline*.so* ${rootfs}/lib64
+    cp -P /usr/lib64/libncurses*.so* ${rootfs}/lib64
+    cp -P /usr/lib64/libdl*.so* ${rootfs}/lib64
+    cp -P /usr/lib64/libc*.so* ${rootfs}/lib64
+    cp -P /usr/lib64/ld-*.so* ${rootfs}/lib64
+}
 
 # bats
 cp /dgr/bin/bats* ${rootfs}/dgr/bin

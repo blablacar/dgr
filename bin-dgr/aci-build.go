@@ -37,7 +37,7 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 	if logs.IsDebugEnabled() {
 		debug = "true"
 	}
-	if stderr, err := common.ExecCmdGetStderr("rkt",
+	if err := common.ExecCmd("rkt",
 		"--debug="+debug,
 		"--set-env="+common.ENV_LOG_LEVEL+"="+logs.GetLevel().String(),
 		"--set-env="+common.ENV_ACI_PATH+"="+aci.path,
@@ -52,7 +52,7 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 		"--stage1-name="+aci.manifest.Builder.String(),
 		hash,
 	); err != nil {
-		return errs.WithEF(err, aci.fields.WithField("stderr", stderr), "Builder container return with failed status")
+		return errs.WithEF(err, aci.fields, "Builder container return with failed status")
 	}
 
 	if !Args.KeepBuilder {

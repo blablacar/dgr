@@ -1,7 +1,6 @@
 package builder
 
 import (
-	"bytes"
 	"encoding/json"
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
@@ -196,15 +195,15 @@ func (b *Builder) runBuild() error {
 	if logs.IsDebugEnabled() {
 		logs.WithField("command", strings.Join([]string{args[0], " ", strings.Join(args[1:], " ")}, " ")).Debug("Running external command")
 	}
-	var stderr bytes.Buffer
+	//	var stderr bytes.Buffer
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Env = env
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
-	cmd.Stderr = &stderr
+	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		return errs.WithEF(err, b.fields.WithField("stderr", stderr.String()), "Builder run failed")
+		return errs.WithEF(err, b.fields, "Builder run failed")
 	}
 
 	return nil
