@@ -13,6 +13,36 @@ import (
 	"time"
 )
 
+func (aci *Aci) prepareRktRunArguments(command common.BuilderCommand, hash string) []string {
+	var args []string
+
+	debug := "false"
+	if logs.IsDebugEnabled() {
+		debug = "true"
+	}
+
+	args = append(args, "--debug="+debug)
+	args = append(args, "--set-env="+common.ENV_LOG_LEVEL+"="+logs.GetLevel().String())
+	args = append(args, "--set-env="+common.ENV_ACI_PATH+"="+aci.path)
+	args = append(args, "--set-env="+common.ENV_ACI_TARGET+"="+aci.target)
+	args = append(args, "--set-env="+common.ENV_BUILDER_COMMAND+"="+string(command))
+	args = append(args, "--net=host")
+	args = append(args, "--insecure-options=image")
+	args = append(args, "--uuid-file-save="+aci.target+PATH_BUILDER_UUID)
+	args = append(args, "--interactive")
+	args = append(args, "--stage1-name="+aci.manifest.Builder.String())
+
+	for _, v := range aci.args.SetEnv.Strings() {
+		args = append(args, "--set-env="+v)
+	}
+
+	args = append(args, "run")
+	args = append(args, hash)
+	//		`--set-env=TEMPLATER_OVERRIDE={"dns":{"nameservers":["10.11.254.253","10.11.254.254"]}}`,
+
+	return args
+}
+
 func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 	defer aci.giveBackUserRightsToTarget()
 	aci.Clean()
@@ -33,25 +63,7 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 		return errs.WithEF(err, aci.fields, "Failed to prepare build image")
 	}
 
-	debug := "false"
-	if logs.IsDebugEnabled() {
-		debug = "true"
-	}
-	if err := common.ExecCmd("rkt",
-		"--debug="+debug,
-		"--set-env="+common.ENV_LOG_LEVEL+"="+logs.GetLevel().String(),
-		"--set-env="+common.ENV_ACI_PATH+"="+aci.path,
-		"--set-env="+common.ENV_ACI_TARGET+"="+aci.target,
-		"--set-env="+common.ENV_BUILDER_COMMAND+"="+string(command),
-		"--net=host",
-		"--insecure-options=image",
-		"run",
-		"--uuid-file-save="+aci.target+PATH_BUILDER_UUID,
-		"--interactive",
-		//		`--set-env=TEMPLATER_OVERRIDE={"dns":{"nameservers":["10.11.254.253","10.11.254.254"]}}`,
-		"--stage1-name="+aci.manifest.Builder.String(),
-		hash,
-	); err != nil {
+	if err := common.ExecCmd("rkt", aci.prepareRktRunArguments(command, hash)[1:]...); err != nil {
 		return errs.WithEF(err, aci.fields, "Builder container return with failed status")
 	}
 

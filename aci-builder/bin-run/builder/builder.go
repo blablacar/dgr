@@ -172,8 +172,14 @@ func (b *Builder) runBuildSetup() error { // TODO do not run as root ??
 
 	logs.WithF(b.fields).Info("Running build setup")
 
+//	for _, e := range manifestApp(b.pod).App.Environment {
+//		logs.WithField("name", e.Name).WithField("value", e.Value).Debug("Adding environment var")
+//		os.Setenv(e.Name, e.Value)
+//	}
+
 	os.Setenv("BASEDIR", b.aciHomePath)
 	os.Setenv("TARGET", b.stage2Rootfs+"/..") //TODO
+	os.Setenv("ROOTFS", b.stage2Rootfs+"/../rootfs")
 	os.Setenv(common.ENV_LOG_LEVEL, logs.GetLevel().String())
 
 	if err := common.ExecCmd(b.stage1Rootfs + PATH_DGR + PATH_BUILDER + "/stage2/build-setup.sh"); err != nil { // TODO this sux
@@ -246,6 +252,11 @@ func (b *Builder) prepareNspawnArgsAndEnv(command common.BuilderCommand) ([]stri
 	args = append(args, "--setenv=LOG_LEVEL="+logs.GetLevel().String())
 	args = append(args, "--setenv=ACI_NAME="+manifestApp(b.pod).Name.String())
 	args = append(args, "--setenv=ACI_EXEC="+"'"+strings.Join(manifestApp(b.pod).App.Exec, "' '")+"'")
+
+	for _, e := range manifestApp(b.pod).App.Environment {
+		args = append(args, "--setenv="+e.Name+"="+e.Value)
+	}
+
 	args = append(args, "--capability=all")
 	args = append(args, "--directory="+b.stage1Rootfs)
 	args = append(args, "--bind="+b.aciTargetPath+"/:/opt/aci-target")

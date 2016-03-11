@@ -6,6 +6,7 @@ import (
 	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/coreos/go-semver/semver"
 	"github.com/n0rad/go-erlog"
+	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	_ "github.com/n0rad/go-erlog/register"
 	"github.com/spf13/cobra"
@@ -19,12 +20,45 @@ var BuildDate string
 var Args = BuildArgs{}
 var workPath string
 
+type envMap struct {
+	mapping map[string]string
+}
+
+func (e *envMap) Set(s string) error {
+	if e.mapping == nil {
+		e.mapping = make(map[string]string)
+	}
+	pair := strings.SplitN(s, "=", 2)
+	if len(pair) != 2 {
+		return errs.With("environment variable must be specified as name=value")
+	}
+	e.mapping[pair[0]] = pair[1]
+	return nil
+}
+
+func (e *envMap) String() string {
+	return strings.Join(e.Strings(), "\n")
+}
+
+func (e *envMap) Strings() []string {
+	var env []string
+	for n, v := range e.mapping {
+		env = append(env, n+"="+v)
+	}
+	return env
+}
+
+func (e *envMap) Type() string {
+	return "envMap"
+}
+
 type BuildArgs struct {
 	Force       bool
 	Clean       bool
 	Test        bool
 	NoTestFail  bool
 	KeepBuilder bool
+	SetEnv      envMap
 }
 
 func main() {
@@ -79,12 +113,23 @@ func Execute() {
 	rootCmd.PersistentFlags().StringVarP(&homePath, "home-path", "H", DefaultHomeFolder(""), "Set home folder")
 	rootCmd.PersistentFlags().StringVarP(&workPath, "work-path", "W", ".", "Set the work path")
 	rootCmd.PersistentFlags().BoolVarP(&version, "version", "V", false, "Display dgr version")
+	rootCmd.PersistentFlags().Var(&Args.SetEnv, "set-env", "an environment variable to set for apps in the form name=value")
 
 	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, graphCmd, aciVersion)
 
+	readEnvironment()
 	rootCmd.Execute()
 
 	logs.Debug("Victory !")
+}
+
+func readEnvironment() {
+	for _, v := range os.Environ() {
+		if !strings.HasPrefix(v, "DGR_") {
+			continue
+		}
+		Args.SetEnv.Set(v[4:])
+	}
 }
 
 func checkRktVersion() {
