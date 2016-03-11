@@ -20,7 +20,6 @@ dgr provides various resources to build and configure an ACI:
 - scripts at runlevels (build, prestart...)
 - templates and attributes
 - static files
-- images from (base filesystem to start from)
 - images dependencies
 
 **Scripts** are executed at the image build, before your container is started and more. See [runlevels](#runlevels) for more information.
@@ -28,8 +27,6 @@ dgr provides various resources to build and configure an ACI:
 **Templates** and **attributes** are the way dgr deals with environment-specific configurations. **Templates** are stored in the image and resolved at runtime ; **attributes** are inherited from different contexts (aci -> pod -> environment).
 
 **Static files** are copied to same path in the container.
-
-**Images from** is the base filesystem to start building from.
 
 **Image dependencies** are used as defined in [APPC spec](https://github.com/appc/spec/blob/master/spec/aci.md#dependency-matching).
 
@@ -113,9 +110,9 @@ It will generate the following file tree:
 |   |-- build-setup
 |   |   `-- 10.setup.sh                # Scripts to be run directly on source host before building
 |   |-- inherit-build-early
-|   |   `-- 10.inherit-build-early.sh  # Scripts stored in ACI and used when building FROM this image
+|   |   `-- 10.inherit-build-early.sh  # Scripts stored in ACI and executed while used as a dependency
 |   |-- inherit-build-late
-|   |   `-- 10.inherit-build-early.sh  # Scripts stored in ACI and used when building FROM this image
+|   |   `-- 10.inherit-build-early.sh  # Scripts stored in ACI and executed while used as a dependency
 |   |-- prestart-early
 |   |   `-- 10.prestart-early.sh       # Scripts to be run when starting ACI before templating
 |   `-- prestart-late
@@ -137,7 +134,6 @@ The dgr manifest looks like a light ACI manifest. dgr will take this manifest an
 Example of a *aci-manifest.yml*:
 
 ```yaml
-from: example.com/base:1
 name: example.com/myapp:0.1
 aci:
   app:
@@ -149,9 +145,9 @@ aci:
       - name: myapp-data
         path: /var/lib/myapp
         readOnly: false
+   dependencies:
+     - example.com/base:1
 ```
-
-The **from** points to an ACI that will be taken as the base for the ACI we are building. The rootfs of this ACI will be copied before executing the build scripts. Typically you can use there an ACI of your favorite distro.
 
 The **name**, well, is the name of the ACI you are building.
 Under the **aci** key, you can add every key that is defined in the [APPC spec](https://github.com/appc/spec/blob/master/spec/aci.md) such as:
@@ -162,7 +158,7 @@ Under the **aci** key, you can add every key that is defined in the [APPC spec](
 
 ### The build scripts
 
-The scripts in `runlevels/build` dir are executed during the build to install in the ACI everything you need. For instance if you base ACI in the FROM field of the manifest is a debootstab from Debian, a build script could look like:
+The scripts in `runlevels/build` dir are executed during the build to install in the ACI everything you need. For instance if your dependencies are based on debian, a build script could look like:
 
 ```bash
 #!/bin/bash
@@ -289,7 +285,7 @@ isLevelEnabled "debug" && set -x
 ```
 
 
-## Ok, but concretely how should I use it?
+## Ok, but concretely how should I use it? (Need rework since deprecation of from)
 
 Currently, Linux distrib and package managers are not designed to support container the way it should be used. Especially on the **from** & **dependencies** parts.
 
