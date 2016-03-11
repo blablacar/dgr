@@ -11,6 +11,7 @@ import (
 	_ "github.com/n0rad/go-erlog/register"
 	"github.com/spf13/cobra"
 	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -67,6 +68,10 @@ func main() {
 	if os.Getuid() != 0 {
 		println("dgr needs to be run as root")
 		os.Exit(1)
+	}
+
+	if !SupportsOverlay() {
+		logs.Fatal("Overlay filesystem is required")
 	}
 
 	Execute()
@@ -155,6 +160,25 @@ func checkRktVersion() {
 			break
 		}
 	}
+}
+
+func SupportsOverlay() bool {
+	exec.Command("modprobe", "overlay").Run()
+
+	f, err := os.Open("/proc/filesystems")
+	if err != nil {
+		fmt.Println("error opening /proc/filesystems")
+		return false
+	}
+	defer f.Close()
+
+	s := bufio.NewScanner(f)
+	for s.Scan() {
+		if s.Text() == "nodev\toverlay" {
+			return true
+		}
+	}
+	return false
 }
 
 func displayVersionAndExit() {

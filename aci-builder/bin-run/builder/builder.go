@@ -172,10 +172,10 @@ func (b *Builder) runBuildSetup() error { // TODO do not run as root ??
 
 	logs.WithF(b.fields).Info("Running build setup")
 
-//	for _, e := range manifestApp(b.pod).App.Environment {
-//		logs.WithField("name", e.Name).WithField("value", e.Value).Debug("Adding environment var")
-//		os.Setenv(e.Name, e.Value)
-//	}
+	//	for _, e := range manifestApp(b.pod).App.Environment {
+	//		logs.WithField("name", e.Name).WithField("value", e.Value).Debug("Adding environment var")
+	//		os.Setenv(e.Name, e.Value)
+	//	}
 
 	os.Setenv("BASEDIR", b.aciHomePath)
 	os.Setenv("TARGET", b.stage2Rootfs+"/..") //TODO

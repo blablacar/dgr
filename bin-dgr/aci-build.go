@@ -63,7 +63,7 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 		return errs.WithEF(err, aci.fields, "Failed to prepare build image")
 	}
 
-	if err := common.ExecCmd("rkt", aci.prepareRktRunArguments(command, hash)[1:]...); err != nil {
+	if err := common.ExecCmd("rkt", aci.prepareRktRunArguments(command, hash)...); err != nil {
 		return errs.WithEF(err, aci.fields, "Builder container return with failed status")
 	}
 
