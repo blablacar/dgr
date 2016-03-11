@@ -9,7 +9,7 @@ import (
 )
 
 type DgrCommand interface {
-	Build() error
+	CleanAndBuild() error
 	Clean()
 	Push() error
 	Install() error

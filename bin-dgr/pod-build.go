@@ -13,7 +13,8 @@ import (
 
 const PATH_POD_MANIFEST = "/pod-manifest.json"
 
-func (p *Pod) Build() error {
+func (p *Pod) CleanAndBuild() error {
+	p.Clean()
 	logs.WithF(p.fields).Info("Building")
 
 	os.RemoveAll(p.target)
@@ -100,7 +101,7 @@ func (p *Pod) buildAci(e RuntimeApp) (*Aci, error) {
 		return nil, errs.WithEF(err, p.fields.WithField("aci", path), "Failed to prepare aci")
 	}
 	aci.podName = &p.manifest.Name
-	if err := aci.Build(); err != nil {
+	if err := aci.CleanAndBuild(); err != nil {
 		return nil, errs.WithEF(err, p.fields.WithField("name", e.Name), "build of  pod's aci failed")
 	}
 	return aci, nil

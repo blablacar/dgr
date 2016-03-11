@@ -123,7 +123,7 @@ func (aci *Aci) buildTestAci() error {
 	testAci.FullyResolveDep = false // this is required to run local tests without discovery
 	testAci.target = aci.target + PATH_TESTS_TARGET
 
-	if err := testAci.Build(); err != nil {
+	if err := testAci.CleanAndBuild(); err != nil {
 		return errs.WithEF(err, aci.fields, "Build of test aci failed")
 	}
 	return nil

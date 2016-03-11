@@ -40,7 +40,7 @@ GOOS=linux GOARCH=amd64 godep go build --ldflags "-s -w -X main.BuildDate=`date 
  -o ${dir}/dist/linux-amd64/dgr ${dir}/bin-dgr
 upx ${dir}/dist/linux-amd64/dgr
 
-# test
+# test #TODO move to test
 godep go test -cover ${dir}/...
 
 # install

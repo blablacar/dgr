@@ -29,12 +29,12 @@ if [ -d ${aci_home}/runlevels/build-late ]; then
 fi
 
 # inherit
-mkdir -p ${rootfs}/dgr/runlevels/inherit-build-late
-if [ -d ${aci_home}/runlevels/inherit-build-late ]; then
+if [ "$(${aci_home}/runlevels/inherit-build-late 2> /dev/null)" ]; then
+    mkdir -p ${rootfs}/dgr/runlevels/inherit-build-late
     cp -Rf ${aci_home}/runlevels/inherit-build-late/. ${rootfs}/dgr/runlevels/inherit-build-late
 fi
-mkdir -p ${rootfs}/dgr/runlevels/inherit-build-early
-if [ -d ${aci_home}/runlevels/inherit-build-early ]; then
+if [ "$(${aci_home}/runlevels/inherit-build-early 2> /dev/null)" ]; then
+    mkdir -p ${rootfs}/dgr/runlevels/inherit-build-early
     cp -Rf ${aci_home}/runlevels/inherit-build-early/. ${rootfs}/dgr/runlevels/inherit-build-early
 fi
 
@@ -44,17 +44,17 @@ systemd-nspawn --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${ro
     --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build.sh
 
 # prestart
-mkdir -p ${rootfs}/dgr/runlevels/prestart-early
-if [ -d ${aci_home}/runlevels/prestart-early ]; then
+if [ "$(ls -A ${aci_home}/runlevels/prestart-early 2> /dev/null)" ]; then
+    mkdir -p ${rootfs}/dgr/runlevels/prestart-early
     cp -Rf ${aci_home}/runlevels/prestart-early/. ${rootfs}/dgr/runlevels/prestart-early
 fi
-mkdir -p ${rootfs}/dgr/runlevels/prestart-late
-if [ -d ${aci_home}/runlevels/prestart-late ]; then
+if [ "$(ls -A ${aci_home}/runlevels/prestart-late 2> /dev/null)" ]; then
+    mkdir -p ${rootfs}/dgr/runlevels/prestart-late
     cp -Rf ${aci_home}/runlevels/prestart-late/. ${rootfs}/dgr/runlevels/prestart-late
 fi
 
 # attributes
-if [ -d ${aci_home}/attributes ]; then
+if [ "$(ls -A ${aci_home}/attributes 2> /dev/null)" ]; then
     mkdir -p ${rootfs}/dgr/attributes/${ACI_NAME}
     find ${aci_home}/attributes \( -name "*.yml" -o -name "*.yaml" \) -exec cp {} ${rootfs}/dgr/attributes/${ACI_NAME} \;
 fi
@@ -65,8 +65,8 @@ if [ -d ${aci_home}/files ]; then
 fi
 
 # templates
-mkdir -p ${rootfs}/dgr/templates
-if [ -d ${aci_home}/templates ]; then
+if [ "$(ls -A ${aci_home}/templates 2> /dev/null)"  ]; then
+    mkdir -p ${rootfs}/dgr/templates
     cp -Rf ${aci_home}/templates/. ${rootfs}/dgr/templates
 fi
 
@@ -78,3 +78,5 @@ systemd-nspawn --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${ro
 #    --bind=/dgr/builder:/dgr/builder /dgr/bin/busybox sh #TODO remove
 #
 #sh # TODO remove
+
+rm -Rf /dgr/builder

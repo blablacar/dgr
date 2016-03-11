@@ -9,7 +9,7 @@ import (
 func (p *Pod) Push() error {
 	logs.WithF(p.fields).Info("Pushing")
 
-	if err := p.Build(); err != nil {
+	if err := p.CleanAndBuild(); err != nil {
 		return err
 	}
 

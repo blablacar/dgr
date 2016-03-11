@@ -76,7 +76,7 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 	return nil
 }
 
-func (aci *Aci) Build() error {
+func (aci *Aci) CleanAndBuild() error {
 	return aci.RunBuilderCommand(common.COMMAND_BUILD)
 }
 
@@ -101,7 +101,7 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 
 func (aci *Aci) EnsureBuilt() error {
 	if _, err := os.Stat(aci.target + PATH_IMAGE_ACI); os.IsNotExist(err) {
-		if err := aci.Build(); err != nil {
+		if err := aci.CleanAndBuild(); err != nil {
 			return err
 		}
 	}

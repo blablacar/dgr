@@ -7,20 +7,6 @@ import (
 	"os"
 )
 
-var buildCmd = &cobra.Command{
-	Use:   "build",
-	Short: "build aci or pod",
-	Long:  `build an aci or a pod`,
-	Run: func(cmd *cobra.Command, args []string) {
-		checkNoArgs(args)
-
-		runCleanIfRequested(workPath, Args)
-		if err := NewAciOrPod(workPath, Args).Build(); err != nil {
-			logs.WithE(err).Fatal("Build command failed")
-		}
-	},
-}
-
 var cleanCmd = &cobra.Command{
 	Use:   "clean",
 	Short: "clean build",
@@ -71,14 +57,34 @@ var versionCmd = &cobra.Command{
 	},
 }
 
+var buildCmd = newBuildCommand(false)
 var installCmd = newInstallCommand(false)
 var pushCmd = newPushCommand(false)
 var testCmd = newTestCommand(false)
+
+///////////////////////////////////////////////////////////////
 
 func checkNoArgs(args []string) {
 	if len(args) > 0 {
 		logs.WithField("args", args).Fatal("Unknown arguments")
 	}
+}
+
+func newBuildCommand(userClean bool) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "build",
+		Short: "build aci or pod",
+		Long:  `build an aci or a pod`,
+		Run: func(cmd *cobra.Command, args []string) {
+			checkNoArgs(args)
+
+			if err := NewAciOrPod(workPath, Args).CleanAndBuild(); err != nil {
+				logs.WithE(err).Fatal("Build command failed")
+			}
+		},
+	}
+	cmd.Flags().BoolVarP(&Args.KeepBuilder, "keep-builder", "k", false, "Keep builder container after exit")
+	return cmd
 }
 
 func newInstallCommand(underClean bool) *cobra.Command {
@@ -157,6 +163,6 @@ func init() {
 	cleanCmd.AddCommand(newInstallCommand(true))
 	cleanCmd.AddCommand(newPushCommand(true))
 	cleanCmd.AddCommand(newTestCommand(true))
+	cleanCmd.AddCommand(newBuildCommand(true))
 
-	buildCmd.Flags().BoolVarP(&Args.KeepBuilder, "keep-builder", "k", false, "Keep builder container after exit")
 }

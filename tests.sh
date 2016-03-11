@@ -1,5 +1,7 @@
 #!/bin/bash
 set -e
+dirZ=$( dirname $0 )
+
 pushd `dirname $0` > /dev/null
 dir=`pwd`
 popd > /dev/null

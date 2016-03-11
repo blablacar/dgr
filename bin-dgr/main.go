@@ -50,7 +50,10 @@ func Execute() {
 
 	var rootCmd = &cobra.Command{
 		Use: "dgr",
-		Run: func(cmd *cobra.Command, args []string) {},
+		Run: func(cmd *cobra.Command, args []string) {
+			cmd.Help()
+			os.Exit(1)
+		},
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			if version {
 				displayVersionAndExit()

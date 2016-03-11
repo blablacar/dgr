@@ -5,7 +5,7 @@ import "github.com/n0rad/go-erlog/logs"
 func (p *Pod) Install() error {
 	logs.WithF(p.fields).Info("Installing")
 
-	if err := p.Build(); err != nil {
+	if err := p.CleanAndBuild(); err != nil {
 		return err
 	}
 
