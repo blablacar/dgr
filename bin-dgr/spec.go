@@ -44,10 +44,16 @@ type Env struct {
 	Value string `json:"value"`
 }
 
+type BuildDefinition struct {
+	Image        common.ACFullname   `json:"image"`
+	Dependencies []common.ACFullname `json:"dependencies"`
+	//	Mode
+}
+
 type AciManifest struct {
 	NameAndVersion common.ACFullname `json:"name"`
 	From           interface{}       `json:"from"`
-	Builder        common.ACFullname `json:"builder"`
+	Build          BuildDefinition   `json:"build"`
 	TestBuilder    common.ACFullname `json:"testBuilder"`
 	Aci            AciDefinition     `json:"aci"`
 }

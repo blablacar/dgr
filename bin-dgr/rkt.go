@@ -14,8 +14,8 @@ var ACI_TESTER = common.NewACFullName("dgrtool.com/aci-tester:1")
 //var internalAcis = []*spec.ACFullname{ACI_BATS, ACI_BUILDER}
 
 func ImportInternalBuilderIfNeeded(manifest *AciManifest) {
-	if manifest.Builder.String() == "" {
-		manifest.Builder = *ACI_BUILDER
+	if manifest.Build.Image.String() == "" {
+		manifest.Build.Image = *ACI_BUILDER
 		importInternalAci("aci-builder.aci") // TODO
 	}
 }

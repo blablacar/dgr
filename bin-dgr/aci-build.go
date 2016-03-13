@@ -30,7 +30,7 @@ func (aci *Aci) prepareRktRunArguments(command common.BuilderCommand, hash strin
 	args = append(args, "--insecure-options=image")
 	args = append(args, "--uuid-file-save="+aci.target+PATH_BUILDER_UUID)
 	args = append(args, "--interactive")
-	args = append(args, "--stage1-name="+aci.manifest.Builder.String())
+	args = append(args, "--stage1-name="+aci.manifest.Build.Image.String())
 
 	for _, v := range aci.args.SetEnv.Strings() {
 		args = append(args, "--set-env="+v)
@@ -150,7 +150,7 @@ func (aci *Aci) WriteImageManifest(m *AciManifest, targetFile string, projectNam
 	dgrVersionIdentifier, _ := types.NewACIdentifier(MANIFEST_DRG_VERSION)
 	buildDateIdentifier, _ := types.NewACIdentifier("build-date")
 	im.Annotations.Set(*dgrVersionIdentifier, DgrVersion)
-	im.Annotations.Set(*dgrBuilderIdentifier, m.Builder.String())
+	im.Annotations.Set(*dgrBuilderIdentifier, m.Build.Image.String())
 	im.Annotations.Set(*buildDateIdentifier, time.Now().Format(time.RFC3339))
 	im.Dependencies, err = toAppcDependencies(m.Aci.Dependencies)
 	if err != nil {
