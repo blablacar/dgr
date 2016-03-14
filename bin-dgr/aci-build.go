@@ -32,11 +32,7 @@ func (aci *Aci) prepareRktRunArguments(command common.BuilderCommand, hash strin
 	for _, v := range aci.args.SetEnv.Strings() {
 		args = append(args, "--set-env="+v)
 	}
-
-	args = append(args, "run")
 	args = append(args, hash)
-	//		`--set-env=TEMPLATER_OVERRIDE={"dns":{"nameservers":["10.11.254.253","10.11.254.254"]}}`,
-
 	return args
 }
 
@@ -60,7 +56,7 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 		return errs.WithEF(err, aci.fields, "Failed to prepare build image")
 	}
 
-	if err := common.ExecCmd("rkt", aci.prepareRktRunArguments(command, hash)...); err != nil { // TODO use rktclient
+	if err := Home.Rkt.Run(aci.prepareRktRunArguments(command, hash)); err != nil {
 		return errs.WithEF(err, aci.fields, "Builder container return with failed status")
 	}
 

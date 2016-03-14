@@ -35,6 +35,7 @@ func NewRktClient(config RktConfig) (*RktClient, error) {
 	}
 
 	rkt := &RktClient{
+		fields:     data.WithField("config", config),
 		config:     config,
 		globalArgs: config.prepareGlobalArgs(),
 	}
@@ -166,4 +167,11 @@ func (rkt *RktClient) Rm(uuids string) (string, string, error) {
 			WithField("stderr", stderr), "Failed to remove containers")
 	}
 	return out, stderr, err
+}
+
+func (rkt *RktClient) Run(args []string) error {
+	if err := ExecCmd(rkt.globalArgs[0], append(append(rkt.globalArgs[1:], "run"), args...)...); err != nil {
+		return errs.WithEF(err, rkt.fields, "Run failed")
+	}
+	return nil
 }
