@@ -27,7 +27,7 @@
 }
 
 @test "dgr init should create working aci" {
-  mkdir /tmp/aci-init
+  mkdir -p /tmp/aci-init
   run $DGR_PATH -W /tmp/aci-init init
   echo -e "$output"
   [ "$status" -eq 0 ]

@@ -15,6 +15,8 @@ import (
 	"strings"
 )
 
+const DGR_ENV_PREFIX = "DGR_ENV_"
+
 var CommitHash string
 var DgrVersion string
 var BuildDate string
@@ -130,7 +132,7 @@ func Execute() {
 
 func readEnvironment() {
 	for _, v := range os.Environ() {
-		if !strings.HasPrefix(v, "DGR_") {
+		if !strings.HasPrefix(v, DGR_ENV_PREFIX) {
 			continue
 		}
 		Args.SetEnv.Set(v[4:])

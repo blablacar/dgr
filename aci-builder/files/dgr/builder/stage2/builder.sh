@@ -40,7 +40,7 @@ fi
 
 mkdir -p ${rootfs}/usr/bin # this is required by the systemd-nspawn
 
-systemd-nspawn --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${rootfs} --share-system --capability=all \
+systemd-nspawn --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${rootfs} --capability=all \
     --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build.sh
 
 # prestart
@@ -70,7 +70,7 @@ if [ "$(ls -A ${aci_home}/templates 2> /dev/null)"  ]; then
     cp -Rf ${aci_home}/templates/. ${rootfs}/dgr/templates
 fi
 
-systemd-nspawn --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${rootfs} --share-system --capability=all \
+systemd-nspawn --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${rootfs} --capability=all \
     --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build-late.sh
 
 

@@ -249,12 +249,13 @@ func (b *Builder) prepareNspawnArgsAndEnv(command common.BuilderCommand) ([]stri
 	args = append(args, "--machine=dgr"+b.pod.UUID.String())
 	env = append(env, "SYSTEMD_LOG_LEVEL="+lvl)
 
-	args = append(args, "--setenv=LOG_LEVEL="+logs.GetLevel().String())
 	args = append(args, "--setenv=ACI_NAME="+manifestApp(b.pod).Name.String())
 	args = append(args, "--setenv=ACI_EXEC="+"'"+strings.Join(manifestApp(b.pod).App.Exec, "' '")+"'")
 
 	for _, e := range manifestApp(b.pod).App.Environment {
-		args = append(args, "--setenv="+e.Name+"="+e.Value)
+		if e.Name != common.ENV_BUILDER_COMMAND && e.Name != common.ENV_ACI_TARGET {
+			args = append(args, "--setenv="+e.Name+"="+e.Value)
+		}
 	}
 
 	args = append(args, "--capability=all")
