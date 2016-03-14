@@ -46,6 +46,13 @@ func NewHome(path string) HomeStruct {
 		}
 	}
 
+	if Args.NoStore {
+		config.Rkt.NoStore = true
+	}
+	if Args.StoreOnly {
+		config.Rkt.StoreOnly = true
+	}
+
 	rkt, err := common.NewRktClient(config.Rkt)
 	if err != nil {
 		logs.WithEF(err, data.WithField("config", config.Rkt)).Fatal("Rkt access failed")
@@ -58,27 +65,12 @@ func NewHome(path string) HomeStruct {
 	}
 }
 
-//TODO support multiplatform
-// "github.com/mitchellh/go-homedir"
-//	usr, err := homedir.Dir()
-
 func DefaultHomeFolder(programName string) string {
 	if programName == "" {
 		programName = "dgr"
 	}
-	//	switch runtime.GOOS {
-	//	case "windows":
-	//		dgrConfig.Path = utils.UserHomeOrFatal() + "/AppData/Local/dgr"
-	//	case "darwin":
-	//		dgrConfig.Path = utils.UserHomeOrFatal() + "/Library/dgr"
-	//	case "linux":
-	//		dgrConfig.Path = utils.UserHomeOrFatal() + "/.config/dgr"
-	//	default:
-	//		log.Get().Panic("Unsupported OS, please fill a bug repost")
-	//	}
-
-	path := "/root/.config/" + programName
-	user := os.Getenv("SUDO_USER")
+	path := "/root/.config/" + programName // TODO get ride of .config ?
+	user := os.Getenv("SUDO_USER")         // TODO this is probably not a good idea
 	if user != "" {
 		home, err := common.ExecCmdGetOutput("bash", "-c", "echo ~"+user)
 		if err != nil {
