@@ -25,16 +25,17 @@ func (aci *Aci) Push() error {
 	}
 
 	logs.WithF(aci.fields).Info("Gzipping aci before upload")
-	aci.tarAci(aci.target, true)
 
-	im, err := common.ExtractManifestFromAci(aci.target + PATH_IMAGE_ACI_ZIP)
+	im, err := common.ExtractManifestFromAci(aci.target + PATH_IMAGE_ACI)
 	if err != nil {
-		return errs.WithEF(err, aci.fields.WithField("file", PATH_IMAGE_ACI_ZIP), "Failed to extract manifest from aci file")
+		return errs.WithEF(err, aci.fields.WithField("file", PATH_IMAGE_ACI), "Failed to extract manifest from aci file")
 	}
 	val, ok := im.Labels.Get("version")
 	if !ok {
-		return errs.WithEF(err, aci.fields.WithField("file", PATH_IMAGE_ACI_ZIP), "Failed to get version from aci manifest")
+		return errs.WithEF(err, aci.fields.WithField("file", PATH_IMAGE_ACI), "Failed to get version from aci manifest")
 	}
+
+	aci.tarAci(aci.target, true)
 
 	logs.WithF(aci.fields).Info("Uploading aci")
 	if err := common.ExecCmd("curl", "-f", "-i",
