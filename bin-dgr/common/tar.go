@@ -1,6 +1,6 @@
 package common
 
-func Tar(zip bool, destination string, source ...string) error {
+func Tar(zip bool, destination string, source ...string) error { // remove zip
 	zipFlag := ""
 	if zip {
 		zipFlag = "z"

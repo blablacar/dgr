@@ -16,7 +16,7 @@ import (
 const PATH_GRAPH_DOT = "/graph.dot"
 const PATH_INSTALLED = "/installed"
 const PATH_IMAGE_ACI = "/image.aci"
-const PATH_IMAGE_ACI_ZIP = "/image-zip.aci"
+const PATH_IMAGE_ACI_ZIP = "/image.aci.gz"
 const PATH_TARGET = "/target"
 const PATH_ACI_MANIFEST = "/aci-manifest.yml"
 const PATH_MANIFEST_JSON = "/manifest.json"
@@ -123,19 +123,26 @@ func readAciManifest(manifestPath string) (*AciManifest, error) {
 	return &manifest, nil
 }
 
-func (aci *Aci) tarAci(path string, zip bool) error {
+func (aci *Aci) tarAci(path string) error {
 	target := PATH_IMAGE_ACI[1:]
-	if zip {
-		target = PATH_IMAGE_ACI_ZIP[1:]
-	}
 	dir, _ := os.Getwd()
 	logs.WithField("path", path).Debug("chdir")
 	os.Chdir(path)
-	if err := common.Tar(zip, target, common.PATH_MANIFEST[1:], common.PATH_ROOTFS[1:]); err != nil {
+	if err := common.Tar(false, target, common.PATH_MANIFEST[1:], common.PATH_ROOTFS[1:]); err != nil {
 		return errs.WithEF(err, aci.fields.WithField("path", path), "Failed to tar container")
 	}
 	logs.WithField("path", dir).Debug("chdir")
 	os.Chdir(dir)
+	return nil
+}
+
+func (aci *Aci) zipAci() error {
+	if _, err := os.Stat(aci.target + PATH_IMAGE_ACI_ZIP); err == nil {
+		return nil
+	}
+	if stdout, stderr, err := common.ExecCmdGetStdoutAndStderr("gzip", "-k", aci.target+PATH_IMAGE_ACI); err != nil {
+		return errs.WithEF(err, aci.fields.WithField("path", aci.target+PATH_IMAGE_ACI).WithField("stdout", stdout).WithField("stderr", stderr), "Failed to zip aci")
+	}
 	return nil
 }
 

@@ -100,7 +100,7 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 	if err := aci.WriteImageManifest(aci.manifest, aci.target+PATH_BUILDER+common.PATH_MANIFEST, PREFIX_BUILDER+aci.manifest.NameAndVersion.Name()); err != nil {
 		return "", err
 	}
-	if err := aci.tarAci(aci.target+PATH_BUILDER, false); err != nil {
+	if err := aci.tarAci(aci.target + PATH_BUILDER); err != nil {
 		return "", err
 	}
 

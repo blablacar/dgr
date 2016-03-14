@@ -35,7 +35,9 @@ func (aci *Aci) Push() error {
 		return errs.WithEF(err, aci.fields.WithField("file", PATH_IMAGE_ACI), "Failed to get version from aci manifest")
 	}
 
-	aci.tarAci(aci.target, true)
+	if err := aci.zipAci(); err != nil {
+		return errs.WithEF(err, aci.fields, "Failed to zip aci")
+	}
 
 	logs.WithF(aci.fields).Info("Uploading aci")
 	if err := common.ExecCmd("curl", "-f", "-i",
