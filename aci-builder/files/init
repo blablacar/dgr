@@ -55,12 +55,20 @@ isLevelEnabled "debug" && set -x
 echo "I'm a build late script that is run to install applications after the copy of files,template,etc..."
 EOF
 
+cat > ${aci_home}/runlevels/inherit-build-late/10.inherit-build-late.sh <<EOF
+#!/dgr/bin/busybox sh
+. /dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
+echo "I'm a inherit build late script that is run on this image and all images that have me as dependencies"
+EOF
+
 cat > ${aci_home}/runlevels/inherit-build-late/10.inherit-build-early.sh <<EOF
 #!/dgr/bin/busybox sh
 . /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
-echo "I'm a inherit build late script that is run on this image and all images that have me as From during build"
+echo "I'm a inherit build early script that is run on this image and all images that have me as dependencies"
 EOF
 
 cat > ${aci_home}/files/etc/dummy <<EOF
