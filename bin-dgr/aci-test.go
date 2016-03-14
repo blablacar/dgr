@@ -93,7 +93,7 @@ func (aci *Aci) runTestAci() error {
 		"--no-overlay=true",
 		"--volume="+MOUNT_ACNAME+",kind=host,source="+aci.target+PATH_TESTS_RESULT,
 		aci.target+PATH_TESTS_TARGET+PATH_IMAGE_ACI,
-		"--exec", "/test",
+		"--exec", "/test", // TODO use rkt-client
 	); err != nil {
 		// rkt+systemd cannot exit with fail status yet, so will not happen
 		return errs.WithEF(err, aci.fields, "run of test aci failed")

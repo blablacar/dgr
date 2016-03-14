@@ -36,12 +36,8 @@ func importInternalAci(filename string) {
 	if err := ioutil.WriteFile("/tmp/tmp.aci", content, 0644); err != nil {
 		logs.WithE(err).WithField("aci", filepath).Fatal("Failed to write tmp aci to /tmp/tmp.aci")
 	}
-	if stdout, stderr, err := common.ExecCmdGetStdoutAndStderr("rkt", "--insecure-options=image", "fetch", "/tmp/tmp.aci"); err != nil {
-		logs.WithE(err).
-			WithField("aci", filepath).
-			WithField("stdout", stdout).
-			WithField("stderr", stderr).
-			Fatal("Failed to import image to rkt")
+	if _, err := Home.Rkt.Fetch("/tmp/tmp.aci"); err != nil { // TODO does not support concurrency
+		logs.WithE(err).Fatal("Failed to import internal image to rkt")
 	}
 	os.Remove("/tmp/tmp.aci")
 	return

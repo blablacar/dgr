@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/n0rad/go-erlog/errs"
 )
 
@@ -15,7 +14,8 @@ func (aci *Aci) Install() error {
 			return err
 		}
 	}
-	_, err := common.ExecCmdGetOutput("rkt", "--insecure-options=image", "fetch", aci.target+PATH_IMAGE_ACI)
+
+	_, err := Home.Rkt.Fetch(aci.target + PATH_IMAGE_ACI)
 	if err != nil {
 		return errs.WithEF(err, aci.fields, "Failed to install aci")
 	}

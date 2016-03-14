@@ -16,12 +16,9 @@ import (
 func (aci *Aci) prepareRktRunArguments(command common.BuilderCommand, hash string) []string {
 	var args []string
 
-	debug := "false"
 	if logs.IsDebugEnabled() {
-		debug = "true"
+		args = append(args, "--debug")
 	}
-
-	args = append(args, "--debug="+debug)
 	args = append(args, "--set-env="+common.ENV_LOG_LEVEL+"="+logs.GetLevel().String())
 	args = append(args, "--set-env="+common.ENV_ACI_PATH+"="+aci.path)
 	args = append(args, "--set-env="+common.ENV_ACI_TARGET+"="+aci.target)
@@ -53,8 +50,8 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 	}
 
 	// rkt does not automatically fetch stage1-coreos.aci if used as dependency of another stage1
-	rktPath, _ := common.ExecCmdGetOutput("/bin/bash", "-c", "command -v rkt")
-	common.ExecCmdGetStdoutAndStderr("rkt", "--insecure-options=image", "fetch", filepath.Dir(rktPath)+"/stage1-coreos.aci")
+	rktPath, _ := Home.Rkt.GetPath()
+	Home.Rkt.Fetch(filepath.Dir(rktPath) + "/stage1-coreos.aci")
 
 	ImportInternalBuilderIfNeeded(aci.manifest)
 
@@ -63,20 +60,18 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 		return errs.WithEF(err, aci.fields, "Failed to prepare build image")
 	}
 
-	if err := common.ExecCmd("rkt", aci.prepareRktRunArguments(command, hash)...); err != nil {
+	if err := common.ExecCmd("rkt", aci.prepareRktRunArguments(command, hash)...); err != nil { // TODO use rktclient
 		return errs.WithEF(err, aci.fields, "Builder container return with failed status")
 	}
 
 	if !Args.KeepBuilder {
-		if stdout, stderr, err := common.ExecCmdGetStdoutAndStderr("rkt", "rm", "--uuid-file="+aci.target+PATH_BUILDER_UUID); err != nil {
-			logs.WithEF(err, aci.fields.WithField("uuid-file", aci.target+PATH_BUILDER_UUID)).
-				WithField("stdout", stdout).WithField("stderr", stderr).
-				Warn("Failed to remove build container")
+		if _, _, err := Home.Rkt.RmFromFile(aci.target + PATH_BUILDER_UUID); err != nil {
+			logs.WithEF(err, aci.fields).Warn("Failed to remove build container")
 		}
 	}
-	if stdout, stderr, err := common.ExecCmdGetStdoutAndStderr("rkt", "image", "rm", hash); err != nil {
-		logs.WithEF(err, aci.fields.WithField("hash", hash).WithField("stdout", stdout).WithField("stderr", stderr)).
-			Warn("Failed to remove build container image")
+
+	if err := Home.Rkt.ImageRm(hash); err != nil {
+		logs.WithEF(err, aci.fields.WithField("hash", hash)).Warn("Failed to remove build container image")
 	}
 
 	if content, err := common.ExtractManifestContentFromAci(aci.target + PATH_IMAGE_ACI); err != nil {
@@ -92,6 +87,12 @@ func (aci *Aci) CleanAndBuild() error {
 	return aci.RunBuilderCommand(common.COMMAND_BUILD)
 }
 
+func (aci *Aci) prepareStage1aci() (string, error) {
+	// build dependencies + build image
+	//
+	return "", nil
+}
+
 func (aci *Aci) prepareBuildAci() (string, error) {
 	if err := os.MkdirAll(aci.target+PATH_BUILDER+common.PATH_ROOTFS, 0777); err != nil {
 		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+PATH_BUILDER), "Failed to create builder path")
@@ -104,11 +105,11 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 		return "", err
 	}
 
-	stdout, err := common.ExecCmdGetOutput("rkt", "--insecure-options=image", "fetch", aci.target+PATH_BUILDER+PATH_IMAGE_ACI) // TODO may not have to fetch
+	hash, err := Home.Rkt.Fetch(aci.target + PATH_BUILDER + PATH_IMAGE_ACI)
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "fetch of builder aci failed")
 	}
-	return stdout, err
+	return hash, nil
 }
 
 func (aci *Aci) EnsureBuilt() error {

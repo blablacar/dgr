@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/blablacar/dgr/bin-dgr/common"
-	"github.com/coreos/go-semver/semver"
 	"github.com/n0rad/go-erlog"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
@@ -79,11 +78,7 @@ func main() {
 	Execute()
 }
 
-const RKT_SUPPORTED_VERSION = "1.0.0"
-
 func Execute() {
-	checkRktVersion()
-
 	var version bool
 	var homePath string
 	var targetRootPath string
@@ -136,31 +131,6 @@ func readEnvironment() {
 			continue
 		}
 		Args.SetEnv.Set(v[4:])
-	}
-}
-
-func checkRktVersion() {
-	output, err := common.ExecCmdGetOutput("rkt", "version")
-	if err != nil {
-		logs.Fatal("rkt is required in PATH")
-	}
-
-	scanner := bufio.NewScanner(strings.NewReader(output))
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.TrimSpace(line) == "VERSION:" {
-			scanner.Scan()
-			versionString := strings.TrimSpace(scanner.Text())
-			version, err := semver.NewVersion(versionString)
-			if err != nil {
-				logs.WithField("content", version).Fatal("Cannot parse version of rkt")
-			}
-			supported, _ := semver.NewVersion(RKT_SUPPORTED_VERSION)
-			if version.LessThan(*supported) {
-				logs.WithField("requires", ">="+RKT_SUPPORTED_VERSION).Fatal("rkt version in your path is too old")
-			}
-			break
-		}
 	}
 }
 

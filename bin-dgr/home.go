@@ -19,12 +19,14 @@ type Config struct {
 		Username string `yaml:"username,omitempty"`
 		Password string `yaml:"password,omitempty"`
 	} `yaml:"push,omitempty"`
-	TargetWorkDir string `yaml:"targetWorkDir,omitempty"`
+	Rkt           common.RktConfig `yaml:"rkt"`
+	TargetWorkDir string           `yaml:"targetWorkDir,omitempty"`
 }
 
 type HomeStruct struct {
 	path   string
 	Config Config
+	Rkt    *common.RktClient
 }
 
 func NewHome(path string) HomeStruct {
@@ -44,9 +46,15 @@ func NewHome(path string) HomeStruct {
 		}
 	}
 
+	rkt, err := common.NewRktClient(config.Rkt)
+	if err != nil {
+		logs.WithEF(err, data.WithField("config", config.Rkt)).Fatal("Rkt access failed")
+	}
+
 	return HomeStruct{
 		path:   path,
 		Config: config,
+		Rkt:    rkt,
 	}
 }
 

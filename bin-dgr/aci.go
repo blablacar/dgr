@@ -149,8 +149,8 @@ func (aci *Aci) zipAci() error {
 func (aci *Aci) checkCompatibilityVersions() {
 	for _, dep := range aci.manifest.Aci.Dependencies {
 		depFields := aci.fields.WithField("dependency", dep.String())
-		common.ExecCmdGetOutput("rkt", "--insecure-options=image", "fetch", dep.String())
 
+		Home.Rkt.Fetch(dep.String())
 		version, err := GetDependencyDgrVersion(dep)
 		if err != nil {
 			logs.WithEF(err, depFields).Error("Failed to check compatibility version of dependency")
@@ -166,9 +166,24 @@ func (aci *Aci) checkCompatibilityVersions() {
 	}
 }
 
+func (aci *Aci) checkLatestVersions() {
+	for _, dep := range aci.manifest.Aci.Dependencies {
+		if dep.Version() == "" {
+			continue
+		}
+		version, _ := dep.LatestVersion()
+		if version != "" && common.Version(dep.Version()).LessThan(common.Version(version)) {
+			logs.WithField("newer", dep.Name()+":"+version).
+				WithField("current", dep.String()).
+				Warn("Newer 'dependency' version")
+		}
+	}
+}
+
 func GetDependencyDgrVersion(acName common.ACFullname) (int, error) {
 	depFields := data.WithField("dependency", acName.String())
-	out, err := common.ExecCmdGetOutput("rkt", "image", "cat-manifest", acName.String())
+
+	out, err := Home.Rkt.CatManifest(acName.String())
 	if err != nil {
 		return 0, errs.WithEF(err, depFields, "Dependency not found")
 	}
@@ -191,18 +206,4 @@ func GetDependencyDgrVersion(acName common.ACFullname) (int, error) {
 
 func (aci *Aci) giveBackUserRightsToTarget() {
 	giveBackUserRights(aci.target)
-}
-
-func (aci *Aci) checkLatestVersions() {
-	for _, dep := range aci.manifest.Aci.Dependencies {
-		if dep.Version() == "" {
-			continue
-		}
-		version, _ := dep.LatestVersion()
-		if version != "" && Version(dep.Version()).LessThan(Version(version)) {
-			logs.WithField("newer", dep.Name()+":"+version).
-				WithField("current", dep.String()).
-				Warn("Newer 'dependency' version")
-		}
-	}
 }
