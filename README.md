@@ -304,6 +304,8 @@ Globally, our rule is to have only basic images as from to provide package manag
 
 ### Standard FileTree for POD
 
+TODO
+
 ```bash
 ├── aci-elasticsearch               # Directory that match the pod app shortname (or name)
 │   ├── attributes
@@ -314,11 +316,13 @@ Globally, our rule is to have only basic images as from to provide package manag
 
 ```
 
-TODO
 
 
-## Caveats
+## Requirement
 
-- [rkt](https://github.com/coreos/rkt) in your `$PATH`
-- `systemd-nspawn` to launch '*build runlevels*' scripts
+- [rkt](https://github.com/coreos/rkt) in your `$PATH` or configured in dgr global conf
 - being root is required to construct the filesystem
+- linux >= 3.18 with overlay filesystem
+
+
+
