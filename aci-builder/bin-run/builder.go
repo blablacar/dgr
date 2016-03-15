@@ -1,4 +1,4 @@
-package builder
+package main
 
 import (
 	"encoding/json"
@@ -155,7 +155,7 @@ func (b *Builder) tarAci() error {
 	return nil
 }
 
-func (b *Builder) runBuildSetup() error {
+func (b *Builder) runBuildSetup() error { //TODO REMOVE
 	if empty, err := common.IsDirEmpty(b.aciHomePath + PATH_RUNLEVELS + PATH_BUILD_SETUP); empty || err != nil {
 		return nil
 	}
@@ -167,7 +167,7 @@ func (b *Builder) runBuildSetup() error {
 		os.Setenv(e.Name, e.Value)
 	}
 
-	logs.WithF(b.fields).Warn("Using build setup create unreproductible builds and run as root directly on the host. Please use builder dependencies and builder runlevels instead")
+	logs.WithF(b.fields).Warn("Build setup is deprecated and will be removed. it create unreproductible builds and run as root directly on the host. Please use builder dependencies and builder runlevels instead")
 	time.Sleep(5 * time.Second)
 
 	os.Setenv("BASEDIR", b.aciHomePath)
@@ -242,19 +242,19 @@ func (b *Builder) prepareNspawnArgsAndEnv(command common.BuilderCommand) ([]stri
 	args = append(args, "--machine=dgr"+b.pod.UUID.String())
 	env = append(env, "SYSTEMD_LOG_LEVEL="+lvl)
 
-	args = append(args, "--setenv=ACI_NAME="+manifestApp(b.pod).Name.String())
-	args = append(args, "--setenv=ACI_EXEC="+"'"+strings.Join(manifestApp(b.pod).App.Exec, "' '")+"'")
-
 	for _, e := range manifestApp(b.pod).App.Environment {
 		if e.Name != common.ENV_BUILDER_COMMAND && e.Name != common.ENV_ACI_TARGET {
 			args = append(args, "--setenv="+e.Name+"="+e.Value)
 		}
 	}
 
+	args = append(args, "--setenv=ACI_NAME="+manifestApp(b.pod).Name.String())
+	args = append(args, "--setenv=ACI_EXEC="+"'"+strings.Join(manifestApp(b.pod).App.Exec, "' '")+"'")
+	args = append(args, "--setenv=ROOTFS="+PATH_OPT+PATH_STAGE2+"/"+manifestApp(b.pod).Name.String()+common.PATH_ROOTFS)
+
 	args = append(args, "--capability=all")
 	args = append(args, "--directory="+b.stage1Rootfs)
-	args = append(args, "--bind="+b.aciTargetPath+"/:/opt/aci-target")
-	args = append(args, "--bind="+b.aciHomePath+"/:/opt/aci-home")
+	args = append(args, "--bind="+b.aciHomePath+"/:/dgr/aci-home")
 	switch command {
 	case common.COMMAND_BUILD:
 		args = append(args, "/build") // TODO read command path from stage1 manifest annotations
@@ -273,8 +273,6 @@ func (b *Builder) findCommand() (common.BuilderCommand, error) {
 		return common.COMMAND_BUILD, errs.WithF(b.fields.WithField("env_name", common.ENV_BUILDER_COMMAND), "No command sent to builder using environment var")
 	}
 	return common.BuilderCommand(command), nil
-	//	v, ok := common.BuilderCommand(command)
-	//	return v, errs.WithF(b.fields.WithField("command", command), "Unknown builder command received")
 }
 
 func (b *Builder) upperTreeStoreId() (string, error) {

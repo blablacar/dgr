@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/blablacar/dgr/aci-builder/bin-run/builder"
 	"github.com/n0rad/go-erlog"
 	"github.com/n0rad/go-erlog/logs"
 	_ "github.com/n0rad/go-erlog/register"
@@ -18,7 +17,7 @@ func main() {
 		logs.WithE(err).Fatal("Failed to get current working directory")
 	}
 
-	b, err := builder.NewBuilder(dir, uuid)
+	b, err := NewBuilder(dir, uuid)
 	if err != nil {
 		logs.WithE(err).Fatal("Failed to load Builder")
 	}

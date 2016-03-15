@@ -1,4 +1,0 @@
-#!/bin/sh
-
-echo "You cannot enter a builder\n"
-exit 1

@@ -2,5 +2,5 @@
 set -e
 /dgr/bin/prestart
 
-export aci_home="/opt/aci-home"
+export aci_home="/dgr/aci-home"
 /dgr/builder/stage2/builder.sh

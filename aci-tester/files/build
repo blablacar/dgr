@@ -6,7 +6,7 @@ isLevelEnabled "debug" && set -x
 rootfs="/opt/stage2/${ACI_NAME}/rootfs"
 
 # dgr builder
-export aci_home="/opt/aci-home/tests"
+export aci_home="/dgr/aci-home/tests"
 /dgr/builder/stage2/builder.sh
 
 # bash

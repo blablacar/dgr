@@ -1,7 +1,7 @@
 #!/dgr/bin/busybox sh
 set -e
 
-aci_home="/opt/aci-home"
+aci_home="/dgr/aci-home"
 
 mkdir -p ${aci_home}/runlevels/prestart-early
 mkdir -p ${aci_home}/runlevels/prestart-late
