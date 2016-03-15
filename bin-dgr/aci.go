@@ -22,6 +22,9 @@ const PATH_ACI_MANIFEST = "/aci-manifest.yml"
 const PATH_MANIFEST_JSON = "/manifest.json"
 const PATH_TMP = "/tmp"
 
+const PATH_STAGE1 = "/stage1"
+const PATH_STAGE1_UUID = "/stage1.uuid"
+
 const PATH_BUILDER = "/builder"
 const PATH_BUILDER_UUID = "/builder.uuid"
 
@@ -33,6 +36,7 @@ const MANIFEST_DRG_VERSION = "dgr-version"
 
 const PREFIX_TEST_BUILDER = "test-builder/"
 const PREFIX_BUILDER = "builder/"
+const PREFIX_BUILDER_STAGE1 = "builder-stage1/"
 
 type Aci struct {
 	fields          data.Fields
@@ -150,6 +154,7 @@ func (aci *Aci) checkCompatibilityVersions() {
 	for _, dep := range aci.manifest.Aci.Dependencies {
 		depFields := aci.fields.WithField("dependency", dep.String())
 
+		logs.WithF(aci.fields).WithField("dependency", dep.String()).Info("Fetching dependency")
 		Home.Rkt.Fetch(dep.String())
 		version, err := GetDependencyDgrVersion(dep)
 		if err != nil {

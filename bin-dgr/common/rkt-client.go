@@ -142,9 +142,9 @@ func (rkt *RktClient) CatManifest(image string) (string, error) {
 }
 
 func (rkt *RktClient) ImageRm(images string) error {
-	_, err := ExecCmdGetOutput(rkt.globalArgs[0], append(rkt.globalArgs[1:], "image", "rm", images)...)
+	stdout, stderr, err := ExecCmdGetStdoutAndStderr(rkt.globalArgs[0], append(rkt.globalArgs[1:], "image", "rm", images)...)
 	if err != nil {
-		return errs.WithEF(err, rkt.fields.WithField("images", images), "Failed to cat manifest")
+		return errs.WithEF(err, rkt.fields.WithField("images", images).WithField("stdout", stdout).WithField("stderr", stderr), "Failed to cat manifest")
 	}
 	return err
 }

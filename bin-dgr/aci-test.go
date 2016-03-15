@@ -102,7 +102,7 @@ func (aci *Aci) buildTestAci() error {
 	fullname := common.NewACFullName(PREFIX_TEST_BUILDER + aci.manifest.NameAndVersion.Name() + ":" + aci.manifest.NameAndVersion.Version())
 	resultMountName, _ := types.NewACName(MOUNT_ACNAME)
 	testAci, err := NewAciWithManifest(aci.path, aci.args, &AciManifest{
-		Build: BuildDefinition{Image: aci.manifest.TestBuilder},
+		Builder: BuildDefinition{Image: aci.manifest.TestBuilder},
 		Aci: AciDefinition{
 			App: DgrApp{
 				Exec:             aci.manifest.Aci.App.Exec,

@@ -53,7 +53,7 @@ type BuildDefinition struct {
 type AciManifest struct {
 	NameAndVersion common.ACFullname `json:"name"`
 	From           interface{}       `json:"from"`
-	Build          BuildDefinition   `json:"build"`
+	Builder        BuildDefinition   `json:"builder"`
 	TestBuilder    common.ACFullname `json:"testBuilder"`
 	Aci            AciDefinition     `json:"aci"`
 }

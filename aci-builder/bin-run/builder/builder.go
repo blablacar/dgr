@@ -2,6 +2,7 @@ package builder
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/dgr/bin-dgr/common"
@@ -16,6 +17,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type Builder struct {
@@ -61,7 +63,6 @@ func NewBuilder(podRoot string, podUUID *types.UUID) (*Builder, error) {
 
 func (b *Builder) Build() error {
 	logs.WithF(b.fields).Info("Building aci")
-	defer b.chownTargetFiles()
 
 	lfd, err := rktcommon.GetRktLockFD()
 	if err != nil {
@@ -72,8 +73,8 @@ func (b *Builder) Build() error {
 		return errs.WithEF(err, b.fields, "can't set FD_CLOEXEC on rkt lock")
 	}
 
-	if err := b.runBuildSetup(); err != nil { // TODO run as non-root ???
-		return err // TODO DO NOT EVEN RUN HERE
+	if err := b.runBuildSetup(); err != nil {
+		return err
 	}
 
 	if err := b.runBuild(); err != nil {
@@ -119,16 +120,6 @@ func (b *Builder) writeManifest() error {
 	return nil
 }
 
-func (b *Builder) chownTargetFiles() {
-	if os.Getenv(SUDO_UID) != "" {
-		logs.WithF(b.fields).Debug("Give back ownership of target directory")
-		if err := common.ExecCmd("chown", os.Getenv(SUDO_UID)+":"+os.Getenv(SUDO_GID), "-R", b.aciTargetPath); err != nil { // TODO path target may not be there
-			logs.WithEF(err, b.fields).WithField("uid", os.Getenv(SUDO_UID)).WithField("gid", os.Getenv(SUDO_GID)).
-				Warn("Cannot give back ownership of target directory")
-		}
-	}
-}
-
 func (b *Builder) tarAci() error {
 	upperId, err := b.upperTreeStoreId()
 	if err != nil {
@@ -144,7 +135,6 @@ func (b *Builder) tarAci() error {
 	}
 	defer os.Rename(upperRootfs, upperNamedRootfs)
 
-	//
 	dir, err := os.Getwd()
 	if err != nil {
 		return errs.WithEF(err, b.fields, "Failed to get current working directory")
@@ -165,24 +155,27 @@ func (b *Builder) tarAci() error {
 	return nil
 }
 
-func (b *Builder) runBuildSetup() error { // TODO do not run as root ??
+func (b *Builder) runBuildSetup() error {
 	if empty, err := common.IsDirEmpty(b.aciHomePath + PATH_RUNLEVELS + PATH_BUILD_SETUP); empty || err != nil {
 		return nil
 	}
 
 	logs.WithF(b.fields).Info("Running build setup")
 
-	//	for _, e := range manifestApp(b.pod).App.Environment {
-	//		logs.WithField("name", e.Name).WithField("value", e.Value).Debug("Adding environment var")
-	//		os.Setenv(e.Name, e.Value)
-	//	}
+	for _, e := range manifestApp(b.pod).App.Environment {
+		logs.WithField("name", e.Name).WithField("value", e.Value).Debug("Adding environment var")
+		os.Setenv(e.Name, e.Value)
+	}
+
+	logs.WithF(b.fields).Warn("Using build setup create unreproductible builds and run as root directly on the host. Please use builder dependencies and builder runlevels instead")
+	time.Sleep(5 * time.Second)
 
 	os.Setenv("BASEDIR", b.aciHomePath)
-	os.Setenv("TARGET", b.stage2Rootfs+"/..") //TODO
+	os.Setenv("TARGET", b.stage2Rootfs+"/..")
 	os.Setenv("ROOTFS", b.stage2Rootfs+"/../rootfs")
 	os.Setenv(common.ENV_LOG_LEVEL, logs.GetLevel().String())
 
-	if err := common.ExecCmd(b.stage1Rootfs + PATH_DGR + PATH_BUILDER + "/stage2/build-setup.sh"); err != nil { // TODO this sux
+	if err := common.ExecCmd(b.stage1Rootfs + PATH_DGR + PATH_BUILDER + "/stage2/build-setup.sh"); err != nil {
 		return errs.WithEF(err, b.fields, "Build setup failed")
 	}
 
@@ -221,9 +214,9 @@ func (b *Builder) prepareNspawnArgsAndEnv(command common.BuilderCommand) ([]stri
 
 	args = append(args, b.stage1Rootfs+"/usr/lib/ld-linux-x86-64.so.2")
 	args = append(args, b.stage1Rootfs+"/usr/bin/systemd-nspawn")
-	//	if context := os.Getenv(common.EnvSELinuxContext); context != "" {
-	//		args = append(args, fmt.Sprintf("-Z%s", context))
-	//	}
+	if context := os.Getenv(rktcommon.EnvSELinuxContext); context != "" {
+		args = append(args, fmt.Sprintf("-Z%s", context))
+	}
 	args = append(args, "--register=no")
 	args = append(args, "--link-journal=auto")
 	env = append(env, "LD_LIBRARY_PATH="+b.stage1Rootfs+"/usr/lib")
