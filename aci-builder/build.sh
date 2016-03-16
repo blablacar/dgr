@@ -17,6 +17,11 @@ upx ${rootfs}/dgr/builder/stage1/run
 #GOOS=linux GOARCH=amd64 godep go build --ldflags '-extldflags "-static"' -o ${rootfs}/dgr/builder/enter ${dir}/bin-enter
 #GOOS=linux GOARCH=amd64 godep go build --ldflags '-extldflags "-static"' -o ${rootfs}/dgr/builder/gc ${dir}/bin-gc
 
+wget -O ${rootfs}/openssl-1.0.2.g-3-x86_64.pkg.tar.xz https://www.archlinux.org/packages/core/x86_64/openssl/download/
+tar xf ${rootfs}/openssl-1.0.2.g-3-x86_64.pkg.tar.xz -C ${rootfs}/dgr
+rm -Rf ${rootfs}/usr/share
+rm ${rootfs}/openssl-1.0.2.g-3-x86_64.pkg.tar.xz
+
 cp ${dir}/manifest.json ${target}/manifest
 cp -R ${dir}/files/. ${rootfs}
 cp /bin/busybox ${rootfs}/dgr/bin
