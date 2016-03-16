@@ -136,6 +136,8 @@ Example of a *aci-manifest.yml*:
 ```yaml
 name: example.com/myapp:0.1
 aci:
+  dependencies:
+    - example.com/base:1
   app:
     exec:
       - /bin/myapp
@@ -145,8 +147,6 @@ aci:
       - name: myapp-data
         path: /var/lib/myapp
         readOnly: false
-   dependencies:
-     - example.com/base:1
 ```
 
 The **name**, well, is the name of the ACI you are building.
