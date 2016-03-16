@@ -43,7 +43,7 @@ cd ${target}/buildroot
 
 # config
 make defconfig
-sed -i 's/BR2_i386=y/BR2_x86_64=y/' .config
+#sed -i 's/BR2_i386=y/BR2_x86_64=y/' .config
 #echo BR2_TOOLCHAIN_BUILDROOT_LARGEFILE=y >>.config
 #echo BR2_TOOLCHAIN_BUILDROOT_INET_IPV6=y >>.config
 #echo BR2_TOOLCHAIN_BUILDROOT_WCHAR=y >>.config
@@ -97,7 +97,7 @@ sed -i 's/BR2_i386=y/BR2_x86_64=y/' .config
 
 
 #make olddefconfig
-make allnoconfig
+#make allnoconfig
 
 
 # make
