@@ -42,7 +42,7 @@ cd ${target}/buildroot
 #export CXXCPP=/usr/bin/cpp
 
 # config
-make defconfig
+#make defconfig
 #sed -i 's/BR2_i386=y/BR2_x86_64=y/' .config
 #echo BR2_TOOLCHAIN_BUILDROOT_LARGEFILE=y >>.config
 #echo BR2_TOOLCHAIN_BUILDROOT_INET_IPV6=y >>.config
@@ -101,8 +101,8 @@ make defconfig
 
 
 # make
-make --quiet
-tar xf output/images/rootfs.tar -C ../rootfs
-
-cd ..
-tar cpfz ../bindata/aci-root.aci rootfs manifest
+#make
+#tar xf output/images/rootfs.tar -C ../rootfs
+#
+#cd ..
+#tar cpfz ../bindata/aci-root.aci rootfs manifest
