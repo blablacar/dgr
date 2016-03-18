@@ -60,10 +60,21 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 		return errs.WithEF(err, aci.fields, "Failed to prepare build image")
 	}
 
+	defer aci.cleanupRun(builderHash, stage1Hash)
 	if err := Home.Rkt.Run(aci.prepareRktRunArguments(command, builderHash, stage1Hash)); err != nil {
 		return errs.WithEF(err, aci.fields, "Builder container return with failed status")
 	}
 
+	if content, err := common.ExtractManifestContentFromAci(aci.target + PATH_IMAGE_ACI); err != nil {
+		logs.WithEF(err, aci.fields).Warn("Failed to write manifest.json")
+	} else if err := ioutil.WriteFile(aci.target+PATH_MANIFEST_JSON, content, 0644); err != nil {
+		logs.WithEF(err, aci.fields).Warn("Failed to write manifest.json")
+	}
+
+	return nil
+}
+
+func (aci *Aci) cleanupRun(builderHash string, stage1Hash string) {
 	if !Args.KeepBuilder {
 		if _, _, err := Home.Rkt.RmFromFile(aci.target + PATH_BUILDER_UUID); err != nil {
 			logs.WithEF(err, aci.fields).Warn("Failed to remove build container")
@@ -74,13 +85,9 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 		logs.WithEF(err, aci.fields.WithField("hash", builderHash)).Warn("Failed to remove build container image")
 	}
 
-	if content, err := common.ExtractManifestContentFromAci(aci.target + PATH_IMAGE_ACI); err != nil {
-		logs.WithEF(err, aci.fields).Warn("Failed to write manifest.json")
-	} else if err := ioutil.WriteFile(aci.target+PATH_MANIFEST_JSON, content, 0644); err != nil {
-		logs.WithEF(err, aci.fields).Warn("Failed to write manifest.json")
+	if err := Home.Rkt.ImageRm(stage1Hash); err != nil {
+		logs.WithEF(err, aci.fields.WithField("hash", stage1Hash)).Warn("Failed to remove stage1 container image")
 	}
-
-	return nil
 }
 
 func (aci *Aci) CleanAndBuild() error {
