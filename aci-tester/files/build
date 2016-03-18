@@ -6,7 +6,7 @@ isLevelEnabled "debug" && set -x
 rootfs="/opt/stage2/${ACI_NAME}/rootfs"
 
 # dgr builder
-export aci_home="/dgr/aci-home/tests"
+export ACI_HOME="/dgr/aci-home/tests"
 /dgr/builder/stage2/builder.sh
 
 # bash
@@ -14,12 +14,12 @@ stat ${rootfs}/bin/bash &> /dev/null || {
     stat ${rootfs}/bin &> /dev/null || mkdir -p ${rootfs}/bin
     stat ${rootfs}/lib64 &> /dev/null || mkdir -p ${rootfs}/lib64
 
-    cp -P /usr/bin/bash ${rootfs}/bin/bash
-    cp -P /usr/lib64/libreadline*.so* ${rootfs}/lib64
-    cp -P /usr/lib64/libncurses*.so* ${rootfs}/lib64
-    cp -P /usr/lib64/libdl*.so* ${rootfs}/lib64
-    cp -P /usr/lib64/libc*.so* ${rootfs}/lib64
-    cp -P /usr/lib64/ld-*.so* ${rootfs}/lib64
+    cp -P /dgr/usr/bin/bash ${rootfs}/bin/bash
+    cp -P /dgr/usr/lib/libreadline*.so* ${rootfs}/lib64
+    cp -P /dgr/usr/lib/libncurses*.so* ${rootfs}/lib64
+    cp -P /dgr/usr/lib/libdl*.so* ${rootfs}/lib64
+    cp -P /dgr/usr/lib/libc*.so* ${rootfs}/lib64
+    cp -P /dgr/usr/lib/ld-*.so* ${rootfs}/lib64
 }
 
 # bats
@@ -27,8 +27,8 @@ cp /dgr/bin/bats* ${rootfs}/dgr/bin
 
 # tests
 mkdir -p ${rootfs}/dgr/tests
-if [ -d ${aci_home} ]; then
-    find ${aci_home} -maxdepth 1 -type f -exec cp {} ${rootfs}/dgr/tests \;
+if [ -d ${ACI_HOME} ]; then
+    find ${ACI_HOME} -maxdepth 1 -type f -exec cp {} ${rootfs}/dgr/tests \;
 fi
 
 # attributes

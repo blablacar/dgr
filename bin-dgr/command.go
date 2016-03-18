@@ -156,6 +156,7 @@ func newTestCommand(underClean bool) *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolVarP(&Args.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")
+	cmd.Flags().BoolVarP(&Args.KeepBuilder, "keep-builder", "k", false, "Keep aci & test builder container after exit")
 	return cmd
 }
 

@@ -218,6 +218,7 @@ func (b *Builder) prepareNspawnArgsAndEnv(command common.BuilderCommand) ([]stri
 		args = append(args, fmt.Sprintf("-Z%s", context))
 	}
 	args = append(args, "--register=no")
+	args = append(args, "-q")
 	args = append(args, "--link-journal=auto")
 	env = append(env, "LD_LIBRARY_PATH="+b.stage1Rootfs+"/dgr/usr/lib")
 	if !logs.IsDebugEnabled() {

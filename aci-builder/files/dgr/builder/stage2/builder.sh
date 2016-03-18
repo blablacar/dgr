@@ -5,7 +5,7 @@ isLevelEnabled "debug" && set -x
 
 export SYSTEMD_LOG_LEVEL=err
 export ROOTFS="/opt/stage2/${ACI_NAME}/rootfs"
-if [ -z ${ACI_HOME} ]; then
+    if [ -z ${ACI_HOME} ]; then
     echo_red "'ACI_HOME' is not set in build aci. This is a builder issue"
     exit 1
 fi
@@ -20,6 +20,7 @@ linkToDgrIfEmpty() {
 export PATH=$PATH:/dgr/bin
 
 linkToDgrIfEmpty /bin /usr/bin
+linkToDgrIfEmpty /usr/bin /dgr/usr/bin
 linkToDgrIfEmpty /lib64 /dgr/usr/lib
 linkToDgrIfEmpty /etc/ssl /dgr/etc/ssl
 
