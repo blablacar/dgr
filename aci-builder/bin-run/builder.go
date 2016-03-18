@@ -212,14 +212,14 @@ func (b *Builder) prepareNspawnArgsAndEnv(command common.BuilderCommand) ([]stri
 	var args []string
 	env := os.Environ()
 
-	args = append(args, b.stage1Rootfs+"/usr/lib/ld-linux-x86-64.so.2")
-	args = append(args, b.stage1Rootfs+"/usr/bin/systemd-nspawn")
+	args = append(args, b.stage1Rootfs+"/dgr/usr/lib/ld-linux-x86-64.so.2")
+	args = append(args, b.stage1Rootfs+"/dgr/usr/bin/systemd-nspawn")
 	if context := os.Getenv(rktcommon.EnvSELinuxContext); context != "" {
 		args = append(args, fmt.Sprintf("-Z%s", context))
 	}
 	args = append(args, "--register=no")
 	args = append(args, "--link-journal=auto")
-	env = append(env, "LD_LIBRARY_PATH="+b.stage1Rootfs+"/usr/lib")
+	env = append(env, "LD_LIBRARY_PATH="+b.stage1Rootfs+"/dgr/usr/lib")
 	if !logs.IsDebugEnabled() {
 		args = append(args, "--quiet")
 	}

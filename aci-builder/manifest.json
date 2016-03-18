@@ -29,20 +29,5 @@
             "name": "coreos.com/rkt/stage1/gc",
             "value": "/dgr/builder/stage1/gc"
         }
-    ],
-    "dependencies": [
-        {
-            "imageName": "coreos.com/rkt/stage1-coreos",
-            "labels": [
-                {
-                    "name": "os",
-                    "value": "linux"
-                },
-                {
-                    "name": "arch",
-                    "value": "amd64"
-                }
-            ]
-        }
     ]
 }

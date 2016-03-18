@@ -10,7 +10,6 @@ import (
 	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -47,9 +46,9 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 	}
 
 	// rkt does not automatically fetch stage1-coreos.aci if used as dependency of another stage1
-	rktPath, _ := Home.Rkt.GetPath() // TODO EXTRACT TO METHOD
-	logs.WithF(aci.fields).Info("Importing stage1-coreos.aci")
-	Home.Rkt.Fetch(filepath.Dir(rktPath) + "/stage1-coreos.aci")
+	//	rktPath, _ := Home.Rkt.GetPath() // TODO EXTRACT TO METHOD
+	//	logs.WithF(aci.fields).Info("Importing stage1-coreos.aci")
+	//	Home.Rkt.Fetch(filepath.Dir(rktPath) + "/stage1-coreos.aci")
 
 	stage1Hash, err := aci.prepareStage1aci()
 	if err != nil {

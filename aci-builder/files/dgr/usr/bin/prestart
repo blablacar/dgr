@@ -1,0 +1,17 @@
+#!/dgr/bin/busybox sh
+set -e
+. /dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
+BASEDIR=${0%/*}
+dgr_PATH=/dgr
+
+execute_files ${dgr_PATH}/runlevels/prestart-early
+
+if [ -z ${LOG_LEVEL} ]; then
+	${BASEDIR}/templater -o TEMPLATER_OVERRIDE -t / /dgr
+else
+	${BASEDIR}/templater -o TEMPLATER_OVERRIDE -L "${LOG_LEVEL}" -t / /dgr
+fi
+
+execute_files ${dgr_PATH}/runlevels/prestart-late

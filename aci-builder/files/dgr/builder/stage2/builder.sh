@@ -10,13 +10,26 @@ if [ -z ${aci_home} ]; then
     exit 1
 fi
 
+linkToDgrIfEmpty() {
+    if [ ! "$(ls -A ${1}/ 2> /dev/null)" ]; then
+        rm -Rf ${1}
+        ln -s ${2} ${1}
+    fi
+}
+
+export PATH=$PATH:/dgr/bin
+
+linkToDgrIfEmpty /bin /usr/bin
+linkToDgrIfEmpty /lib64 /dgr/usr/lib
+linkToDgrIfEmpty /etc/ssl /dgr/etc/ssl
+
 echo "ce9d63a98a8b4438882fd795e294cd50" > /etc/machine-id
 
 # builder-early
 execute_files "${aci_home}/runlevels/builder-early"
 
 # copy internals
-mkdir -p ${rootfs}/dgr/b    in
+mkdir -p ${rootfs}/dgr/bin
 cmp -s /dgr/bin/busybox ${rootfs}/dgr/bin/busybox || cp /dgr/bin/busybox ${rootfs}/dgr/bin/busybox
 cmp -s /dgr/bin/functions.sh ${rootfs}/dgr/bin/functions.sh || cp /dgr/bin/functions.sh ${rootfs}/dgr/bin/functions.sh
 cmp -s /dgr/bin/prestart ${rootfs}/dgr/bin/prestart || cp /dgr/bin/prestart ${rootfs}/dgr/bin/prestart
@@ -43,7 +56,7 @@ fi
 
 mkdir -p ${rootfs}/usr/bin # this is required by the systemd-nspawn
 
-systemd-nspawn --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${rootfs} --capability=all \
+LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${rootfs} --capability=all \
     --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build.sh
 
 # prestart
@@ -73,7 +86,7 @@ if [ "$(ls -A ${aci_home}/templates 2> /dev/null)"  ]; then
     cp -Rf ${aci_home}/templates/. ${rootfs}/dgr/templates
 fi
 
-systemd-nspawn --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${rootfs} --capability=all \
+LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${rootfs} --capability=all \
     --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build-late.sh
 
 

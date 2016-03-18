@@ -135,7 +135,7 @@ func readEnvironment() {
 		if !strings.HasPrefix(v, DGR_ENV_PREFIX) {
 			continue
 		}
-		Args.SetEnv.Set(v[4:])
+		Args.SetEnv.Set(v[len(DGR_ENV_PREFIX):])
 	}
 }
 

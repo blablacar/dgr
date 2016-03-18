@@ -8,25 +8,27 @@ rootfs=${target}/rootfs
 
 echo -e "\033[0;32mBuilding aci-builder\033[0m\n"
 
-mkdir -p ${rootfs}/dgr/bin
-[ -f /bin/busybox ] || (echo "/bin/busybox is required to build dgr" && exit 1)
+${dir}/clean.sh
+
+mkdir -p ${rootfs}/dgr ${rootfs}/usr/bin
 [ -f ${dist}/templater ] || (echo "build templater first" && exit 1)
 
 GOOS=linux GOARCH=amd64 godep go build --ldflags '-s -w -extldflags "-static"' -o ${rootfs}/dgr/builder/stage1/run ${dir}/bin-run
 upx ${rootfs}/dgr/builder/stage1/run
-#GOOS=linux GOARCH=amd64 godep go build --ldflags '-extldflags "-static"' -o ${rootfs}/dgr/builder/enter ${dir}/bin-enter
-#GOOS=linux GOARCH=amd64 godep go build --ldflags '-extldflags "-static"' -o ${rootfs}/dgr/builder/gc ${dir}/bin-gc
 
-wget -O ${rootfs}/openssl-1.0.2.g-3-x86_64.pkg.tar.xz https://www.archlinux.org/packages/core/x86_64/openssl/download/
-tar xf ${rootfs}/openssl-1.0.2.g-3-x86_64.pkg.tar.xz -C ${rootfs}/dgr
-rm -Rf ${rootfs}/usr/share
-rm ${rootfs}/openssl-1.0.2.g-3-x86_64.pkg.tar.xz
-
+sudo tar xf ${dir}/rootfs.tar.xz -C ${rootfs}/dgr/
+sudo cp -R ${dir}/files/. ${rootfs}
+sudo chown root: ${rootfs}
 cp ${dir}/manifest.json ${target}/manifest
-cp -R ${dir}/files/. ${rootfs}
-cp /bin/busybox ${rootfs}/dgr/bin
-cp ${dist}/templater ${rootfs}/dgr/bin
+sudo cp ${dist}/templater ${rootfs}/dgr/bin/
+
+sudo mv ${rootfs}/dgr/usr/sbin/haveged ${rootfs}/dgr/usr/bin/haveged
+sudo rm -Rf ${rootfs}/dgr/usr/sbin/
+sudo bash -c "cd ${rootfs}/dgr/usr && ln -s bin sbin && cd -"
+sudo cp /bin/busybox ${rootfs}/dgr/bin #TODO my busybox auto provide internal applet directly while buildroot don't :/
+#rm ${rootfs}/dgr/bin/{hostnamectl,}
 
 cd ${target}
-tar cpfz ../bindata/aci-builder.aci rootfs manifest
+sudo tar cpfz ../bindata/aci-builder.aci rootfs manifest
+sudo chown ${SUDO_USER}:${SUDO_GROUP} ../bindata/aci-builder.aci
 cd -

@@ -12,15 +12,14 @@ rm -Rf ${dir}/dist/*-amd64
 mkdir -p ${dir}/dist
 
 #save dep
-godep save ./... || true
+godep save ${dir}/bin-dgr/... ${dir}/bin-templater/... ${dir}/aci-builder/... ${dir}/aci-tester/... || true
 
 # format
-gofmt -w -s .
+gofmt -w -s ${dir}/bin-dgr/. ${dir}/bin-templater/. ${dir}/aci-builder/. ${dir}/aci-tester/.
 
 # bin
 mkdir -p ${dir}/dist/bindata/aci/dgrtool.com
 [ -f ${dir}/dist/templater ] || ${dir}/bin-templater/build.sh
-[ -f ${dir}/dist/bindata/aci-root.aci ] || ${dir}/aci-root/build.sh
 [ -f ${dir}/dist/bindata/aci-tester.aci ] || ${dir}/aci-tester/build.sh
 [ -f ${dir}/dist/bindata/aci-builder.aci ] || ${dir}/aci-builder/build.sh
 
@@ -42,7 +41,7 @@ GOOS=linux GOARCH=amd64 godep go build --ldflags "-s -w -X main.BuildDate=`date 
 upx ${dir}/dist/linux-amd64/dgr
 
 # test #TODO move to test
-godep go test -cover ${dir}/...
+godep go test -cover ${dir}/bin-dgr/... ${dir}/bin-templater/... ${dir}/aci-builder/... ${dir}/aci-tester/...
 
 # install
 cp ${dir}/dist/linux-amd64/dgr ${GOPATH}/bin/dgr

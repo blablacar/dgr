@@ -1,4 +1,4 @@
-#!/dgr/bin/busybox sh
+#!/dgr/usr/bin/busybox sh
 set -e
 
 aci_home="/dgr/aci-home"
