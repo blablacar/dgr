@@ -27,7 +27,7 @@ stat ${rootfs}/bin/bash &> /dev/null || {
 cp /dgr/bin/bats* ${rootfs}/dgr/bin
 
 # tests
-mkdir -p ${ro   otfs}/dgr/tests
+mkdir -p ${rootfs}/dgr/tests
 if [ -d ${ACI_HOME} ]; then
     find ${ACI_HOME} -maxdepth 1 -type f -exec cp {} ${rootfs}/dgr/tests \;
 fi
