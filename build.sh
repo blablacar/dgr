@@ -12,10 +12,10 @@ rm -Rf ${dir}/dist/*-amd64
 mkdir -p ${dir}/dist
 
 #save dep
-godep save ${dir}/bin-dgr/... ${dir}/bin-templater/... ${dir}/aci-builder/... ${dir}/aci-tester/... || true
+godep save ${dir}/bin-dgr ${dir}/bin-templater ${dir}/aci-builder/bin-run || true
 
 # format
-gofmt -w -s ${dir}/bin-dgr/. ${dir}/bin-templater/. ${dir}/aci-builder/. ${dir}/aci-tester/.
+gofmt -w -s ${dir}/bin-dgr ${dir}/bin-templater ${dir}/aci-builder/bin-run
 
 # bin
 mkdir -p ${dir}/dist/bindata/aci/dgrtool.com
