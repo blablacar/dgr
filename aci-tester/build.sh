@@ -11,9 +11,6 @@ mkdir -p ${rootfs}/dgr/usr/bin ${rootfs}/dgr/usr/lib
 cp -R ${dir}/files/. ${rootfs}/
 cp ${dir}/manifest.json ${target}/manifest
 
-cp /bin/bash ${rootfs}/dgr/usr/bin
-cp --preserve=links /usr/lib/libreadline.so.* ${rootfs}/dgr/usr/lib ||  cp --preserve=links /lib/x86_64-linux-gnu/libreadline.so.* ${rootfs}/dgr/usr/lib
-cp --preserve=links /usr/lib/libncursesw.so.* ${rootfs}/dgr/usr/lib ||  cp --preserve=links /lib/x86_64-linux-gnu/libncursesw.so.* ${rootfs}/dgr/usr/lib
 wget -O ${rootfs}/dgr/usr/bin/bats https://raw.githubusercontent.com/sstephenson/bats/master/libexec/bats
 wget -O ${rootfs}/dgr/usr/bin/bats-exec-suite https://raw.githubusercontent.com/sstephenson/bats/master/libexec/bats-exec-suite
 wget -O ${rootfs}/dgr/usr/bin/bats-exec-test https://raw.githubusercontent.com/sstephenson/bats/master/libexec/bats-exec-test

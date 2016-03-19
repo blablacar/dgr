@@ -17,6 +17,7 @@ stat ${rootfs}/bin/bash &> /dev/null || {
     cp -P /dgr/usr/bin/bash ${rootfs}/bin/bash
     cp -P /dgr/usr/lib/libreadline*.so* ${rootfs}/lib64
     cp -P /dgr/usr/lib/libncurses*.so* ${rootfs}/lib64
+    cp -P /dgr/usr/lib/libhistory.so* ${rootfs}/lib64
     cp -P /dgr/usr/lib/libdl*.so* ${rootfs}/lib64
     cp -P /dgr/usr/lib/libc*.so* ${rootfs}/lib64
     cp -P /dgr/usr/lib/ld-*.so* ${rootfs}/lib64
@@ -26,7 +27,7 @@ stat ${rootfs}/bin/bash &> /dev/null || {
 cp /dgr/bin/bats* ${rootfs}/dgr/bin
 
 # tests
-mkdir -p ${rootfs}/dgr/tests
+mkdir -p ${ro   otfs}/dgr/tests
 if [ -d ${ACI_HOME} ]; then
     find ${ACI_HOME} -maxdepth 1 -type f -exec cp {} ${rootfs}/dgr/tests \;
 fi
