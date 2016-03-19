@@ -2,8 +2,86 @@
 	"ImportPath": "github.com/blablacar/dgr",
 	"GoVersion": "go1.6",
 	"Packages": [
-		"./bin-*/...",
-		"./aci-*/..."
+		"./bin-templater"
 	],
-	"Deps": []
+	"Deps": [
+		{
+			"ImportPath": "github.com/appc/spec/aci",
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/discovery",
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/pkg/device",
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/pkg/tarheader",
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/schema",
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
+		},
+		{
+			"ImportPath": "github.com/camlistore/camlistore/pkg/errorutil",
+			"Rev": "58958f44ee2eaa5139097dec3e02f47df0aba180"
+		},
+		{
+			"ImportPath": "github.com/coreos/go-semver/semver",
+			"Rev": "d043ae190b3202550d026daf009359bb5d761672"
+		},
+		{
+			"ImportPath": "github.com/ghodss/yaml",
+			"Rev": "c3eb24aeea63668ebdac08d2e252f20df8b6b1ae"
+		},
+		{
+			"ImportPath": "github.com/juju/errors",
+			"Rev": "1b5e39b83d1835fa480e0c2ddefb040ee82d58b3"
+		},
+		{
+			"ImportPath": "github.com/leekchan/gtf",
+			"Rev": "882e96b937c8506c67b5adf98ff1f84cd7b7b93a"
+		},
+		{
+			"ImportPath": "github.com/mgutz/ansi",
+			"Rev": "c286dcecd19ff979eeb73ea444e479b903f2cfcb"
+		},
+		{
+			"ImportPath": "github.com/n0rad/go-erlog",
+			"Rev": "73ef27688910c7154b1428a4aa63b1d3f4ada1f9"
+		},
+		{
+			"ImportPath": "github.com/peterbourgon/mergemap",
+			"Rev": "e21c03b7a721e413718d2703181ead350d3c9d6f"
+		},
+		{
+			"ImportPath": "github.com/spf13/pflag",
+			"Rev": "67cbc198fd11dab704b214c1e629a97af392c085"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html",
+			"Rev": "ea47fc708ee3e20177f3ca3716217c4ab75942cb"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "7ad95dd0798a40da1ccdff6dff35fd177b5edf40"
+		},
+		{
+			"ImportPath": "k8s.io/kubernetes/pkg/api/resource",
+			"Comment": "v1.1.0-alpha.1-152-g77e2d4f",
+			"Rev": "77e2d4f9185ecbedab327f228960d4ba33703025"
+		},
+		{
+			"ImportPath": "speter.net/go/exp/math/dec/inf",
+			"Rev": "42ca6cd68aa922bc3f32f1e056e61b65945d9ad7"
+		}
+	]
 }
