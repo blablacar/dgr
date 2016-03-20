@@ -47,15 +47,19 @@ type Env struct {
 type BuildDefinition struct {
 	Image        common.ACFullname   `json:"image"`
 	Dependencies []common.ACFullname `json:"dependencies"`
-	//	Mode
 }
 
 type AciManifest struct {
 	NameAndVersion common.ACFullname `json:"name"`
 	From           interface{}       `json:"from"`
 	Builder        BuildDefinition   `json:"builder"`
-	TestBuilder    common.ACFullname `json:"testBuilder"`
 	Aci            AciDefinition     `json:"aci"`
+	Test           TestManifest      `json:"test"`
+}
+
+type TestManifest struct {
+	Builder BuildDefinition `json:"builder"`
+	Aci     AciDefinition   `json:"aci"`
 }
 
 func (m *AciManifest) GetFroms() ([]common.ACFullname, error) {
