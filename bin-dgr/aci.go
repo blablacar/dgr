@@ -35,7 +35,6 @@ const MANIFEST_DRG_BUILDER = "dgr-builder"
 const MANIFEST_DRG_VERSION = "dgr-version"
 
 const PREFIX_TEST_BUILDER = "test-builder/"
-const PREFIX_BUILDER = "builder/"
 const PREFIX_BUILDER_STAGE1 = "builder-stage1/"
 
 type Aci struct {

@@ -157,7 +157,7 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+PATH_BUILDER), "Failed to create builder aci path")
 	}
 
-	if err := aci.WriteImageManifest(aci.manifest, aci.target+PATH_BUILDER+common.PATH_MANIFEST, PREFIX_BUILDER+aci.manifest.NameAndVersion.Name()); err != nil {
+	if err := aci.WriteImageManifest(aci.manifest, aci.target+PATH_BUILDER+common.PATH_MANIFEST, common.PREFIX_BUILDER+aci.manifest.NameAndVersion.Name()); err != nil {
 		return "", err
 	}
 	if err := aci.tarAci(aci.target + PATH_BUILDER); err != nil {

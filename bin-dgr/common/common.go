@@ -9,6 +9,7 @@ const ENV_ACI_TARGET = "ACI_TARGET"
 const ENV_LOG_LEVEL = "LOG_LEVEL"
 
 const ENV_BUILDER_COMMAND = "BUILDER_COMMAND"
+const PREFIX_BUILDER = "builder/"
 
 type BuilderCommand string
 
