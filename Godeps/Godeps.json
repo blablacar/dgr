@@ -2,9 +2,9 @@
 	"ImportPath": "github.com/blablacar/dgr",
 	"GoVersion": "go1.6",
 	"Packages": [
-		"./aci-builder/bin-run",
-		"./bin-dgr/",
-		"./bin-templater"
+		"./bin-dgr",
+		"./bin-templater",
+		"./aci-builder/bin-run"
 	],
 	"Deps": [
 		{

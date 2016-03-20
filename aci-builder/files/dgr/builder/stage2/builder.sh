@@ -36,29 +36,31 @@ cmp -s /dgr/bin/functions.sh ${ROOTFS}/dgr/bin/functions.sh || cp /dgr/bin/funct
 cmp -s /dgr/bin/prestart ${ROOTFS}/dgr/bin/prestart || cp /dgr/bin/prestart ${ROOTFS}/dgr/bin/prestart
 cmp -s /dgr/bin/templater ${ROOTFS}/dgr/bin/templater || cp /dgr/bin/templater ${ROOTFS}/dgr/bin/templater
 
-# build runlevels
-mkdir -p /dgr/builder/runlevels
-if [ -d ${ACI_HOME}/runlevels/build ]; then
-    cp -Rf ${ACI_HOME}/runlevels/build /dgr/builder/runlevels
-fi
-if [ -d ${ACI_HOME}/runlevels/build-late ]; then
-    cp -Rf ${ACI_HOME}/runlevels/build-late /dgr/builder/runlevels
-fi
-
-# inherit
-if [ "$(${ACI_HOME}/runlevels/inherit-build-late 2> /dev/null)" ]; then
-    mkdir -p ${ROOTFS}/dgr/runlevels/inherit-build-late
-    cp -Rf ${ACI_HOME}/runlevels/inherit-build-late/. ${ROOTFS}/dgr/runlevels/inherit-build-late
-fi
-if [ "$(${ACI_HOME}/runlevels/inherit-build-early 2> /dev/null)" ]; then
-    mkdir -p ${ROOTFS}/dgr/runlevels/inherit-build-early
-    cp -Rf ${ACI_HOME}/runlevels/inherit-build-early/. ${ROOTFS}/dgr/runlevels/inherit-build-early
-fi
-
 mkdir -p ${ROOTFS}/usr/bin # this is required by the systemd-nspawn
 
-LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${ROOTFS} --capability=all \
-    --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build.sh
+if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]; then
+    # build runlevels
+    mkdir -p /dgr/builder/runlevels
+    if [ -d ${ACI_HOME}/runlevels/build ]; then
+        cp -Rf ${ACI_HOME}/runlevels/build /dgr/builder/runlevels
+    fi
+    if [ -d ${ACI_HOME}/runlevels/build-late ]; then
+        cp -Rf ${ACI_HOME}/runlevels/build-late /dgr/builder/runlevels
+    fi
+
+    # inherit
+    if [ "$(${ACI_HOME}/runlevels/inherit-build-late 2> /dev/null)" ]; then
+        mkdir -p ${ROOTFS}/dgr/runlevels/inherit-build-late
+        cp -Rf ${ACI_HOME}/runlevels/inherit-build-late/. ${ROOTFS}/dgr/runlevels/inherit-build-late
+    fi
+    if [ "$(${ACI_HOME}/runlevels/inherit-build-early 2> /dev/null)" ]; then
+        mkdir -p ${ROOTFS}/dgr/runlevels/inherit-build-early
+        cp -Rf ${ACI_HOME}/runlevels/inherit-build-early/. ${ROOTFS}/dgr/runlevels/inherit-build-early
+    fi
+
+    LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${ROOTFS} --capability=all \
+        --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build.sh
+fi
 
 # prestart
 if [ "$(ls -A ${ACI_HOME}/runlevels/prestart-early 2> /dev/null)" ]; then
@@ -87,12 +89,14 @@ if [ "$(ls -A ${ACI_HOME}/templates 2> /dev/null)"  ]; then
     cp -Rf ${ACI_HOME}/templates/. ${ROOTFS}/dgr/templates
 fi
 
-LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${ROOTFS} --capability=all \
-    --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build-late.sh
 
+if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]; then
+    # build-late
+    LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${ROOTFS} --capability=all \
+        --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build-late.sh
+fi
 
 # builder-late
 #execute_files "${ACI_HOME}/runlevels/builder-late"
-
 
 rm -Rf /dgr/builder
