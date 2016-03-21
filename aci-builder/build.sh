@@ -24,7 +24,7 @@ sudo cp ${dist}/templater ${rootfs}/dgr/bin/
 
 # some cleanup
 sudo rm -Rf ${rootfs}/dgr/etc/udev
-sudo rm -Rf ${rootfs}/dgr/usr/share
+sudo rm -Rf ${rootfs}/dgr/usr/share/locale
 sudo rm -Rf ${rootfs}/dgr/usr/libexec
 sudo rm -Rf ${rootfs}/dgr/usr/lib/systemd
 sudo rm -Rf ${rootfs}/dgr/usr/lib/udev
@@ -33,10 +33,6 @@ sudo rm -Rf ${rootfs}/dgr/usr/lib/udev
 sudo mv ${rootfs}/dgr/usr/sbin/haveged ${rootfs}/dgr/usr/bin/haveged
 sudo rm -Rf ${rootfs}/dgr/usr/sbin/
 sudo bash -c "cd ${rootfs}/dgr/usr && ln -s bin sbin && cd -"
-
-
-
-sudo cp /bin/busybox ${rootfs}/dgr/bin #TODO my busybox auto provide internal applet directly while buildroot don't :/
 
 cd ${target}
 sudo tar cpfz ../bindata/aci-builder.aci rootfs manifest
