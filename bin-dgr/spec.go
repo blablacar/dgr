@@ -54,7 +54,7 @@ type AciManifest struct {
 	From           interface{}       `json:"from"`
 	Builder        BuildDefinition   `json:"builder"`
 	Aci            AciDefinition     `json:"aci"`
-	Test           TestManifest      `json:"test"`
+	Tester         TestManifest      `json:"tester"`
 }
 
 type TestManifest struct {

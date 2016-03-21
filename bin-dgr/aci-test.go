@@ -116,14 +116,14 @@ func (aci *Aci) buildTestAci() (string, error) {
 	fullname := common.NewACFullName(PREFIX_TEST + aci.manifest.NameAndVersion.Name() + ":" + aci.manifest.NameAndVersion.Version())
 	resultMountName, _ := types.NewACName(MOUNT_ACNAME)
 	testAci, err := NewAciWithManifest(aci.path, aci.args, &AciManifest{
-		Builder: aci.manifest.Test.Builder,
+		Builder: aci.manifest.Tester.Builder,
 		Aci: AciDefinition{
 			App: DgrApp{
 				Exec:             aci.manifest.Aci.App.Exec,
 				MountPoints:      []types.MountPoint{{Path: PATH_TESTS_RESULT, Name: *resultMountName}},
 				WorkingDirectory: aci.manifest.Aci.App.WorkingDirectory,
 			},
-			Dependencies: append([]common.ACFullname{aci.manifest.NameAndVersion}, aci.manifest.Test.Aci.Dependencies...),
+			Dependencies: append([]common.ACFullname{aci.manifest.NameAndVersion}, aci.manifest.Tester.Aci.Dependencies...),
 		},
 		NameAndVersion: *fullname,
 	})
