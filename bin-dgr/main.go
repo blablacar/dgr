@@ -62,6 +62,7 @@ type BuildArgs struct {
 	Test        bool
 	NoTestFail  bool
 	KeepBuilder bool
+	TrapOnError bool
 	SetEnv      envMap
 }
 

@@ -84,6 +84,7 @@ func newBuildCommand(userClean bool) *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolVarP(&Args.KeepBuilder, "keep-builder", "k", false, "Keep builder container after exit")
+	cmd.Flags().BoolVarP(&Args.TrapOnError, "trap-on-error", "t", false, "Trap to shell on build failed") // TODO This is builder dependent and should be pushed by builder ? or find a way to become generic
 	return cmd
 }
 

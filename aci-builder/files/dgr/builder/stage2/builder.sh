@@ -3,6 +3,14 @@ set -e
 . /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
+onError() {
+    if [ "${TRAP_ON_ERROR}" == "true" ]; then
+        echo_red "${1} failed. dropping to shell in builder"
+        sh
+    fi
+    exit 1
+}
+
 export SYSTEMD_LOG_LEVEL=err
 export ROOTFS="/opt/stage2/${ACI_NAME}/rootfs"
     if [ -z ${ACI_HOME} ]; then
@@ -27,7 +35,7 @@ linkToDgrIfEmpty /etc/ssl /dgr/etc/ssl
 echo "ce9d63a98a8b4438882fd795e294cd50" > /etc/machine-id
 
 # builder
-execute_files "${ACI_HOME}/runlevels/builder"
+execute_files "${ACI_HOME}/runlevels/builder" || onError "Builder"
 
 # copy internals
 mkdir -p ${ROOTFS}/dgr/bin
@@ -58,8 +66,10 @@ if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]
         cp -Rf ${ACI_HOME}/runlevels/inherit-build-early/. ${ROOTFS}/dgr/runlevels/inherit-build-early
     fi
 
-    LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${ROOTFS} --capability=all \
-        --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build.sh
+    LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn \
+        --setenv=TRAP_ON_ERROR=${TRAP_ON_ERROR} \
+        --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${ROOTFS} --capability=all \
+        --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build.sh || onError "Build"
 fi
 
 # prestart
@@ -92,8 +102,10 @@ fi
 
 if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]; then
     # build-late
-    LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${ROOTFS} --capability=all \
-        --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build-late.sh
+    LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn \
+        --setenv=TRAP_ON_ERROR=${TRAP_ON_ERROR} \
+        --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${ROOTFS} --capability=all \
+        --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build-late.sh || onError "Build-late"
 fi
 
 # builder-late

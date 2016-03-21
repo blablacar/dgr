@@ -10,6 +10,7 @@ import (
 	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -23,6 +24,7 @@ func (aci *Aci) prepareRktRunArguments(command common.BuilderCommand, builderHas
 	args = append(args, "--set-env="+common.ENV_ACI_PATH+"="+aci.path)
 	args = append(args, "--set-env="+common.ENV_ACI_TARGET+"="+aci.target)
 	args = append(args, "--set-env="+common.ENV_BUILDER_COMMAND+"="+string(command))
+	args = append(args, "--set-env="+common.ENV_TRAP_ON_ERROR+"="+strconv.FormatBool(aci.args.TrapOnError))
 	args = append(args, "--net=host")
 	args = append(args, "--insecure-options=image")
 	args = append(args, "--uuid-file-save="+aci.target+PATH_BUILDER_UUID)
