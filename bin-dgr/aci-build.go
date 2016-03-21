@@ -47,11 +47,6 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 		return errs.WithEF(err, aci.fields, "Cannot create target directory")
 	}
 
-	// rkt does not automatically fetch stage1-coreos.aci if used as dependency of another stage1
-	//	rktPath, _ := Home.Rkt.GetPath() // TODO EXTRACT TO METHOD
-	//	logs.WithF(aci.fields).Info("Importing stage1-coreos.aci")
-	//	Home.Rkt.Fetch(filepath.Dir(rktPath) + "/stage1-coreos.aci")
-
 	stage1Hash, err := aci.prepareStage1aci()
 	if err != nil {
 		return errs.WithEF(err, aci.fields, "Failed to prepare stage1 image")
