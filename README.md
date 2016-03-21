@@ -52,8 +52,9 @@ acbuild is a command line tools to build ACIs. It is more flexible than Dockerfi
 ```bash
 $ dgr init          # init a sample project
 $ dgr build         # build the image
-$ dgr update        # update only template part for fast test iteration (use with caution)
 $ dgr clean         # clean the build
+$ dgr clean install # clean, build and install the build
+$ dgr clean push    # clean, build and push the build
 $ dgr install       # store target image to rkt local store
 $ dgr push          # push target image to remote storage
 $ dgr test          # test the final image
@@ -106,9 +107,9 @@ It will generate the following file tree:
 |   |-- build
 |   |   `-- 10.install.sh              # Scripts to be run when building
 |   |-- build-late
-|   |   `-- 10.setup.sh                # Scripts to be run when building after the copy of files
-|   |-- build-setup
-|   |   `-- 10.setup.sh                # Scripts to be run directly on source host before building
+|   |   `-- 10.build-late.sh           # Scripts to be run when building after the copy of files
+|   |-- builder
+|   |   `-- 10.prepare.sh              # Scripts to be run inside the builder to prepare the aci
 |   |-- inherit-build-early
 |   |   `-- 10.inherit-build-early.sh  # Scripts stored in ACI and executed while used as a dependency
 |   |-- inherit-build-late
@@ -135,6 +136,17 @@ Example of a *aci-manifest.yml*:
 
 ```yaml
 name: example.com/myapp:0.1
+
+builder:
+  image: dgrtool.com/aci-builder:1
+  dependencies:
+    - example.com/base:1
+
+tester:
+  image: dgrtool.com/aci-tester:1
+  dependencies:
+    - example.com/base:1
+    
 aci:
   dependencies:
     - example.com/base:1
