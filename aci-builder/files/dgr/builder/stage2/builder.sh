@@ -111,4 +111,4 @@ fi
 # builder-late
 #execute_files "${ACI_HOME}/runlevels/builder-late"
 
-rm -Rf /dgr/builder
+rm -Rf /dgr/builder || true

@@ -24,16 +24,16 @@ func (aci *Aci) Test() error {
 
 	logs.WithF(aci.fields).Info("Testing")
 
-	ImportInternalBuilderIfNeeded(aci.manifest) // TODO remove this hack
-	ImportInternalTesterIfNeeded(aci.manifest)  // TODO import builder dependency
+	ImportInternalTesterIfNeeded(aci.manifest)
 
 	logs.WithF(aci.fields).Info("Building test aci")
-	if err := aci.buildTestAci(); err != nil {
+	hash, err := aci.buildTestAci()
+	if err != nil {
 		return err
 	}
 
 	logs.WithF(aci.fields).Info("Running test aci")
-	if err := aci.runTestAci(); err != nil {
+	if err := aci.runTestAci(hash); err != nil {
 		return err
 	}
 
@@ -82,24 +82,38 @@ func (aci *Aci) checkResult() error {
 	return nil
 }
 
-func (aci *Aci) runTestAci() error {
+func (aci *Aci) runTestAci(testerHash string) error {
 	os.MkdirAll(aci.target+PATH_TESTS_RESULT, 0777)
 
+	defer aci.cleanupTest(testerHash)
 	if err := Home.Rkt.Run([]string{"--set-env=" + common.ENV_LOG_LEVEL + "=" + logs.GetLevel().String(),
 		"--net=host",
 		"--mds-register=false",
+		"--uuid-file-save=" + aci.target + PATH_TESTER_UUID,
 		"--volume=" + MOUNT_ACNAME + ",kind=host,source=" + aci.target + PATH_TESTS_RESULT,
-		aci.target + PATH_TESTS_TARGET + PATH_IMAGE_ACI,
+		testerHash,
 		"--exec", "/test",
 	}); err != nil {
 		// rkt+systemd cannot exit with fail status yet, so will not happen
-		return errs.WithEF(err, aci.fields, "run of test aci failed")
+		return errs.WithEF(err, aci.fields, "Run of test aci failed")
 	}
 	return nil
 }
 
-func (aci *Aci) buildTestAci() error {
-	fullname := common.NewACFullName(PREFIX_TEST_BUILDER + aci.manifest.NameAndVersion.Name() + ":" + aci.manifest.NameAndVersion.Version())
+func (aci *Aci) cleanupTest(testerHash string) {
+	if !Args.KeepBuilder {
+		if _, _, err := Home.Rkt.RmFromFile(aci.target + PATH_TESTER_UUID); err != nil {
+			logs.WithEF(err, aci.fields).Warn("Failed to remove test container")
+		}
+	}
+
+	if err := Home.Rkt.ImageRm(testerHash); err != nil {
+		logs.WithEF(err, aci.fields.WithField("hash", testerHash)).Warn("Failed to remove test container image")
+	}
+}
+
+func (aci *Aci) buildTestAci() (string, error) {
+	fullname := common.NewACFullName(PREFIX_TEST + aci.manifest.NameAndVersion.Name() + ":" + aci.manifest.NameAndVersion.Version())
 	resultMountName, _ := types.NewACName(MOUNT_ACNAME)
 	testAci, err := NewAciWithManifest(aci.path, aci.args, &AciManifest{
 		Builder: aci.manifest.Test.Builder,
@@ -114,14 +128,18 @@ func (aci *Aci) buildTestAci() error {
 		NameAndVersion: *fullname,
 	})
 	if err != nil {
-		return errs.WithEF(err, aci.fields, "Failed to prepare test's build aci")
+		return "", errs.WithEF(err, aci.fields, "Failed to prepare test's build aci")
 	}
 
 	testAci.FullyResolveDep = false // this is required to run local tests without discovery
 	testAci.target = aci.target + PATH_TESTS_TARGET
 
 	if err := testAci.CleanAndBuild(); err != nil {
-		return errs.WithEF(err, aci.fields, "Build of test aci failed")
+		return "", errs.WithEF(err, aci.fields, "Build of test aci failed")
 	}
-	return nil
+	hash, err := Home.Rkt.Fetch(aci.target + PATH_TESTS_TARGET + PATH_IMAGE_ACI)
+	if err != nil {
+		return "", errs.WithEF(err, aci.fields, "fetch of test aci failed")
+	}
+	return hash, nil
 }

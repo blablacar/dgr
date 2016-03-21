@@ -27,14 +27,12 @@ const PATH_STAGE1_UUID = "/stage1.uuid"
 
 const PATH_BUILDER = "/builder"
 const PATH_BUILDER_UUID = "/builder.uuid"
-
-const PATH_TEST_BUILDER = "/test-builder"
-const PATH_TEST_BUILDER_UUID = "/test-builder.uuid"
+const PATH_TESTER_UUID = "/tester.uuid"
 
 const MANIFEST_DRG_BUILDER = "dgr-builder"
 const MANIFEST_DRG_VERSION = "dgr-version"
 
-const PREFIX_TEST_BUILDER = "test-builder/"
+const PREFIX_TEST = "test/"
 const PREFIX_BUILDER_STAGE1 = "builder-stage1/"
 
 type Aci struct {

@@ -21,6 +21,7 @@ func ImportInternalBuilderIfNeeded(manifest *AciManifest) {
 }
 
 func ImportInternalTesterIfNeeded(manifest *AciManifest) {
+	ImportInternalBuilderIfNeeded(manifest)
 	if manifest.Test.Builder.Image.String() == "" {
 		manifest.Test.Builder.Image = *ACI_TESTER
 		importInternalAci("aci-tester.aci") // TODO
