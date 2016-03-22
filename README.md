@@ -138,12 +138,10 @@ Example of a *aci-manifest.yml*:
 name: example.com/myapp:0.1
 
 builder:
-  image: dgrtool.com/aci-builder:1
   dependencies:
     - example.com/base:1
 
 tester:
-  image: dgrtool.com/aci-tester:1
   dependencies:
     - example.com/base:1
     
@@ -167,6 +165,8 @@ Under the **aci** key, you can add every key that is defined in the [APPC spec](
 - **exec** which contains the absolute path to the executable your want to run at the start of the ACI and its args.
 - **mountPoints** even though you can do it on the command line with recent versions of RKT.
 - **isolators**...
+
+Except **handlers** that are directly mapped to **prestart** runlevels 
 
 ### The build scripts
 
@@ -335,6 +335,20 @@ TODO
 - [rkt](https://github.com/coreos/rkt) in your `$PATH` or configured in dgr global conf
 - being root is required to construct the filesystem
 - linux >= 3.18 with overlay filesystem
+
+## I want to extend dgr
+
+If you think your idea can be integrated directly in the core of dgr, please create an issue or a pull request.
+
+If you want want to extend the way the **builder** is working (attributes, templates, files, ...), you can create a new **stage1 builder** and replace the internal one with : 
+```
+...
+builder:
+  image: dgrtool.com/aci-builder:1
+...
+```
+You can do the same for the **tester**.
+
 
 
 
