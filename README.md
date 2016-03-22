@@ -176,7 +176,7 @@ Under the **aci** key, you can add every key that is defined in the [APPC spec](
 
 Except **handlers** that are directly mapped to **prestart** runlevels 
 
-### The build scripts
+### Runlevels
 
 The scripts in `runlevels/build` dir are executed during the build to install in the ACI everything you need. For instance if your dependencies are based on debian, a build script could look like:
 
@@ -288,22 +288,31 @@ set -e
 ## Troubleshoot
 
 dgr start by default with info log level. You can change this level with the `-L` command line argument.
-The log level is also propaged to all runlevels with the environment variable: **LOG_LEVEL**.
+The log level is also propagated to all runlevels with the environment variable: **LOG_LEVEL**.
 
 You can activate debug on demand by including this code in your scripts:
 
-```bash
-source /dgr/bin/functions.sh
+```
+#!/dgr/bin/busybox sh
+set -e
+. /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 ```
 
-and for build-setup runlevel (that is not running inside the container):
+Build it
 
 ```bash
-source ${TARGET}/rootfs/dgr/bin/functions.sh
-isLevelEnabled "debug" && set -x
+$ dgr -L debug build
 ```
 
+You can also debug the start of your container (prestart, templates) the same way
+
+```bash
+$ rkt run --set-env=LOG_LEVEL=debug example.com/my-app
+```
+
+**trace** loglevel, will tell the templater to display the result
+ 
 
 ## Ok, but concretely how should I use it? (Need rework since deprecation of from)
 
