@@ -20,7 +20,7 @@ else
     exit 1
 fi
 
-url_data=$(curl -s https://api.github.com/repos/blablacar/dgr/releases\?access_token\=72a6176d6ebb890caee21ce453f76eae9c836699 )
+url_data=$(curl -s https://api.github.com/repos/blablacar/dgr/releases)
 url=$(echo $url_data | jq -r -c '.[0].assets[] | select(.name | contains("'$platform'")).browser_download_url') 
 version=$(echo $url_data | jq -r -c '.[0].tag_name')
 
