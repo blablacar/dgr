@@ -104,12 +104,12 @@ It will generate the following file tree:
 |-- files
 |   `-- dummy                          # Files to be copied to the same location in the target rootfs
 |-- runlevels
-|   |-- build
-|   |   `-- 10.install.sh              # Scripts to be run when building
-|   |-- build-late
-|   |   `-- 10.build-late.sh           # Scripts to be run when building after the copy of files
 |   |-- builder
-|   |   `-- 10.prepare.sh              # Scripts to be run inside the builder to prepare the aci
+|   |   `-- 10.prepare.sh              # Scripts to be run inside the builder to prepare the aci for build
+|   |-- build
+|   |   `-- 10.install.sh              # Scripts to be run when building inside aci's rootfs
+|   |-- build-late
+|   |   `-- 10.build-late.sh           # Scripts to be run when building inside aci's rootfs after the copy of files
 |   |-- inherit-build-early
 |   |   `-- 10.inherit-build-early.sh  # Scripts stored in ACI and executed while used as a dependency
 |   |-- inherit-build-late
@@ -120,7 +120,7 @@ It will generate the following file tree:
 |       `-- 10.prestart-late.sh        # Scripts to be run when starting ACI after templating
 `-- tests
     |-- dummy.bats                     # Bats tests for this ACI
-    `-- wait.sh
+    `-- wait.sh                        # Script to wait until the service is up before running tests
 ```
 
 This project is already valid which means that you can build it and it will result in a runnable ACI (dgr always adds busybox to the ACI). But you probably want to customize it at this point.
