@@ -52,11 +52,20 @@ acbuild is a command line tools to build ACIs. It is more flexible than Dockerfi
 $ dgr init          # init a sample project
 $ dgr build         # build the image
 $ dgr clean         # clean the build
+$ dgr clean build   # just building, clean is always run before building
 $ dgr clean install # clean, build and install the build
 $ dgr clean push    # clean, build and push the build
 $ dgr install       # store target image to rkt local store
 $ dgr push          # push target image to remote storage
 $ dgr test          # test the final image
+```
+
+There is a lot of different flags on each command. use the helper to see them :
+```bash
+$ dgr --help
+...
+$ dgr build --help
+...
 ```
 
 ## Configuration file
