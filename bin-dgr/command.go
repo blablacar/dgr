@@ -102,7 +102,7 @@ func newInstallCommand(underClean bool) *cobra.Command {
 			} else {
 				runCleanIfRequested(workPath, Args)
 			}
-			if err := command.Install(); err != nil {
+			if _, err := command.Install(); err != nil {
 				logs.WithE(err).Fatal("Install command failed")
 			}
 		},

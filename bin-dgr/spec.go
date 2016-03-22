@@ -12,7 +12,7 @@ type DgrCommand interface {
 	CleanAndBuild() error
 	Clean()
 	Push() error
-	Install() error
+	Install() ([]string, error)
 	Test() error
 	Graph() error
 	Init() error

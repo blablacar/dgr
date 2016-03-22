@@ -2,11 +2,13 @@ package main
 
 import "github.com/n0rad/go-erlog/logs"
 
-func (p *Pod) Install() error {
+func (p *Pod) Install() ([]string, error) {
 	logs.WithF(p.fields).Info("Installing")
 
+	hashs := []string{}
+
 	if err := p.CleanAndBuild(); err != nil {
-		return err
+		return hashs, err
 	}
 
 	for _, e := range p.manifest.Pod.Apps {
@@ -15,9 +17,11 @@ func (p *Pod) Install() error {
 			logs.WithEF(err, p.fields.WithField("name", e.Name)).Fatal("Cannot prepare aci")
 		}
 		aci.podName = &p.manifest.Name
-		if err := aci.Install(); err != nil {
-			return err
+		hash, err := aci.Install()
+		if err != nil {
+			return hashs, err
 		}
+		hashs = append(hashs, hash...)
 	}
-	return nil
+	return hashs, nil
 }

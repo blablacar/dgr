@@ -18,7 +18,8 @@ const FILE_END_OF_TESTS = "end-of-tests"
 
 func (aci *Aci) Test() error {
 	defer aci.giveBackUserRightsToTarget()
-	if err := aci.Install(); err != nil {
+	hashAcis, err := aci.Install()
+	if err != nil {
 		return err
 	}
 
@@ -27,13 +28,13 @@ func (aci *Aci) Test() error {
 	ImportInternalTesterIfNeeded(aci.manifest)
 
 	logs.WithF(aci.fields).Info("Building test aci")
-	hash, err := aci.buildTestAci()
+	hashTestAci, err := aci.buildTestAci()
 	if err != nil {
 		return err
 	}
 
 	logs.WithF(aci.fields).Info("Running test aci")
-	if err := aci.runTestAci(hash); err != nil {
+	if err := aci.runTestAci(hashTestAci, hashAcis); err != nil {
 		return err
 	}
 
@@ -82,10 +83,10 @@ func (aci *Aci) checkResult() error {
 	return nil
 }
 
-func (aci *Aci) runTestAci(testerHash string) error {
+func (aci *Aci) runTestAci(testerHash string, hashAcis []string) error {
 	os.MkdirAll(aci.target+PATH_TESTS_RESULT, 0777)
 
-	defer aci.cleanupTest(testerHash)
+	defer aci.cleanupTest(testerHash, hashAcis)
 	if err := Home.Rkt.Run([]string{"--set-env=" + common.ENV_LOG_LEVEL + "=" + logs.GetLevel().String(),
 		"--net=host",
 		"--mds-register=false",
@@ -100,10 +101,16 @@ func (aci *Aci) runTestAci(testerHash string) error {
 	return nil
 }
 
-func (aci *Aci) cleanupTest(testerHash string) {
+func (aci *Aci) cleanupTest(testerHash string, hashAcis []string) {
 	if !Args.KeepBuilder {
 		if _, _, err := Home.Rkt.RmFromFile(aci.target + PATH_TESTER_UUID); err != nil {
 			logs.WithEF(err, aci.fields).Warn("Failed to remove test container")
+		}
+	}
+
+	for _, hash := range hashAcis {
+		if err := Home.Rkt.ImageRm(hash); err != nil {
+			logs.WithEF(err, aci.fields.WithField("hash", hash)).Warn("Failed to remove container image")
 		}
 	}
 
