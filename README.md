@@ -44,8 +44,7 @@ It does not handle configuration, nor at build time nor at runtime.
 
 ### dgr vs acbuild
 
-acbuild is a command line tools to build ACIs. It is more flexible than Dockerfiles as it can be wrapped by other tools such as Makefiles but like Dockerfiles it doesn't provide a standard way of configuring the images.
-
+acbuild is a command line tools to build ACIs. It is more flexible than Dockerfiles as it can be wrapped by other tools such as Makefiles but like Dockerfiles it doesn't provide a standard way of configuring the images. acbuild does not provide image dependencies during build nor builder dependencies.
 
 ## Commands
 
