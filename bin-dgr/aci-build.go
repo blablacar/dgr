@@ -29,7 +29,11 @@ func (aci *Aci) prepareRktRunArguments(command common.BuilderCommand, builderHas
 	args = append(args, "--insecure-options=image")
 	args = append(args, "--uuid-file-save="+aci.target+PATH_BUILDER_UUID)
 	args = append(args, "--interactive")
-	args = append(args, "--stage1-hash="+stage1Hash)
+	if stage1Hash != "" {
+		args = append(args, "--stage1-hash="+stage1Hash)
+	} else {
+		args = append(args, "--stage1-name="+aci.manifest.Builder.Image.String())
+	}
 
 	for _, v := range aci.args.SetEnv.Strings() {
 		args = append(args, "--set-env="+v)
@@ -82,8 +86,10 @@ func (aci *Aci) cleanupRun(builderHash string, stage1Hash string) {
 		logs.WithEF(err, aci.fields.WithField("hash", builderHash)).Warn("Failed to remove build container image")
 	}
 
-	if err := Home.Rkt.ImageRm(stage1Hash); err != nil {
-		logs.WithEF(err, aci.fields.WithField("hash", stage1Hash)).Warn("Failed to remove stage1 container image")
+	if stage1Hash != "" {
+		if err := Home.Rkt.ImageRm(stage1Hash); err != nil {
+			logs.WithEF(err, aci.fields.WithField("hash", stage1Hash)).Warn("Failed to remove stage1 container image")
+		}
 	}
 }
 
@@ -93,24 +99,30 @@ func (aci *Aci) CleanAndBuild() error {
 
 func (aci *Aci) prepareStage1aci() (string, error) {
 	ImportInternalBuilderIfNeeded(aci.manifest)
+	if len(aci.manifest.Builder.Dependencies) == 0 {
+		return "", nil
+	}
+
+	logs.WithFields(aci.fields).Debug("Preparing stage1")
+
 	if err := os.MkdirAll(aci.target+PATH_STAGE1+common.PATH_ROOTFS, 0777); err != nil {
 		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+PATH_BUILDER), "Failed to create stage1 aci path")
 	}
 
 	manifestStr, err := Home.Rkt.CatManifest(aci.manifest.Builder.Image.String())
 	if err != nil {
-		return "", errs.WithEF(err, aci.fields, "Failed to read builder image manifest")
+		return "", errs.WithEF(err, aci.fields, "Failed to read stage1 image manifest")
 	}
 
 	manifest := schema.ImageManifest{}
 	if err := json.Unmarshal([]byte(manifestStr), &manifest); err != nil {
-		return "", errs.WithEF(err, aci.fields.WithField("content", manifestStr), "Failed to unmarshal builder manifest received from rkt")
+		return "", errs.WithEF(err, aci.fields.WithField("content", manifestStr), "Failed to unmarshal stage1 manifest received from rkt")
 	}
 
 	manifest.Dependencies = types.Dependencies{}
 	stage1Image, err := toAppcDependencies([]common.ACFullname{aci.manifest.Builder.Image})
 	if err != nil {
-		return "", errs.WithEF(err, aci.fields, "Invalid builder image on stage1 for rkt")
+		return "", errs.WithEF(err, aci.fields, "Invalid image on stage1 for rkt")
 	}
 	manifest.Dependencies = append(manifest.Dependencies, stage1Image...)
 
@@ -150,6 +162,8 @@ func (aci *Aci) prepareStage1aci() (string, error) {
 }
 
 func (aci *Aci) prepareBuildAci() (string, error) {
+	logs.WithFields(aci.fields).Debug("Preparing builder")
+
 	if err := os.MkdirAll(aci.target+PATH_BUILDER+common.PATH_ROOTFS, 0777); err != nil {
 		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+PATH_BUILDER), "Failed to create builder aci path")
 	}
