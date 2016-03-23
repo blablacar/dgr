@@ -57,11 +57,11 @@ if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]
     fi
 
     # inherit
-    if [ "$(${ACI_HOME}/runlevels/inherit-build-late 2> /dev/null)" ]; then
+    if [ -d ${ACI_HOME}/runlevels/inherit-build-late ]; then
         mkdir -p ${ROOTFS}/dgr/runlevels/inherit-build-late
         cp -Rf ${ACI_HOME}/runlevels/inherit-build-late/. ${ROOTFS}/dgr/runlevels/inherit-build-late
     fi
-    if [ "$(${ACI_HOME}/runlevels/inherit-build-early 2> /dev/null)" ]; then
+    if [ -d ${ACI_HOME}/runlevels/inherit-build-early ]; then
         mkdir -p ${ROOTFS}/dgr/runlevels/inherit-build-early
         cp -Rf ${ACI_HOME}/runlevels/inherit-build-early/. ${ROOTFS}/dgr/runlevels/inherit-build-early
     fi
