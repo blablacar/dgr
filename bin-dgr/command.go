@@ -20,8 +20,8 @@ var cleanCmd = &cobra.Command{
 
 var graphCmd = &cobra.Command{
 	Use:   "graph",
-	Short: "generate graphviz part",
-	Long:  `generate graphviz part`,
+	Short: "generate dependency graph",
+	Long:  `generate dependency graph`,
 	Run: func(cmd *cobra.Command, args []string) {
 		checkNoArgs(args)
 

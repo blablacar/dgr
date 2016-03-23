@@ -13,6 +13,7 @@ import (
 	"strconv"
 )
 
+const PATH_GRAPH_PNG = "/graph.png"
 const PATH_GRAPH_DOT = "/graph.dot"
 const PATH_INSTALLED = "/installed"
 const PATH_IMAGE_ACI = "/image.aci"
