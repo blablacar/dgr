@@ -17,4 +17,4 @@ install:
 
 script:
   - ./build.sh
-  - sudo ./tests.sh
+  - sudo PATH=${GOPATH}/bin:$PATH ./tests.sh
