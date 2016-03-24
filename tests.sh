@@ -2,6 +2,8 @@
 set -e
 dirZ=$( dirname $0 )
 
+export PATH=${GOPATH}/bin:$PATH
+
 pushd `dirname $0` > /dev/null
 dir=`pwd`
 popd > /dev/null
