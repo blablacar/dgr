@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
+"time"
 )
 
 var ACI_BUILDER = common.NewACFullName("dgrtool.com/aci-builder:1")
@@ -68,4 +69,8 @@ func RandStringBytesMaskImpr(n int) string {
 	}
 
 	return string(b)
+}
+
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
 }
