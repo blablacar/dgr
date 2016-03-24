@@ -1,6 +1,7 @@
-from: dgrtool.com/aci-debian:8-2
 name: dgrtool.com/aci-cassandra:3.0-1
 aci:
+  dependencies:
+    - dgrtool.com/aci-debian:8
   app:
     exec: [ "/bin/bash", "-c", "CASSANDRA_CONF=/etc/cassandra source /etc/cassandra/cassandra-env.sh && /usr/sbin/cassandra -f" ]
     mountPoints:

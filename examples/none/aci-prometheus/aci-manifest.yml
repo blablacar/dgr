@@ -1,6 +1,7 @@
-from: dgrtool.com/aci-base:1
 name: dgrtool.com/aci-prometheus:0.16.1-1nerve2
 aci:
+  dependencies:
+    - dgrtool.com/aci-libc
   app:
     exec: [/etc/prometheus/prometheus, -config.file, /etc/prometheus/prometheus.yml]
     mountPoints:

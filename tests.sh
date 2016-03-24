@@ -11,8 +11,8 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
+# templater
 ${dir}/bin-templater/tests.sh
-
 
 if [ -z "$DEBUG" ]; then
     trap "rm -Rf ${dir}/tests/*/target/; exit" EXIT HUP INT QUIT PIPE TERM
@@ -43,3 +43,6 @@ execute_tests() {
 
 cd "${dir}/tests"
 execute_tests "."
+
+# examples
+${dir}/examples/build.sh

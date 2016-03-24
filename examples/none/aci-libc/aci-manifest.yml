@@ -1,4 +1,4 @@
-name: dgrtool.com/aci-debian:8
+name: dgrtool.com/aci-libc
 aci:
   dependencies:
     - dgrtool.com/aci-base
