@@ -44,7 +44,7 @@ It does not handle configuration, nor at build time nor at runtime.
 
 ### dgr vs acbuild
 
-acbuild is a command line tools to build ACIs. It is more flexible than Dockerfiles as it can be wrapped by other tools such as Makefiles but like Dockerfiles it doesn't provide a standard way of configuring the images. acbuild does not provide image dependencies during build nor builder dependencies.
+acbuild is a command line tools to build ACIs. It is more flexible than Dockerfiles as it can be wrapped by other tools such as Makefiles but like Dockerfiles it doesn't provide a standard way of configuring the images. Also acbuild does not provide image dependencies during build nor builder dependencies.
 
 ## Commands
 
@@ -380,13 +380,13 @@ Default attributes values integrated in the aci can be overridden by adding a js
 
 ### example
 ```
-# udo rkt --set-env=LOG_LEVEL=trace  --net=host --insecure-options=image run --interactive target/image.aci '--set-env=TEMPLATER_OVERRIDE={"dns":{"nameservers":["10.11.254.253","10.11.254.254"]}}'
+# sudo rkt --set-env=LOG_LEVEL=trace  --net=host --insecure-options=image run --interactive target/image.aci '--set-env=TEMPLATER_OVERRIDE={"dns":{"nameservers":["10.11.254.253","10.11.254.254"]}}'
 ```
 
 ## Requirement
 
 - [rkt](https://github.com/coreos/rkt) in your `$PATH` or configured in dgr global conf
-- being root is required to construct the filesystem
+- being root is required to call rkt
 - linux >= 3.18 with overlay filesystem
 
 ## I want to extend dgr
