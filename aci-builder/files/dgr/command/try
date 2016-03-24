@@ -1,0 +1,16 @@
+#!/dgr/bin/busybox sh
+set -e
+. /dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
+ACI_HOME="/dgr/aci-home"
+ACI_TARGET="/dgr/aci-target"
+
+rm -Rf ${ACI_TARGET}/try
+mkdir -p ${ACI_TARGET}/try
+
+if [ -z ${LOG_LEVEL} ]; then
+	/dgr/bin/templater -o TEMPLATER_OVERRIDE -t ${ACI_TARGET}/try ${ACI_HOME}
+else
+	/dgr/bin/templater -o TEMPLATER_OVERRIDE -L "${LOG_LEVEL}" -t ${ACI_TARGET}/try ${ACI_HOME}
+fi

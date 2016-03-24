@@ -1,5 +1,7 @@
-#!/dgr/usr/bin/busybox sh
+#!/dgr/bin/busybox sh
 set -e
+. /dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
 
 ACI_HOME="/dgr/aci-home"
 

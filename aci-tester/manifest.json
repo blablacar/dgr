@@ -28,6 +28,10 @@
         {
             "name": "coreos.com/rkt/stage1/gc",
             "value": "/dgr/builder/stage1/gc"
+        },
+        {
+            "name": "dgrtool.com/dgr/stage1/build",
+            "value": "/dgr/command/build"
         }
     ],
     "dependencies": [

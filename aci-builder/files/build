@@ -1,6 +1,0 @@
-#!/dgr/usr/bin/busybox sh
-set -e
-/dgr/bin/prestart
-
-export ACI_HOME="/dgr/aci-home"
-/dgr/builder/stage2/builder.sh

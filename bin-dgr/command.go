@@ -61,6 +61,7 @@ var buildCmd = newBuildCommand(false)
 var installCmd = newInstallCommand(false)
 var pushCmd = newPushCommand(false)
 var testCmd = newTestCommand(false)
+var tryCmd = newTryCommand(false)
 
 ///////////////////////////////////////////////////////////////
 
@@ -68,6 +69,22 @@ func checkNoArgs(args []string) {
 	if len(args) > 0 {
 		logs.WithField("args", args).Fatal("Unknown arguments")
 	}
+}
+
+func newTryCommand(userClean bool) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "try",
+		Short: "try templater (experimental)",
+		Long:  `try templater (experimental)`,
+		Run: func(cmd *cobra.Command, args []string) {
+			checkNoArgs(args)
+
+			if err := NewAciOrPod(workPath, Args).CleanAndTry(); err != nil {
+				logs.WithE(err).Fatal("Try command failed")
+			}
+		},
+	}
+	return cmd
 }
 
 func newBuildCommand(userClean bool) *cobra.Command {
@@ -166,5 +183,6 @@ func init() {
 	cleanCmd.AddCommand(newPushCommand(true))
 	cleanCmd.AddCommand(newTestCommand(true))
 	cleanCmd.AddCommand(newBuildCommand(true))
+	cleanCmd.AddCommand(newTryCommand(true))
 
 }

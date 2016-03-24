@@ -1,0 +1,10 @@
+#!/dgr/bin/busybox sh
+set -e
+. /dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
+echo_purple "Running builder's prestart"
+/dgr/bin/prestart
+
+export ACI_HOME="/dgr/aci-home"
+/dgr/builder/stage2/builder.sh

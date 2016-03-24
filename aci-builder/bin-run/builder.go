@@ -183,7 +183,7 @@ func (b *Builder) runBuildSetup() error { //TODO REMOVE
 }
 
 func (b *Builder) runBuild() error {
-	command, err := b.findCommand()
+	command, err := b.getCommandPath()
 	if err != nil {
 		return err
 	}
@@ -208,7 +208,7 @@ func (b *Builder) runBuild() error {
 	return nil
 }
 
-func (b *Builder) prepareNspawnArgsAndEnv(command common.BuilderCommand) ([]string, []string) {
+func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []string) {
 	var args []string
 	env := os.Environ()
 
@@ -259,24 +259,49 @@ func (b *Builder) prepareNspawnArgsAndEnv(command common.BuilderCommand) ([]stri
 	args = append(args, "--capability=all")
 	args = append(args, "--directory="+b.stage1Rootfs)
 	args = append(args, "--bind="+b.aciHomePath+"/:/dgr/aci-home")
-	switch command {
-	case common.COMMAND_BUILD:
-		args = append(args, "/build") // TODO read command path from stage1 manifest annotations
-	case common.COMMAND_INIT:
-		args = append(args, "/init") // TODO read command path from stage1 manifest annotations
-	default:
-		logs.WithField("command", command).Fatal("Not implemented command in builder")
-	}
+	args = append(args, "--bind="+b.aciTargetPath+"/:/dgr/aci-target")
+	args = append(args, commandPath)
 
 	return args, env
 }
 
-func (b *Builder) findCommand() (common.BuilderCommand, error) {
+func (b *Builder) getCommandPath() (string, error) {
 	command, ok := manifestApp(b.pod).App.Environment.Get(common.ENV_BUILDER_COMMAND)
 	if !ok {
-		return common.COMMAND_BUILD, errs.WithF(b.fields.WithField("env_name", common.ENV_BUILDER_COMMAND), "No command sent to builder using environment var")
+		return string(common.COMMAND_BUILD), errs.WithF(b.fields.WithField("env_name", common.ENV_BUILDER_COMMAND), "No command sent to builder using environment var")
 	}
-	return common.BuilderCommand(command), nil
+
+	key, err := common.BuilderCommand(command).CommandManifestKey()
+	if err != nil {
+		return "", errs.WithEF(err, b.fields, "Unknown command")
+	}
+
+	stage1Manifest, err := b.getStage1Manifest()
+	if err != nil {
+		return "", err
+	}
+
+	commandPath, ok := stage1Manifest.Annotations.Get(key)
+	if !ok {
+		return "", errs.WithEF(err, b.fields.WithField("key", key), "Stage1 image manifest does not have command annotation")
+	}
+
+	return string(commandPath), nil
+}
+
+func (b *Builder) getStage1Manifest() (*schema.ImageManifest, error) {
+	content, err := ioutil.ReadFile(rktcommon.Stage1ManifestPath(b.pod.Root))
+	if err != nil {
+		return nil, errs.WithEF(err, b.fields.WithField("file", rktcommon.Stage1ManifestPath(b.pod.Root)), "Failed to read stage1 manifest")
+	}
+
+	im := &schema.ImageManifest{}
+	err = im.UnmarshalJSON(content)
+	if err != nil {
+		return nil, errs.WithEF(err, b.fields.WithField("content", string(content)).
+			WithField("file", rktcommon.Stage1ManifestPath(b.pod.Root)), "Cannot unmarshall json content from file")
+	}
+	return im, nil
 }
 
 func (b *Builder) upperTreeStoreId() (string, error) {

@@ -10,6 +10,7 @@ import (
 
 type DgrCommand interface {
 	CleanAndBuild() error
+	CleanAndTry() error
 	Clean()
 	Push() error
 	Install() ([]string, error)
