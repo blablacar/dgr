@@ -71,17 +71,30 @@ $ dgr build --help
 ## Configuration file
 
 dgr global configuration is a yaml file located at `~/.config/dgr/config.yml`. Home is the home of starting user (the caller user if running with sudo).
-It is used to indicate the target work directory where dgr will create the ACI and the push endpoint informations. Both are optional.
+
+**targetWorkDir** is used to indicate the target work directory where dgr will work to build and create the ACI
+**push*** contain informations on how to push the aci/pod to remote storage
+**rkt** if you are not using rkt in your path, or want to create specif config
 
 Example of configuration:
 
 ```yml
-targetWorkDir: /tmp/target     # if you want to use another directory for all builds
+targetWorkDir: /tmp/target      # if you want to use another directory for all builds
 push:
   type: maven
   url: https://localhost/nexus
   username: admin
   password: admin
+rkt:                            # arguments to rkt. See rkt --help
+  path:
+  insecureOptions: [image]
+  dir: /var/lib/rkt
+  localConfig: /etc/rkt
+  systemConfig: /usr/lib/rkt
+  userConfig:
+  trustKeysFromHttps: false
+  noStore: false
+  storeOnly: false
 ```
 
 
