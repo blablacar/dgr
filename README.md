@@ -53,11 +53,12 @@ $ dgr init          # init a sample project
 $ dgr build         # build the image
 $ dgr clean         # clean the build
 $ dgr clean build   # just building, clean is always run before building
-$ dgr clean install # clean, build and install the build
-$ dgr clean push    # clean, build and push the build
-$ dgr install       # store target image to rkt local store
-$ dgr push          # push target image to remote storage
-$ dgr test          # test the final image
+$ dgr clean install # clean, build and install aci in the local rkt
+$ dgr clean push    # clean, build and push aci to remote storage
+$ dgr clean test    # clean, build and test aci
+$ dgr install       # use already built aci in target directory to install in rkt
+$ dgr push          # use already built aci in target directory to push to remote storage
+$ dgr test          # run tests on already built aci
 ```
 
 There is a lot of different flags on each command. use the helper to see them :
@@ -102,7 +103,7 @@ rkt:                            # arguments to rkt. See rkt --help
 
 ## Initializing a new project
 
-Run the following commands to initialize a new project:
+Run the following commands to initialize a new complete sample project:
 
 ```bash
 $ mkdir aci-myapp
@@ -146,12 +147,14 @@ It will generate the following file tree:
 
 This project is already valid which means that you can build it and it will result in a runnable ACI (dgr always adds busybox to the ACI). But you probably want to customize it at this point.
 
+The only mandatory information is the `aci-manifest`, with only the aci `name`. You can remove everything else depending on you needs.  
 
 ## Customizing
 
 ### The manifest
 
-The dgr manifest looks like a light ACI manifest. dgr will take this manifest and convert it to the format defined in the APPC spec.
+The dgr manifest looks like a light ACI manifest with extra builder and tester info. 
+dgr will take the `aci` part and convert it to the format defined in the APPC spec.
 
 Example of a *aci-manifest.yml*:
 
@@ -181,6 +184,9 @@ aci:
 ```
 
 The **name**, well, is the name of the ACI you are building.
+
+**builder** node 
+
 Under the **aci** key, you can add every key that is defined in the [APPC spec](https://github.com/appc/spec/blob/master/spec/aci.md) such as:
 
 - **exec** which contains the absolute path to the executable your want to run at the start of the ACI and its args.
