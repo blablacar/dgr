@@ -314,7 +314,7 @@ $ rkt run --set-env=LOG_LEVEL=debug example.com/my-app
 **trace** loglevel, will tell the templater to display the result
  
 
-## Ok, but concretely how should I use it? (Need rework since deprecation of from)
+### Ok, but concretely how should I use it? (Need rework since deprecation of from)
 
 Currently, Linux distrib and package managers are not designed to support container the way it should be used. Especially on the **from** & **dependencies** parts.
 
@@ -345,7 +345,24 @@ TODO
 
 ```
 
+## Running the aci
 
+At this stage you should have a runnable aci. During build, dgr integrated into the aci a prestart that will take care of running templater using `templates` and `attributes`
+
+### log level
+
+Templates and default attribute values are integrated into the aci.
+At start you can change log level of prestart scripts and the templater with the environment variable `--set-env=LOG_LEVEL=trace`.
+default level is info. At `debug`, prestart shell script will activate debug (set -x). At level `trace`, templater will display the result of templating.
+
+### override template's attributes
+
+Default attributes values integrated in the aci can be overridden by adding a json tree in the environment variable `TEMPLATER_OVERRIDE`
+
+### example
+```
+# udo rkt --set-env=LOG_LEVEL=trace  --net=host --insecure-options=image run --interactive target/image.aci '--set-env=TEMPLATER_OVERRIDE={"dns":{"nameservers":["10.11.254.253","10.11.254.254"]}}'
+```
 
 ## Requirement
 
