@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
-"time"
+	"time"
 )
 
 var ACI_BUILDER = common.NewACFullName("dgrtool.com/aci-builder:1")

@@ -43,6 +43,17 @@ cmp -s /dgr/bin/templater ${ROOTFS}/dgr/bin/templater || cp /dgr/bin/templater $
 
 mkdir -p ${ROOTFS}/usr/bin # this is required by the systemd-nspawn
 
+
+# inherit
+if [ -d ${ACI_HOME}/runlevels/inherit-build-late ]; then
+    mkdir -p ${ROOTFS}/dgr/runlevels/inherit-build-late
+    cp -Rf ${ACI_HOME}/runlevels/inherit-build-late/. ${ROOTFS}/dgr/runlevels/inherit-build-late
+fi
+if [ -d ${ACI_HOME}/runlevels/inherit-build-early ]; then
+    mkdir -p ${ROOTFS}/dgr/runlevels/inherit-build-early
+    cp -Rf ${ACI_HOME}/runlevels/inherit-build-early/. ${ROOTFS}/dgr/runlevels/inherit-build-early
+fi
+
 if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]; then
     # build runlevels
     mkdir -p /dgr/builder/runlevels
@@ -51,16 +62,6 @@ if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]
     fi
     if [ -d ${ACI_HOME}/runlevels/build-late ]; then
         cp -Rf ${ACI_HOME}/runlevels/build-late /dgr/builder/runlevels
-    fi
-
-    # inherit
-    if [ -d ${ACI_HOME}/runlevels/inherit-build-late ]; then
-        mkdir -p ${ROOTFS}/dgr/runlevels/inherit-build-late
-        cp -Rf ${ACI_HOME}/runlevels/inherit-build-late/. ${ROOTFS}/dgr/runlevels/inherit-build-late
-    fi
-    if [ -d ${ACI_HOME}/runlevels/inherit-build-early ]; then
-        mkdir -p ${ROOTFS}/dgr/runlevels/inherit-build-early
-        cp -Rf ${ACI_HOME}/runlevels/inherit-build-early/. ${ROOTFS}/dgr/runlevels/inherit-build-early
     fi
 
     LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn \
