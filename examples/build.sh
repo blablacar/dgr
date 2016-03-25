@@ -25,6 +25,10 @@ buildAci ${dir}/none/aci-prometheus
 buildAci ${dir}/debian/aci-debian
 buildAci ${dir}/debian/aci-cassandra
 
+# alpine
+buildAci ${dir}/alpine/aci-alpine-base
+buildAci ${dir}/alpine/aci-alpine-nginx
+
 # gentoo
 buildAci ${dir}/gentoo/aci-gentoo-stage4
 buildAci ${dir}/gentoo/aci-gentoo-lighttpd

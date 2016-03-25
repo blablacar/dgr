@@ -1,0 +1,4 @@
+name: dgrtool.com/aci-alpine-base
+aci:
+  dependencies:
+    - dgrtool.com/aci-base
