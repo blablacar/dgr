@@ -4,4 +4,4 @@ aci:
     - dgrtool.com/aci-base
     - dgrtool.com/aci-alpine-base
   app:
-    exec: [ /usr/sbin/nginx, -g, daemon off;œ ]
+    exec: [ /usr/sbin/nginx, -g, daemon off; ]
