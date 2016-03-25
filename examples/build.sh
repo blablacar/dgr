@@ -27,7 +27,7 @@ buildAci ${dir}/debian/aci-cassandra
 
 # gentoo
 buildAci ${dir}/gentoo/aci-gentoo-stage4
-buildAci ${dir}/gentoo/aci-gentoo-nginx
+buildAci ${dir}/gentoo/aci-gentoo-lighttpd
 
 
 echo -e "\n\033[0;32mEverything looks good !\033[0m\n"
