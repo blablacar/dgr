@@ -25,4 +25,9 @@ buildAci ${dir}/none/aci-prometheus
 buildAci ${dir}/debian/aci-debian
 buildAci ${dir}/debian/aci-cassandra
 
+# gentoo
+buildAci ${dir}/debian/aci-gentoo-stage4
+buildAci ${dir}/debian/aci-gentoo-nginx
+
+
 echo -e "\n\033[0;32mEverything looks good !\033[0m\n"

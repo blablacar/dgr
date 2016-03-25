@@ -18,19 +18,16 @@ export ROOTFS="/opt/stage2/${ACI_NAME}/rootfs"
     exit 1
 fi
 
-linkToDgrIfEmpty() {
-    if [ ! "$(ls -A ${1}/ 2> /dev/null)" ]; then
-        rm -Rf ${1}
-        ln -s ${2} ${1}
-    fi
-}
-
-export PATH=$PATH:/dgr/bin
-
-linkToDgrIfEmpty /bin /usr/bin
-linkToDgrIfEmpty /usr/bin /dgr/usr/bin
-linkToDgrIfEmpty /lib64 /dgr/usr/lib
-linkToDgrIfEmpty /etc/ssl /dgr/etc/ssl
+if [ ! "$(ls -A /usr/bin/ 2> /dev/null)" ]; then
+    echo_purple "Nothing as builder dependency, mapping / to /dgr"
+    cp /etc/resolv.conf /dgr/etc/resolv.conf
+    rm -Rf /usr /etc /lib64 /lib /bin
+    ln -s /usr/bin /bin
+    ln -s /dgr/usr /usr
+    ln -s /dgr/etc /etc
+    ln -s /dgr/lib64 /lib64
+    ln -s /dgr/lib /lib
+fi
 
 echo "ce9d63a98a8b4438882fd795e294cd50" > /etc/machine-id
 

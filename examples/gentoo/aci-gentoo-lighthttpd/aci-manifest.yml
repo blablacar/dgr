@@ -1,0 +1,9 @@
+name: dgrtool.com/aci-gentoo-lighttpd
+builder:
+  dependencies:
+    - dgrtool.com/aci-gentoo-stage4
+aci:
+  dependencies:
+    - dgrtool.com/aci-base
+  app:
+    exec: [ /usr/sbin/lighttpd, -D, -f, /etc/lighttpd.conf ]
