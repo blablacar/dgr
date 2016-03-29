@@ -17,7 +17,8 @@ const PATH_GRAPH_PNG = "/graph.png"
 const PATH_GRAPH_DOT = "/graph.dot"
 const PATH_INSTALLED = "/installed"
 const PATH_IMAGE_ACI = "/image.aci"
-const PATH_IMAGE_ACI_ZIP = "/image.aci.gz"
+const PATH_IMAGE_GZ_ACI = "/image.gz.aci"
+const PATH_IMAGE_GZ_ACI_ASC = "/image.gz.aci.asc"
 const PATH_TARGET = "/target"
 const PATH_ACI_MANIFEST = "/aci-manifest.yml"
 const PATH_MANIFEST_JSON = "/manifest.json"
@@ -130,7 +131,7 @@ func (aci *Aci) tarAci(path string) error {
 	dir, _ := os.Getwd()
 	logs.WithField("path", path).Debug("chdir")
 	os.Chdir(path)
-	if err := common.Tar(false, target, common.PATH_MANIFEST[1:], common.PATH_ROOTFS[1:]); err != nil {
+	if err := common.Tar(target, common.PATH_MANIFEST[1:], common.PATH_ROOTFS[1:]); err != nil {
 		return errs.WithEF(err, aci.fields.WithField("path", path), "Failed to tar container")
 	}
 	logs.WithField("path", dir).Debug("chdir")
@@ -139,11 +140,15 @@ func (aci *Aci) tarAci(path string) error {
 }
 
 func (aci *Aci) zipAci() error {
-	if _, err := os.Stat(aci.target + PATH_IMAGE_ACI_ZIP); err == nil {
+	if _, err := os.Stat(aci.target + PATH_IMAGE_GZ_ACI); err == nil {
 		return nil
 	}
 	if stdout, stderr, err := common.ExecCmdGetStdoutAndStderr("gzip", "-k", aci.target+PATH_IMAGE_ACI); err != nil {
 		return errs.WithEF(err, aci.fields.WithField("path", aci.target+PATH_IMAGE_ACI).WithField("stdout", stdout).WithField("stderr", stderr), "Failed to zip aci")
+	}
+	if err := common.ExecCmd("mv", aci.target+PATH_IMAGE_ACI+".gz", aci.target+PATH_IMAGE_GZ_ACI); err != nil {
+		return errs.WithEF(err, aci.fields.WithField("from", aci.target+PATH_IMAGE_ACI+".gz").
+			WithField("to", aci.target+PATH_IMAGE_GZ_ACI), "Failed to rename zip aci")
 	}
 	return nil
 }

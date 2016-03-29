@@ -192,6 +192,19 @@ func (aci *Aci) EnsureBuilt() error {
 	return nil
 }
 
+func (aci *Aci) EnsureZip() error {
+	if _, err := os.Stat(aci.target + PATH_IMAGE_GZ_ACI); os.IsNotExist(err) {
+		if err := aci.EnsureBuilt(); err != nil {
+			return err
+		}
+
+		if err := aci.zipAci(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (aci *Aci) WriteImageManifest(m *AciManifest, targetFile string, projectName string) error {
 	name, err := types.NewACIdentifier(projectName)
 	if err != nil {

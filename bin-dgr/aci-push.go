@@ -48,7 +48,7 @@ func (aci *Aci) Push() error {
 		"-F", "p=aci",
 		"-F", "v="+val,
 		"-F", "a="+strings.Split(string(im.Name), "/")[1],
-		"-F", "file=@"+aci.target+PATH_IMAGE_ACI_ZIP,
+		"-F", "file=@"+aci.target+PATH_IMAGE_GZ_ACI,
 		"-u", Home.Config.Push.Username+":"+Home.Config.Push.Password,
 		Home.Config.Push.Url+"/service/local/artifact/maven/content"); err != nil {
 		return errs.WithEF(err, aci.fields, "Failed to push aci")

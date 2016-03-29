@@ -148,7 +148,7 @@ func (b *Builder) tarAci() error {
 	if err := os.Chdir(upperPath); err != nil {
 		return errs.WithEF(err, b.fields.WithField("path", upperPath), "Failed to chdir to upper base path")
 	}
-	if err := common.Tar(false, b.aciTargetPath+common.PATH_IMAGE_ACI, common.PATH_MANIFEST[1:], common.PATH_ROOTFS[1:]+"/"); err != nil {
+	if err := common.Tar(b.aciTargetPath+common.PATH_IMAGE_ACI, common.PATH_MANIFEST[1:], common.PATH_ROOTFS[1:]+"/"); err != nil {
 		return errs.WithEF(err, b.fields, "Failed to tar aci")
 	}
 	logs.WithField("path", dir).Debug("chdir")
