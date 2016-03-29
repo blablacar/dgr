@@ -26,7 +26,7 @@ dgr provides various resources to build and configure an ACI:
 
 **Templates** and **attributes** are the way dgr deals with environment-specific configurations. **Templates** are stored in the image and resolved at runtime ; **attributes** are inherited from different contexts (aci -> pod -> environment).
 
-**Static files** are copied to same path in the container.
+**Static files** are copied to the same path in the container.
 
 **Image dependencies** are used as defined in [APPC spec](https://github.com/appc/spec/blob/master/spec/aci.md#dependency-matching).
 
@@ -44,7 +44,7 @@ It does not handle configuration, nor at build time nor at runtime.
 
 ### dgr vs acbuild
 
-acbuild is a command line tools to build ACIs. It is more flexible than Dockerfiles as it can be wrapped by other tools such as Makefiles but like Dockerfiles it doesn't provide a standard way of configuring the images. Also acbuild does not provide image dependencies during build nor builder dependencies.
+acbuild is a command line tools to build ACIs. It is more flexible than Dockerfiles as it can be wrapped by other tools such as Makefiles but like Dockerfiles it doesn't provide a standard way of configuring the images.
 
 ## Commands
 
@@ -59,6 +59,7 @@ $ dgr clean test    # clean, build and test aci
 $ dgr install       # use already built aci in target directory to install in rkt
 $ dgr push          # use already built aci in target directory to push to remote storage
 $ dgr test          # run tests on already built aci
+$ dgr try           # run templating only to target/try (experimental)
 ```
 
 There is a lot of different flags on each command. use the helper to see them :
