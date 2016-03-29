@@ -15,5 +15,7 @@ onError() {
     exit 1
 }
 
+#. /dgr/builder/export
+
 execute_files "$ROOTFS/dgr/runlevels/inherit-build-early" || onError "Inherit-build-early"
 execute_files "$ROOTFS/dgr/builder/runlevels/build" || onError "Build"

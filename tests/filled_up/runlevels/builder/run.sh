@@ -1,9 +1,11 @@
 #!/dgr/bin/busybox sh
 set -e
+set -x
 
-wget https://google.fr -O ${ROOTFS}/google.wget
-curl https://google.fr -o ${ROOTFS}/google.curl
+env
 
-cd ${ROOTFS}/
-tar cvzf res.tar.gz google.wget google.curl
+export
+
+#wget https://google.fr -O ${ROOTFS}/google.wget
+#curl https://google.fr -o ${ROOTFS}/google.curl
 

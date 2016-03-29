@@ -31,6 +31,10 @@ fi
 
 echo "ce9d63a98a8b4438882fd795e294cd50" > /etc/machine-id
 
+# save envs
+mkdir -p /dgr/builder
+export > /dgr/builder/export
+
 # builder
 execute_files "${ACI_HOME}/runlevels/builder" || onError "Builder"
 
