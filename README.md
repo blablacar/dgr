@@ -390,6 +390,10 @@ Default attributes values integrated in the aci can be overridden by adding a js
 - being root is required to call rkt
 - linux >= 3.18 with overlay filesystem
 
+## How it's working
+
+<img style="margin: 10px 30px 40px 0" src="https://docs.google.com/drawings/d/1bSP6Z2X79xkp6deSNaZ-ShrAPjAPa4bzyjL4df2HLwk/pub?w=850">
+
 ## I want to extend dgr
 
 If you think your idea can be integrated directly in the core of dgr, please create an issue or a pull request.
