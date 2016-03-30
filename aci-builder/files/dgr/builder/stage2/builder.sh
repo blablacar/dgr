@@ -33,7 +33,7 @@ echo "ce9d63a98a8b4438882fd795e294cd50" > /etc/machine-id
 
 # save envs
 mkdir -p /dgr/builder
-export > /dgr/builder/export
+export | grep -v -E " SHLV=| ROOTFS=| TARGET= | ACI_PATH= | ACI_HOME= | ACI_EXEC=" > /dgr/builder/export
 
 # builder
 execute_files "${ACI_HOME}/runlevels/builder" || onError "Builder"
@@ -69,8 +69,7 @@ if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]
     fi
 
     LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn \
-        --setenv=TRAP_ON_ERROR=${TRAP_ON_ERROR} \
-        --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${ROOTFS} --capability=all \
+        --register=no -q --directory=${ROOTFS} --capability=all \
         --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build.sh || onError "Build"
 fi
 
@@ -105,12 +104,8 @@ fi
 if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]; then
     # build-late
     LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn \
-        --setenv=TRAP_ON_ERROR=${TRAP_ON_ERROR} \
-        --setenv=LOG_LEVEL=${LOG_LEVEL} --register=no -q --directory=${ROOTFS} --capability=all \
+        --register=no -q --directory=${ROOTFS} --capability=all \
         --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build-late.sh || onError "Build-late"
 fi
-
-# builder-late
-#execute_files "${ACI_HOME}/runlevels/builder-late"
 
 rm -Rf /dgr/builder || true

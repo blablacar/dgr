@@ -252,6 +252,10 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 	trap, _ := manifestApp(b.pod).App.Environment.Get(common.ENV_TRAP_ON_ERROR)
 	args = append(args, "--setenv="+common.ENV_TRAP_ON_ERROR+"="+string(trap))
 
+	version, ok := manifestApp(b.pod).Image.Labels.Get("version")
+	if ok {
+		args = append(args, "--setenv=ACI_VERSION="+version)
+	}
 	args = append(args, "--setenv=ACI_NAME="+manifestApp(b.pod).Name.String())
 	args = append(args, "--setenv=ACI_EXEC="+"'"+strings.Join(manifestApp(b.pod).App.Exec, "' '")+"'")
 	args = append(args, "--setenv=ROOTFS="+PATH_OPT+PATH_STAGE2+"/"+manifestApp(b.pod).Name.String()+common.PATH_ROOTFS)
