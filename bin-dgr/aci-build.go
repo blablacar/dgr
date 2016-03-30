@@ -211,13 +211,10 @@ func (aci *Aci) WriteImageManifest(m *AciManifest, targetFile string, projectNam
 		return errs.WithEF(err, aci.fields.WithField("name", projectName), "aci name is not a valid identifier for rkt")
 	}
 
-	version := m.NameAndVersion.Version()
-	if version == "" {
-		version = GenerateVersion()
-	}
-
 	labels := types.Labels{}
-	labels = append(labels, types.Label{Name: "version", Value: version})
+	if m.NameAndVersion.Version() != "" {
+		labels = append(labels, types.Label{Name: "version", Value: m.NameAndVersion.Version()})
+	}
 	labels = append(labels, types.Label{Name: "os", Value: "linux"})
 	labels = append(labels, types.Label{Name: "arch", Value: "amd64"})
 

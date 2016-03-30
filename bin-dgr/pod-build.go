@@ -32,7 +32,7 @@ func (p *Pod) CleanAndBuild() error {
 
 func (p *Pod) preparePodVersion() {
 	if p.manifest.Name.Version() == "" {
-		p.manifest.Name = *common.NewACFullName(p.manifest.Name.Name() + ":" + GenerateVersion())
+		p.manifest.Name = *common.NewACFullName(p.manifest.Name.Name() + ":" + common.GenerateVersion(p.path))
 	}
 }
 

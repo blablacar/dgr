@@ -112,6 +112,10 @@ func (b *Builder) writeManifest() error {
 	}
 
 	im.Name.Set(strings.Replace(im.Name.String(), common.PREFIX_BUILDER, "", 1))
+	if _, ok := im.Labels.Get("version"); !ok {
+		os.Chdir(b.aciHomePath)
+		im.Labels = append(im.Labels, types.Label{Name: "version", Value: common.GenerateVersion(b.aciHomePath)})
+	}
 	if content, err := json.MarshalIndent(im, "", "  "); err != nil {
 		return errs.WithEF(err, b.fields, "Failed to write manifest")
 	} else if err := ioutil.WriteFile(b.pod.Root+PATH_OVERLAY+"/"+upperId+PATH_UPPER+common.PATH_MANIFEST, content, 0644); err != nil {
