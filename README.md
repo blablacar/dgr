@@ -1,6 +1,6 @@
 # dgr - container build and runtime tool
 
-
+[![Go Report Card](https://goreportcard.com/badge/github.com/blablacar/dgr)](https://goreportcard.com/report/github.com/blablacar/dgr)
 [![GoDoc](https://img.shields.io/badge/godoc-reference-5874B0.svg)](https://godoc.org/github.com/blablacar/dgr)
 [![Build Status](https://img.shields.io/travis/blablacar/dgr/master.svg)](https://travis-ci.org/blablacar/dgr)
 
