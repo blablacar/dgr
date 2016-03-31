@@ -136,7 +136,7 @@ It will generate the following file tree:
 |   |-- inherit-build-early
 |   |   `-- 10.inherit-build-early.sh  # Scripts stored in ACI and executed while used as a dependency
 |   |-- inherit-build-late
-|   |   `-- 10.inherit-build-early.sh  # Scripts stored in ACI and executed while used as a dependency
+|   |   `-- 10.inherit-build-late.sh   # Scripts stored in ACI and executed while used as a dependency
 |   |-- prestart-early
 |   |   `-- 10.prestart-early.sh       # Scripts to be run when starting ACI before templating
 |   `-- prestart-late
