@@ -148,7 +148,7 @@ It will generate the following file tree:
 
 This project is already valid which means that you can build it and it will result in a runnable ACI (dgr always adds busybox to the ACI). But you probably want to customize it at this point.
 
-The only mandatory information is the `aci-manifest`, with only the aci `name`. You can remove everything else depending on you needs.  
+The only mandatory information is the `aci-manifest.yml`, with only the aci `name:`. You can remove everything else depending on you needs.  
 
 ## Customizing
 
