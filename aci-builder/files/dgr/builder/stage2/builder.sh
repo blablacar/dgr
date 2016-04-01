@@ -19,7 +19,7 @@ export ROOTFS="/opt/stage2/${ACI_NAME}/rootfs"
 fi
 
 if [ ! "$(ls -A /usr/bin/ 2> /dev/null)" ]; then
-    echo_purple "Nothing as builder dependency, mapping / to /dgr"
+    isLevelEnabled "debug" && echo_purple "Nothing as builder dependency, mapping / to /dgr"
     cp /etc/resolv.conf /dgr/etc/resolv.conf
     rm -Rf /usr /etc /lib64 /lib /bin
     ln -s /usr/bin /bin

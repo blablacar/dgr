@@ -79,7 +79,7 @@ func Run(overrideEnvVarName string, target string, templaterDir string) {
 
 	info, _ := os.Stat(templaterDir + pathTemplates)
 	if info == nil {
-		logs.WithField("dir", templaterDir+pathTemplates).Info("Template dir is empty. Nothing to template")
+		logs.WithField("dir", templaterDir+pathTemplates).Debug("Template dir is empty. Nothing to template")
 		return
 	}
 	tmpl, err := template.NewTemplateDir(templaterDir+pathTemplates, target)

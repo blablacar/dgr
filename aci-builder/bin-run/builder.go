@@ -40,7 +40,6 @@ func NewBuilder(podRoot string, podUUID *types.UUID) (*Builder, error) {
 	}
 
 	fields := data.WithField("aci", manifestApp(pod).Name)
-	logs.WithF(fields).WithField("path", pod.Root).Info("Loading aci builder")
 
 	aciPath, ok := manifestApp(pod).App.Environment.Get(common.EnvAciPath)
 	if !ok || aciPath == "" {

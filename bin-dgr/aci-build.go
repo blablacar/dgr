@@ -61,6 +61,7 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 		return errs.WithEF(err, aci.fields, "Failed to prepare build image")
 	}
 
+	logs.WithF(aci.fields).Info("Calling rkt to start build")
 	defer aci.cleanupRun(builderHash, stage1Hash)
 	if err := Home.Rkt.Run(aci.prepareRktRunArguments(command, builderHash, stage1Hash)); err != nil {
 		return errs.WithEF(err, aci.fields, "Builder container return with failed status")
@@ -175,7 +176,7 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 		return "", err
 	}
 
-	logs.WithF(aci.fields.WithField("path", aci.target+pathBuilder+pathImageAci)).Info("Importing builder")
+	logs.WithF(aci.fields.WithField("path", aci.target+pathBuilder+pathImageAci)).Info("Importing build to rkt")
 	hash, err := Home.Rkt.Fetch(aci.target + pathBuilder + pathImageAci)
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "fetch of builder aci failed")
