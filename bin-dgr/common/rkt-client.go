@@ -107,7 +107,6 @@ func (rkt *RktClient) Version() (Version, error) {
 	output, err := ExecCmdGetOutput(rkt.globalArgs[0], "version")
 	if err != nil {
 		return "", errs.WithEF(err, rkt.fields, "Failed to get rkt Version")
-		logs.Fatal("rkt is required in PATH")
 	}
 
 	scanner := bufio.NewScanner(strings.NewReader(output))

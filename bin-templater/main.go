@@ -59,7 +59,8 @@ func processArgs(overrideEnvVarName *string, target *string, templaterDir *strin
 	}
 
 	if *templaterDir == "" {
-		fmt.Println("templaterDir is mandatory\n")
+		fmt.Println("templaterDir is mandatory")
+		fmt.Println()
 		fmt.Println(USAGE)
 		os.Exit(1)
 	}

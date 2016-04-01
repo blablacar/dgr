@@ -179,5 +179,4 @@ func transform(in interface{}) (_ interface{}, err error) {
 	default:
 		return in, nil
 	}
-	return in, nil
 }
