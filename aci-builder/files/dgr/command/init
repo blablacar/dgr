@@ -46,7 +46,7 @@ cat > ${ACI_HOME}/runlevels/builder/10.prepare.sh <<EOF
 .  /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
-echo "I'm builder script file that is can use \$ACI_HOME and internet to prepare \$ROOTFS before running build scripts"
+echo "I'm builder script file that can use \$ACI_HOME and internet to prepare \$ROOTFS before running build scripts"
 EOF
 
 cat > ${ACI_HOME}/runlevels/build-late/10.build-late.sh <<EOF
@@ -65,7 +65,7 @@ isLevelEnabled "debug" && set -x
 echo "I'm a inherit build late script that is run on this image and all images that have me as dependencies"
 EOF
 
-cat > ${ACI_HOME}/runlevels/inherit-build-late/10.inherit-build-early.sh <<EOF
+cat > ${ACI_HOME}/runlevels/inherit-build-early/10.inherit-build-early.sh <<EOF
 #!/dgr/bin/busybox sh
 . /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
