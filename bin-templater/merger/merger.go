@@ -130,7 +130,7 @@ func Merge(envName string, files []string) []byte { // inputDir string,
 		if err != nil {
 			panic(err)
 		}
-		omap = mergemap.Merge(omap, envattr)
+		mergemap.Merge(omap, envattr)
 	}
 
 	// map to json

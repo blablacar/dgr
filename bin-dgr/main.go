@@ -123,7 +123,7 @@ func Execute() {
 	rootCmd.PersistentFlags().BoolVar(&Args.StoreOnly, "store-only", false, "Tell rkt to use the store only")
 	rootCmd.PersistentFlags().BoolVar(&Args.NoStore, "no-store", false, "Tell rkt to not use store")
 
-	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, graphCmd, tryCmd, signCmd, aciVersion)
+	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, graphCmd, tryCmd /*signCmd,*/, aciVersion)
 
 	readEnvironment()
 	rootCmd.Execute()
