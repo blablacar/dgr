@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const RKT_SUPPORTED_VERSION Version = "1.0.0"
+const rktSupportedVersion Version = "1.0.0"
 
 type RktConfig struct {
 	Path               string   `yaml:"path"`
@@ -44,8 +44,8 @@ func NewRktClient(config RktConfig) (*RktClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	if v.LessThan(RKT_SUPPORTED_VERSION) {
-		return nil, errs.WithF(rkt.fields.WithField("current", v).WithField("required", ">="+RKT_SUPPORTED_VERSION), "Unsupported version of rkt")
+	if v.LessThan(rktSupportedVersion) {
+		return nil, errs.WithF(rkt.fields.WithField("current", v).WithField("required", ">="+rktSupportedVersion), "Unsupported version of rkt")
 	}
 
 	logs.WithField("version", v).WithField("args", rkt.globalArgs).Debug("New rkt client")
@@ -107,7 +107,6 @@ func (rkt *RktClient) Version() (Version, error) {
 	output, err := ExecCmdGetOutput(rkt.globalArgs[0], "version")
 	if err != nil {
 		return "", errs.WithEF(err, rkt.fields, "Failed to get rkt Version")
-		logs.Fatal("rkt is required in PATH")
 	}
 
 	scanner := bufio.NewScanner(strings.NewReader(output))

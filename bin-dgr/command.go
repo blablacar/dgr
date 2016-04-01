@@ -62,6 +62,7 @@ var installCmd = newInstallCommand(false)
 var pushCmd = newPushCommand(false)
 var testCmd = newTestCommand(false)
 var tryCmd = newTryCommand(false)
+var signCmd = newSignCommand(false)
 
 ///////////////////////////////////////////////////////////////
 
@@ -102,6 +103,29 @@ func newBuildCommand(userClean bool) *cobra.Command {
 	}
 	cmd.Flags().BoolVarP(&Args.KeepBuilder, "keep-builder", "k", false, "Keep builder container after exit")
 	cmd.Flags().BoolVarP(&Args.TrapOnError, "trap-on-error", "t", false, "Trap to shell on build failed") // TODO This is builder dependent and should be pushed by builder ? or find a way to become generic
+	return cmd
+}
+
+func newSignCommand(underClean bool) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "sign",
+		Short: "sign image",
+		Long:  `sign image`,
+		Run: func(cmd *cobra.Command, args []string) {
+			checkNoArgs(args)
+
+			command := NewAciOrPod(workPath, Args)
+			if underClean {
+				command.Clean()
+			} else {
+				runCleanIfRequested(workPath, Args)
+			}
+			if err := command.Sign(); err != nil {
+				logs.WithE(err).Fatal("Sign command failed")
+			}
+		},
+	}
+
 	return cmd
 }
 
@@ -184,5 +208,6 @@ func init() {
 	cleanCmd.AddCommand(newTestCommand(true))
 	cleanCmd.AddCommand(newBuildCommand(true))
 	cleanCmd.AddCommand(newTryCommand(true))
+	cleanCmd.AddCommand(newSignCommand(true))
 
 }

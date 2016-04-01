@@ -13,28 +13,26 @@ import (
 	"strconv"
 )
 
-const PATH_GRAPH_PNG = "/graph.png"
-const PATH_GRAPH_DOT = "/graph.dot"
-const PATH_INSTALLED = "/installed"
-const PATH_IMAGE_ACI = "/image.aci"
-const PATH_IMAGE_ACI_ZIP = "/image.aci.gz"
-const PATH_TARGET = "/target"
-const PATH_ACI_MANIFEST = "/aci-manifest.yml"
-const PATH_MANIFEST_JSON = "/manifest.json"
-const PATH_TMP = "/tmp"
+const pathGraphPng = "/graph.png"
+const pathGraphDot = "/graph.dot"
+const pathImageAci = "/image.aci"
+const pathImageGzAci = "/image.gz.aci"
+const pathImageGzAciAsc = "/image.gz.aci.asc"
+const pathTarget = "/target"
+const pathAciManifest = "/aci-manifest.yml"
+const pathManifestJson = "/manifest.json"
 
-const PATH_STAGE1 = "/stage1"
-const PATH_STAGE1_UUID = "/stage1.uuid"
+const pathStage1 = "/stage1"
 
-const PATH_BUILDER = "/builder"
-const PATH_BUILDER_UUID = "/builder.uuid"
-const PATH_TESTER_UUID = "/tester.uuid"
+const pathBuilder = "/builder"
+const pathBuilderUuid = "/builder.uuid"
+const pathTesterUuid = "/tester.uuid"
 
-const MANIFEST_DRG_BUILDER = "dgr-builder"
-const MANIFEST_DRG_VERSION = "dgr-version"
+const manifestDrgBuilder = "dgr-builder"
+const manifestDrgVersion = "dgr-version"
 
-const PREFIX_TEST = "test/"
-const PREFIX_BUILDER_STAGE1 = "builder-stage1/"
+const prefixTest = "test/"
+const prefixBuilderStage1 = "builder-stage1/"
 
 type Aci struct {
 	fields          data.Fields
@@ -59,7 +57,7 @@ func NewAciWithManifest(path string, args BuildArgs, manifest *AciManifest) (*Ac
 		return nil, errs.WithEF(err, fields, "Cannot get fullpath of project")
 	}
 
-	target := fullPath + PATH_TARGET
+	target := fullPath + pathTarget
 	if Home.Config.TargetWorkDir != "" {
 		currentAbsDir, err := filepath.Abs(Home.Config.TargetWorkDir + "/" + manifest.NameAndVersion.ShortName())
 		if err != nil {
@@ -96,11 +94,11 @@ func NewAciWithManifest(path string, args BuildArgs, manifest *AciManifest) (*Ac
 }
 
 func NewAci(path string, args BuildArgs) (*Aci, error) {
-	manifest, err := readAciManifest(path + PATH_ACI_MANIFEST)
+	manifest, err := readAciManifest(path + pathAciManifest)
 	if err != nil {
 		manifest2, err2 := readAciManifest(path + "/cnt-manifest.yml")
 		if err2 != nil {
-			return nil, errs.WithEF(err, data.WithField("path", path+PATH_ACI_MANIFEST).WithField("err2", err2), "Cannot read manifest")
+			return nil, errs.WithEF(err, data.WithField("path", path+pathAciManifest).WithField("err2", err2), "Cannot read manifest")
 		}
 		logs.WithField("old", "cnt-manifest.yml").WithField("new", "aci-manifest.yml").Warn("You are using the old aci configuration file")
 		manifest = manifest2
@@ -126,11 +124,11 @@ func readAciManifest(manifestPath string) (*AciManifest, error) {
 }
 
 func (aci *Aci) tarAci(path string) error {
-	target := PATH_IMAGE_ACI[1:]
+	target := pathImageAci[1:]
 	dir, _ := os.Getwd()
 	logs.WithField("path", path).Debug("chdir")
 	os.Chdir(path)
-	if err := common.Tar(false, target, common.PATH_MANIFEST[1:], common.PATH_ROOTFS[1:]); err != nil {
+	if err := common.Tar(target, common.PathManifest[1:], common.PathRootfs[1:]); err != nil {
 		return errs.WithEF(err, aci.fields.WithField("path", path), "Failed to tar container")
 	}
 	logs.WithField("path", dir).Debug("chdir")
@@ -139,11 +137,15 @@ func (aci *Aci) tarAci(path string) error {
 }
 
 func (aci *Aci) zipAci() error {
-	if _, err := os.Stat(aci.target + PATH_IMAGE_ACI_ZIP); err == nil {
+	if _, err := os.Stat(aci.target + pathImageGzAci); err == nil {
 		return nil
 	}
-	if stdout, stderr, err := common.ExecCmdGetStdoutAndStderr("gzip", "-k", aci.target+PATH_IMAGE_ACI); err != nil {
-		return errs.WithEF(err, aci.fields.WithField("path", aci.target+PATH_IMAGE_ACI).WithField("stdout", stdout).WithField("stderr", stderr), "Failed to zip aci")
+	if stdout, stderr, err := common.ExecCmdGetStdoutAndStderr("gzip", "-k", aci.target+pathImageAci); err != nil {
+		return errs.WithEF(err, aci.fields.WithField("path", aci.target+pathImageAci).WithField("stdout", stdout).WithField("stderr", stderr), "Failed to zip aci")
+	}
+	if err := common.ExecCmd("mv", aci.target+pathImageAci+".gz", aci.target+pathImageGzAci); err != nil {
+		return errs.WithEF(err, aci.fields.WithField("from", aci.target+pathImageAci+".gz").
+			WithField("to", aci.target+pathImageGzAci), "Failed to rename zip aci")
 	}
 	return nil
 }
@@ -196,12 +198,12 @@ func GetDependencyDgrVersion(acName common.ACFullname) (int, error) {
 		return 0, errs.WithEF(err, depFields.WithField("content", out), "Cannot read manifest cat by rkt image")
 	}
 
-	version, ok := im.Annotations.Get(MANIFEST_DRG_VERSION)
+	version, ok := im.Annotations.Get(manifestDrgVersion)
 	var val int
 	if ok {
 		val, err = strconv.Atoi(version)
 		if err != nil {
-			return 0, errs.WithEF(err, depFields.WithField("version", version), "Failed to parse "+MANIFEST_DRG_VERSION+" from manifest")
+			return 0, errs.WithEF(err, depFields.WithField("version", version), "Failed to parse "+manifestDrgVersion+" from manifest")
 		}
 	}
 	return val, nil

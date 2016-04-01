@@ -12,6 +12,13 @@ import (
 	"os"
 )
 
+const pathAttributes = "/attributes"
+const pathTemplates = "/templates"
+const usage = `Usage: templater [-e overrideEnvVarName] [-t target] templaterDir
+
+  -o overrideEnvVarName,  varname of json object that will override attributes files
+  -t target,  directory for start of templating instead of /`
+
 func main() {
 	logs.GetDefaultLog().(*erlog.ErlogLogger).Appenders[0].(*erlog.ErlogWriterAppender).Out = os.Stdout
 
@@ -32,17 +39,12 @@ func main() {
 	Run(overrideEnvVarName, target, templateDir)
 }
 
-const USAGE = `Usage: templater [-e overrideEnvVarName] [-t target] templaterDir
-
-  -o overrideEnvVarName,  varname of json object that will override attributes files
-  -t target,  directory for start of templating instead of /`
-
 func processArgs(overrideEnvVarName *string, target *string, templaterDir *string, logLevel *string) {
 	for i := 1; i < len(os.Args); i++ {
 		switch os.Args[i] {
 		case "--help":
 		case "-h":
-			fmt.Println(USAGE)
+			fmt.Println(usage)
 			os.Exit(1)
 		case "-o":
 			*overrideEnvVarName = os.Args[i+1]
@@ -59,17 +61,15 @@ func processArgs(overrideEnvVarName *string, target *string, templaterDir *strin
 	}
 
 	if *templaterDir == "" {
-		fmt.Println("templaterDir is mandatory\n")
-		fmt.Println(USAGE)
+		fmt.Println("templaterDir is mandatory")
+		fmt.Println()
+		fmt.Println(usage)
 		os.Exit(1)
 	}
 }
 
-const PATH_ATTRIBUTES = "/attributes"
-const PATH_TEMPLATES = "/templates"
-
 func Run(overrideEnvVarName string, target string, templaterDir string) {
-	attrMerger, err := merger.NewAttributesMerger(templaterDir + PATH_ATTRIBUTES)
+	attrMerger, err := merger.NewAttributesMerger(templaterDir + pathAttributes)
 	if err != nil {
 		logs.WithE(err).Warn("Failed to prepare attributes")
 	}
@@ -77,18 +77,18 @@ func Run(overrideEnvVarName string, target string, templaterDir string) {
 	attributes = overrideWithJsonIfNeeded(overrideEnvVarName, attributes)
 	logs.WithField("content", attributes).Debug("Final attributes resolution")
 
-	info, _ := os.Stat(templaterDir + PATH_TEMPLATES)
+	info, _ := os.Stat(templaterDir + pathTemplates)
 	if info == nil {
-		logs.WithField("dir", templaterDir+PATH_TEMPLATES).Info("Template dir is empty. Nothing to template")
+		logs.WithField("dir", templaterDir+pathTemplates).Info("Template dir is empty. Nothing to template")
 		return
 	}
-	tmpl, err := template.NewTemplateDir(templaterDir+PATH_TEMPLATES, target)
+	tmpl, err := template.NewTemplateDir(templaterDir+pathTemplates, target)
 	if err != nil {
-		logs.WithE(err).WithField("dir", templaterDir+PATH_TEMPLATES).Fatal("Failed to load template dir")
+		logs.WithE(err).WithField("dir", templaterDir+pathTemplates).Fatal("Failed to load template dir")
 	}
 	err = tmpl.Process(attributes)
 	if err != nil {
-		logs.WithE(err).WithField("dir", templaterDir+PATH_TEMPLATES).Fatal("Failed to process template dir")
+		logs.WithE(err).WithField("dir", templaterDir+pathTemplates).Fatal("Failed to process template dir")
 	}
 }
 

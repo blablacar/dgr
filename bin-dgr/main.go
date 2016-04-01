@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-const DGR_ENV_PREFIX = "DGR_ENV_"
+const dgrEnvPrefix = "DGR_ENV_"
 
 var CommitHash string
 var DgrVersion string
@@ -123,7 +123,7 @@ func Execute() {
 	rootCmd.PersistentFlags().BoolVar(&Args.StoreOnly, "store-only", false, "Tell rkt to use the store only")
 	rootCmd.PersistentFlags().BoolVar(&Args.NoStore, "no-store", false, "Tell rkt to not use store")
 
-	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, graphCmd, tryCmd, aciVersion)
+	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, graphCmd, tryCmd /*signCmd,*/, aciVersion)
 
 	readEnvironment()
 	rootCmd.Execute()
@@ -133,10 +133,10 @@ func Execute() {
 
 func readEnvironment() {
 	for _, v := range os.Environ() {
-		if !strings.HasPrefix(v, DGR_ENV_PREFIX) {
+		if !strings.HasPrefix(v, dgrEnvPrefix) {
 			continue
 		}
-		Args.SetEnv.Set(v[len(DGR_ENV_PREFIX):])
+		Args.SetEnv.Set(v[len(dgrEnvPrefix):])
 	}
 }
 

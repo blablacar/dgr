@@ -42,13 +42,13 @@ func NewBuilder(podRoot string, podUUID *types.UUID) (*Builder, error) {
 	fields := data.WithField("aci", manifestApp(pod).Name)
 	logs.WithF(fields).WithField("path", pod.Root).Info("Loading aci builder")
 
-	aciPath, ok := manifestApp(pod).App.Environment.Get(common.ENV_ACI_PATH)
+	aciPath, ok := manifestApp(pod).App.Environment.Get(common.EnvAciPath)
 	if !ok || aciPath == "" {
-		return nil, errs.WithF(fields, "Builder image require "+common.ENV_ACI_PATH+" environment variable")
+		return nil, errs.WithF(fields, "Builder image require "+common.EnvAciPath+" environment variable")
 	}
-	aciTarget, ok := manifestApp(pod).App.Environment.Get(common.ENV_ACI_TARGET)
+	aciTarget, ok := manifestApp(pod).App.Environment.Get(common.EnvAciTarget)
 	if !ok || aciPath == "" {
-		return nil, errs.WithF(fields, "Builder image require "+common.ENV_ACI_TARGET+" environment variable")
+		return nil, errs.WithF(fields, "Builder image require "+common.EnvAciTarget+" environment variable")
 	}
 
 	return &Builder{
@@ -100,7 +100,7 @@ func (b *Builder) writeManifest() error {
 		return err
 	}
 
-	manifestPath := b.stage1Rootfs + PATH_OPT + PATH_STAGE2 + "/" + manifestApp(b.pod).Name.String() + common.PATH_MANIFEST
+	manifestPath := b.stage1Rootfs + PATH_OPT + PATH_STAGE2 + "/" + manifestApp(b.pod).Name.String() + common.PathManifest
 	content, err := ioutil.ReadFile(manifestPath)
 	if err != nil {
 		return errs.WithEF(err, b.fields.WithField("file", manifestPath), "Failed to read manifest file")
@@ -111,10 +111,14 @@ func (b *Builder) writeManifest() error {
 		return errs.WithEF(err, data.WithField("content", string(content)), "Cannot unmarshall json content")
 	}
 
-	im.Name.Set(strings.Replace(im.Name.String(), common.PREFIX_BUILDER, "", 1))
+	im.Name.Set(strings.Replace(im.Name.String(), common.PrefixBuilder, "", 1))
+	if _, ok := im.Labels.Get("version"); !ok {
+		os.Chdir(b.aciHomePath)
+		im.Labels = append(im.Labels, types.Label{Name: "version", Value: common.GenerateVersion(b.aciHomePath)})
+	}
 	if content, err := json.MarshalIndent(im, "", "  "); err != nil {
 		return errs.WithEF(err, b.fields, "Failed to write manifest")
-	} else if err := ioutil.WriteFile(b.pod.Root+PATH_OVERLAY+"/"+upperId+PATH_UPPER+common.PATH_MANIFEST, content, 0644); err != nil {
+	} else if err := ioutil.WriteFile(b.pod.Root+PATH_OVERLAY+"/"+upperId+PATH_UPPER+common.PathManifest, content, 0644); err != nil {
 		return errs.WithEF(err, b.fields, "Failed to write manifest")
 	}
 	return nil
@@ -128,7 +132,7 @@ func (b *Builder) tarAci() error {
 
 	upperPath := b.pod.Root + PATH_OVERLAY + "/" + upperId + PATH_UPPER
 	upperNamedRootfs := upperPath + "/" + manifestApp(b.pod).Name.String()
-	upperRootfs := upperPath + common.PATH_ROOTFS
+	upperRootfs := upperPath + common.PathRootfs
 
 	if err := os.Rename(upperNamedRootfs, upperRootfs); err != nil { // TODO this is dirty and can probably be renamed during tar
 		return errs.WithEF(err, b.fields.WithField("path", upperNamedRootfs), "Failed to rename rootfs")
@@ -148,7 +152,7 @@ func (b *Builder) tarAci() error {
 	if err := os.Chdir(upperPath); err != nil {
 		return errs.WithEF(err, b.fields.WithField("path", upperPath), "Failed to chdir to upper base path")
 	}
-	if err := common.Tar(false, b.aciTargetPath+common.PATH_IMAGE_ACI, common.PATH_MANIFEST[1:], common.PATH_ROOTFS[1:]+"/"); err != nil {
+	if err := common.Tar(b.aciTargetPath+common.PathImageAci, common.PathManifest[1:], common.PathRootfs[1:]+"/"); err != nil {
 		return errs.WithEF(err, b.fields, "Failed to tar aci")
 	}
 	logs.WithField("path", dir).Debug("chdir")
@@ -173,7 +177,7 @@ func (b *Builder) runBuildSetup() error { //TODO REMOVE
 	os.Setenv("BASEDIR", b.aciHomePath)
 	os.Setenv("TARGET", b.stage2Rootfs+"/..")
 	os.Setenv("ROOTFS", b.stage2Rootfs+"/../rootfs")
-	os.Setenv(common.ENV_LOG_LEVEL, logs.GetLevel().String())
+	os.Setenv(common.EnvLogLevel, logs.GetLevel().String())
 
 	if err := common.ExecCmd(b.stage1Rootfs + PATH_DGR + PATH_BUILDER + "/stage2/build-setup.sh"); err != nil {
 		return errs.WithEF(err, b.fields, "Build setup failed")
@@ -244,17 +248,21 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 	env = append(env, "SYSTEMD_LOG_LEVEL="+lvl)
 
 	for _, e := range manifestApp(b.pod).App.Environment {
-		if e.Name != common.ENV_BUILDER_COMMAND && e.Name != common.ENV_ACI_TARGET {
+		if e.Name != common.EnvBuilderCommand && e.Name != common.EnvAciTarget {
 			args = append(args, "--setenv="+e.Name+"="+e.Value)
 		}
 	}
 
-	trap, _ := manifestApp(b.pod).App.Environment.Get(common.ENV_TRAP_ON_ERROR)
-	args = append(args, "--setenv="+common.ENV_TRAP_ON_ERROR+"="+string(trap))
+	trap, _ := manifestApp(b.pod).App.Environment.Get(common.EnvTrapOnError)
+	args = append(args, "--setenv="+common.EnvTrapOnError+"="+string(trap))
 
+	version, ok := manifestApp(b.pod).Image.Labels.Get("version")
+	if ok {
+		args = append(args, "--setenv=ACI_VERSION="+version)
+	}
 	args = append(args, "--setenv=ACI_NAME="+manifestApp(b.pod).Name.String())
 	args = append(args, "--setenv=ACI_EXEC="+"'"+strings.Join(manifestApp(b.pod).App.Exec, "' '")+"'")
-	args = append(args, "--setenv=ROOTFS="+PATH_OPT+PATH_STAGE2+"/"+manifestApp(b.pod).Name.String()+common.PATH_ROOTFS)
+	args = append(args, "--setenv=ROOTFS="+PATH_OPT+PATH_STAGE2+"/"+manifestApp(b.pod).Name.String()+common.PathRootfs)
 
 	args = append(args, "--capability=all")
 	args = append(args, "--directory="+b.stage1Rootfs)
@@ -266,9 +274,9 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 }
 
 func (b *Builder) getCommandPath() (string, error) {
-	command, ok := manifestApp(b.pod).App.Environment.Get(common.ENV_BUILDER_COMMAND)
+	command, ok := manifestApp(b.pod).App.Environment.Get(common.EnvBuilderCommand)
 	if !ok {
-		return string(common.COMMAND_BUILD), errs.WithF(b.fields.WithField("env_name", common.ENV_BUILDER_COMMAND), "No command sent to builder using environment var")
+		return string(common.CommandBuild), errs.WithF(b.fields.WithField("env_name", common.EnvBuilderCommand), "No command sent to builder using environment var")
 	}
 
 	key, err := common.BuilderCommand(command).CommandManifestKey()

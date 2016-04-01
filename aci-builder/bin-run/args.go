@@ -35,7 +35,7 @@ func ProcessArgsAndReturnPodUUID() *types.UUID {
 	if cliDebugFlag {
 		logs.SetLevel(logs.DEBUG)
 	}
-	if lvlStr := os.Getenv(common.ENV_LOG_LEVEL); lvlStr != "" {
+	if lvlStr := os.Getenv(common.EnvLogLevel); lvlStr != "" {
 		lvl, err := logs.ParseLevel(lvlStr)
 		if err != nil {
 			fmt.Printf("Unknown log level : %s", lvlStr)

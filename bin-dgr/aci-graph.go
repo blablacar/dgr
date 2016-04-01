@@ -32,12 +32,12 @@ func (aci *Aci) Graph() error {
 
 	buffer.WriteString("}\n")
 
-	if err := ioutil.WriteFile(aci.target+PATH_GRAPH_DOT, buffer.Bytes(), 0644); err != nil {
-		return errs.WithEF(err, aci.fields.WithField("file", aci.target+PATH_GRAPH_DOT), "Failed to write file")
+	if err := ioutil.WriteFile(aci.target+pathGraphDot, buffer.Bytes(), 0644); err != nil {
+		return errs.WithEF(err, aci.fields.WithField("file", aci.target+pathGraphDot), "Failed to write file")
 	}
 
 	if _, _, err := common.ExecCmdGetStdoutAndStderr("dot", "-V"); err == nil {
-		if std, stderr, err := common.ExecCmdGetStdoutAndStderr("dot", "-Tpng", aci.target+PATH_GRAPH_DOT, "-o", aci.target+PATH_GRAPH_PNG); err != nil {
+		if std, stderr, err := common.ExecCmdGetStdoutAndStderr("dot", "-Tpng", aci.target+pathGraphDot, "-o", aci.target+pathGraphPng); err != nil {
 			return errs.WithEF(err, aci.fields.WithField("stdout", std).WithField("stderr", stderr), "Failed to create graph image")
 		}
 	}

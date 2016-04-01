@@ -10,14 +10,14 @@ import (
 	"time"
 )
 
-var ACI_BUILDER = common.NewACFullName("dgrtool.com/aci-builder:1")
-var ACI_TESTER = common.NewACFullName("dgrtool.com/aci-tester:1")
+var aciBuilder = common.NewACFullName("dgrtool.com/aci-builder:1")
+var aciTester = common.NewACFullName("dgrtool.com/aci-tester:1")
 
 //var internalAcis = []*spec.ACFullname{ACI_BATS, ACI_BUILDER}
 
 func ImportInternalBuilderIfNeeded(manifest *AciManifest) {
 	if manifest.Builder.Image.String() == "" {
-		manifest.Builder.Image = *ACI_BUILDER
+		manifest.Builder.Image = *aciBuilder
 		importInternalAci("aci-builder.aci") // TODO
 	}
 }
@@ -25,7 +25,7 @@ func ImportInternalBuilderIfNeeded(manifest *AciManifest) {
 func ImportInternalTesterIfNeeded(manifest *AciManifest) {
 	ImportInternalBuilderIfNeeded(manifest)
 	if manifest.Tester.Builder.Image.String() == "" {
-		manifest.Tester.Builder.Image = *ACI_TESTER
+		manifest.Tester.Builder.Image = *aciTester
 		importInternalAci("aci-tester.aci") // TODO
 	}
 }

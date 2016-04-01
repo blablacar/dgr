@@ -1,10 +1,7 @@
 #!/dgr/bin/busybox sh
 set -e
-export TARGET=$( dirname $0 )
-export ROOTFS=
-export TERM=xterm
-
-. ${ROOTFS}/dgr/bin/functions.sh
+. /dgr/builder/export
+. /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
 onError() {
@@ -15,7 +12,5 @@ onError() {
     exit 1
 }
 
-#. /dgr/builder/export
-
-execute_files "$ROOTFS/dgr/runlevels/inherit-build-early" || onError "Inherit-build-early"
-execute_files "$ROOTFS/dgr/builder/runlevels/build" || onError "Build"
+execute_files "/dgr/runlevels/inherit-build-early" || onError "Inherit-build-early"
+execute_files "/dgr/builder/runlevels/build" || onError "Build"

@@ -16,6 +16,7 @@ type DgrCommand interface {
 	Install() ([]string, error)
 	Test() error
 	Graph() error
+	Sign() error
 	Init() error
 }
 

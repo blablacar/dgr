@@ -10,11 +10,11 @@ import (
 	"strings"
 )
 
-const PATH_TESTS_TARGET = "/tests-target"
-const PATH_TESTS_RESULT = "/tests-result"
-const MOUNT_ACNAME = "test-result"
-const STATUS_SUFFIX = "_status"
-const FILE_END_OF_TESTS = "end-of-tests"
+const pathTestsTarget = "/tests-target"
+const pathTestsResult = "/tests-result"
+const mountAcname = "test-result"
+const statusSuffix = "_status"
+const fileEndOfTests = "end-of-tests"
 
 func (aci *Aci) Test() error {
 	defer aci.giveBackUserRightsToTarget()
@@ -46,24 +46,24 @@ func (aci *Aci) Test() error {
 }
 
 func (aci *Aci) checkResult() error {
-	files, err := ioutil.ReadDir(aci.target + PATH_TESTS_RESULT)
+	files, err := ioutil.ReadDir(aci.target + pathTestsResult)
 	if err != nil {
 		return errs.WithEF(err, aci.fields, "Cannot read test result directory")
 	}
 	testFound := false
 	getToTheEnd := false
 	for _, f := range files {
-		if f.Name() == FILE_END_OF_TESTS {
+		if f.Name() == fileEndOfTests {
 			getToTheEnd = true
 			continue
 		}
 		testFields := aci.fields.WithField("file", f.Name())
-		fullPath := aci.target + PATH_TESTS_RESULT + "/" + f.Name()
+		fullPath := aci.target + pathTestsResult + "/" + f.Name()
 		content, err := ioutil.ReadFile(fullPath)
 		if err != nil {
 			return errs.WithEF(err, testFields, "Cannot read result file")
 		}
-		if !strings.HasSuffix(f.Name(), STATUS_SUFFIX) {
+		if !strings.HasSuffix(f.Name(), statusSuffix) {
 			if testFound == false && string(content) != "1..0\n" {
 				testFound = true
 			}
@@ -84,14 +84,14 @@ func (aci *Aci) checkResult() error {
 }
 
 func (aci *Aci) runTestAci(testerHash string, hashAcis []string) error {
-	os.MkdirAll(aci.target+PATH_TESTS_RESULT, 0777)
+	os.MkdirAll(aci.target+pathTestsResult, 0777)
 
 	defer aci.cleanupTest(testerHash, hashAcis)
-	if err := Home.Rkt.Run([]string{"--set-env=" + common.ENV_LOG_LEVEL + "=" + logs.GetLevel().String(),
+	if err := Home.Rkt.Run([]string{"--set-env=" + common.EnvLogLevel + "=" + logs.GetLevel().String(),
 		"--net=host",
 		"--mds-register=false",
-		"--uuid-file-save=" + aci.target + PATH_TESTER_UUID,
-		"--volume=" + MOUNT_ACNAME + ",kind=host,source=" + aci.target + PATH_TESTS_RESULT,
+		"--uuid-file-save=" + aci.target + pathTesterUuid,
+		"--volume=" + mountAcname + ",kind=host,source=" + aci.target + pathTestsResult,
 		testerHash,
 		"--exec", "/test",
 	}); err != nil {
@@ -103,7 +103,7 @@ func (aci *Aci) runTestAci(testerHash string, hashAcis []string) error {
 
 func (aci *Aci) cleanupTest(testerHash string, hashAcis []string) {
 	if !Args.KeepBuilder {
-		if _, _, err := Home.Rkt.RmFromFile(aci.target + PATH_TESTER_UUID); err != nil {
+		if _, _, err := Home.Rkt.RmFromFile(aci.target + pathTesterUuid); err != nil {
 			logs.WithEF(err, aci.fields).Warn("Failed to remove test container")
 		}
 	}
@@ -120,14 +120,14 @@ func (aci *Aci) cleanupTest(testerHash string, hashAcis []string) {
 }
 
 func (aci *Aci) buildTestAci() (string, error) {
-	fullname := common.NewACFullName(PREFIX_TEST + aci.manifest.NameAndVersion.Name() + ":" + aci.manifest.NameAndVersion.Version())
-	resultMountName, _ := types.NewACName(MOUNT_ACNAME)
+	fullname := common.NewACFullName(prefixTest + aci.manifest.NameAndVersion.Name() + ":" + aci.manifest.NameAndVersion.Version())
+	resultMountName, _ := types.NewACName(mountAcname)
 	testAci, err := NewAciWithManifest(aci.path, aci.args, &AciManifest{
 		Builder: aci.manifest.Tester.Builder,
 		Aci: AciDefinition{
 			App: DgrApp{
 				Exec:             aci.manifest.Aci.App.Exec,
-				MountPoints:      []types.MountPoint{{Path: PATH_TESTS_RESULT, Name: *resultMountName}},
+				MountPoints:      []types.MountPoint{{Path: pathTestsResult, Name: *resultMountName}},
 				WorkingDirectory: aci.manifest.Aci.App.WorkingDirectory,
 			},
 			Dependencies: append([]common.ACFullname{aci.manifest.NameAndVersion}, aci.manifest.Tester.Aci.Dependencies...),
@@ -139,12 +139,12 @@ func (aci *Aci) buildTestAci() (string, error) {
 	}
 
 	testAci.FullyResolveDep = false // this is required to run local tests without discovery
-	testAci.target = aci.target + PATH_TESTS_TARGET
+	testAci.target = aci.target + pathTestsTarget
 
 	if err := testAci.CleanAndBuild(); err != nil {
 		return "", errs.WithEF(err, aci.fields, "Build of test aci failed")
 	}
-	hash, err := Home.Rkt.Fetch(aci.target + PATH_TESTS_TARGET + PATH_IMAGE_ACI)
+	hash, err := Home.Rkt.Fetch(aci.target + pathTestsTarget + pathImageAci)
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "fetch of test aci failed")
 	}

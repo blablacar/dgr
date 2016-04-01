@@ -4,5 +4,5 @@ import "github.com/blablacar/dgr/bin-dgr/common"
 
 func (aci *Aci) CleanAndTry() error {
 	aci.Clean()
-	return aci.RunBuilderCommand(common.COMMAND_TRY)
+	return aci.RunBuilderCommand(common.CommandTry)
 }

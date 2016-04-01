@@ -26,13 +26,13 @@ func (aci *Aci) Push() error {
 
 	logs.WithF(aci.fields).Info("Gzipping aci before upload")
 
-	im, err := common.ExtractManifestFromAci(aci.target + PATH_IMAGE_ACI)
+	im, err := common.ExtractManifestFromAci(aci.target + pathImageAci)
 	if err != nil {
-		return errs.WithEF(err, aci.fields.WithField("file", PATH_IMAGE_ACI), "Failed to extract manifest from aci file")
+		return errs.WithEF(err, aci.fields.WithField("file", pathImageAci), "Failed to extract manifest from aci file")
 	}
 	val, ok := im.Labels.Get("version")
 	if !ok {
-		return errs.WithEF(err, aci.fields.WithField("file", PATH_IMAGE_ACI), "Failed to get version from aci manifest")
+		return errs.WithEF(err, aci.fields.WithField("file", pathImageAci), "Failed to get version from aci manifest")
 	}
 
 	if err := aci.zipAci(); err != nil {
@@ -48,7 +48,7 @@ func (aci *Aci) Push() error {
 		"-F", "p=aci",
 		"-F", "v="+val,
 		"-F", "a="+strings.Split(string(im.Name), "/")[1],
-		"-F", "file=@"+aci.target+PATH_IMAGE_ACI_ZIP,
+		"-F", "file=@"+aci.target+pathImageGzAci,
 		"-u", Home.Config.Push.Username+":"+Home.Config.Push.Password,
 		Home.Config.Push.Url+"/service/local/artifact/maven/content"); err != nil {
 		return errs.WithEF(err, aci.fields, "Failed to push aci")

@@ -17,7 +17,7 @@ func (aci *Aci) Install() ([]string, error) {
 		}
 	}
 
-	hash, err := Home.Rkt.Fetch(aci.target + PATH_IMAGE_ACI)
+	hash, err := Home.Rkt.Fetch(aci.target + pathImageAci)
 	if err != nil {
 		return hashs, errs.WithEF(err, aci.fields, "Failed to install aci")
 	}
