@@ -34,6 +34,15 @@ dgr provides various resources to build and configure an ACI:
 ![demo](https://raw.githubusercontent.com/blablacar/dgr/gh-pages/aci-dummy.gif)
 
 
+## Nice other features
+
+- builder runlevel with dependencies allow you build a project and release an aci without anything else than dgr and rkt on the host.
+- dgr will tell you if you are not using the latest version of a dependency and will tell you which version is the latest
+- integrated test system that can be extended to support any kind of test system
+- working with [pods](https://github.com/appc/spec/blob/master/spec/pods.md) as a unit during build too
+- build application version based on container name
+- extract aci version from the version of the software during installation
+
 ## Comparison with alternatives
 
 ### dgr vs Dockerfile
