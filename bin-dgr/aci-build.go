@@ -20,14 +20,14 @@ func (aci *Aci) prepareRktRunArguments(command common.BuilderCommand, builderHas
 	if logs.IsDebugEnabled() {
 		args = append(args, "--debug")
 	}
-	args = append(args, "--set-env="+common.ENV_LOG_LEVEL+"="+logs.GetLevel().String())
-	args = append(args, "--set-env="+common.ENV_ACI_PATH+"="+aci.path)
-	args = append(args, "--set-env="+common.ENV_ACI_TARGET+"="+aci.target)
-	args = append(args, "--set-env="+common.ENV_BUILDER_COMMAND+"="+string(command))
-	args = append(args, "--set-env="+common.ENV_TRAP_ON_ERROR+"="+strconv.FormatBool(aci.args.TrapOnError))
+	args = append(args, "--set-env="+common.EnvLogLevel+"="+logs.GetLevel().String())
+	args = append(args, "--set-env="+common.EnvAciPath+"="+aci.path)
+	args = append(args, "--set-env="+common.EnvAciTarget+"="+aci.target)
+	args = append(args, "--set-env="+common.EnvBuilderCommand+"="+string(command))
+	args = append(args, "--set-env="+common.EnvTrapOnError+"="+strconv.FormatBool(aci.args.TrapOnError))
 	args = append(args, "--net=host")
 	args = append(args, "--insecure-options=image")
-	args = append(args, "--uuid-file-save="+aci.target+PATH_BUILDER_UUID)
+	args = append(args, "--uuid-file-save="+aci.target+pathBuilderUuid)
 	args = append(args, "--interactive")
 	if stage1Hash != "" {
 		args = append(args, "--stage1-hash="+stage1Hash)
@@ -66,9 +66,9 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 		return errs.WithEF(err, aci.fields, "Builder container return with failed status")
 	}
 
-	if content, err := common.ExtractManifestContentFromAci(aci.target + PATH_IMAGE_ACI); err != nil {
+	if content, err := common.ExtractManifestContentFromAci(aci.target + pathImageAci); err != nil {
 		logs.WithEF(err, aci.fields).Warn("Failed to write manifest.json")
-	} else if err := ioutil.WriteFile(aci.target+PATH_MANIFEST_JSON, content, 0644); err != nil {
+	} else if err := ioutil.WriteFile(aci.target+pathManifestJson, content, 0644); err != nil {
 		logs.WithEF(err, aci.fields).Warn("Failed to write manifest.json")
 	}
 
@@ -77,7 +77,7 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 
 func (aci *Aci) cleanupRun(builderHash string, stage1Hash string) {
 	if !Args.KeepBuilder {
-		if _, _, err := Home.Rkt.RmFromFile(aci.target + PATH_BUILDER_UUID); err != nil {
+		if _, _, err := Home.Rkt.RmFromFile(aci.target + pathBuilderUuid); err != nil {
 			logs.WithEF(err, aci.fields).Warn("Failed to remove build container")
 		}
 	}
@@ -94,7 +94,7 @@ func (aci *Aci) cleanupRun(builderHash string, stage1Hash string) {
 }
 
 func (aci *Aci) CleanAndBuild() error {
-	return aci.RunBuilderCommand(common.COMMAND_BUILD)
+	return aci.RunBuilderCommand(common.CommandBuild)
 }
 
 func (aci *Aci) prepareStage1aci() (string, error) {
@@ -105,8 +105,8 @@ func (aci *Aci) prepareStage1aci() (string, error) {
 
 	logs.WithFields(aci.fields).Debug("Preparing stage1")
 
-	if err := os.MkdirAll(aci.target+PATH_STAGE1+common.PATH_ROOTFS, 0777); err != nil {
-		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+PATH_BUILDER), "Failed to create stage1 aci path")
+	if err := os.MkdirAll(aci.target+pathStage1+common.PathRootfs, 0777); err != nil {
+		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+pathBuilder), "Failed to create stage1 aci path")
 	}
 
 	manifestStr, err := Home.Rkt.CatManifest(aci.manifest.Builder.Image.String())
@@ -132,9 +132,9 @@ func (aci *Aci) prepareStage1aci() (string, error) {
 	}
 	manifest.Dependencies = append(manifest.Dependencies, dep...)
 
-	name, err := types.NewACIdentifier(PREFIX_BUILDER_STAGE1 + aci.manifest.NameAndVersion.Name())
+	name, err := types.NewACIdentifier(prefixBuilderStage1 + aci.manifest.NameAndVersion.Name())
 	if err != nil {
-		return "", errs.WithEF(err, aci.fields.WithField("name", PREFIX_BUILDER_STAGE1+aci.manifest.NameAndVersion.Name()),
+		return "", errs.WithEF(err, aci.fields.WithField("name", prefixBuilderStage1+aci.manifest.NameAndVersion.Name()),
 			"aci name is not a valid identifier for rkt")
 	}
 	manifest.Name = *name
@@ -144,17 +144,17 @@ func (aci *Aci) prepareStage1aci() (string, error) {
 		return "", errs.WithEF(err, aci.fields, "Failed to marshal builder's stage1 manifest")
 	}
 
-	if err := ioutil.WriteFile(aci.target+PATH_STAGE1+common.PATH_MANIFEST, content, 0644); err != nil {
-		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+PATH_STAGE1+common.PATH_MANIFEST),
+	if err := ioutil.WriteFile(aci.target+pathStage1+common.PathManifest, content, 0644); err != nil {
+		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+pathStage1+common.PathManifest),
 			"Failed to write builder's stage1 manifest to file")
 	}
 
-	if err := aci.tarAci(aci.target + PATH_STAGE1); err != nil {
+	if err := aci.tarAci(aci.target + pathStage1); err != nil {
 		return "", err
 	}
 
-	logs.WithF(aci.fields.WithField("path", aci.target+PATH_STAGE1+PATH_IMAGE_ACI)).Info("Importing builder's stage1")
-	hash, err := Home.Rkt.Fetch(aci.target + PATH_STAGE1 + PATH_IMAGE_ACI)
+	logs.WithF(aci.fields.WithField("path", aci.target+pathStage1+pathImageAci)).Info("Importing builder's stage1")
+	hash, err := Home.Rkt.Fetch(aci.target + pathStage1 + pathImageAci)
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "fetch of builder's stage1 aci failed")
 	}
@@ -164,19 +164,19 @@ func (aci *Aci) prepareStage1aci() (string, error) {
 func (aci *Aci) prepareBuildAci() (string, error) {
 	logs.WithFields(aci.fields).Debug("Preparing builder")
 
-	if err := os.MkdirAll(aci.target+PATH_BUILDER+common.PATH_ROOTFS, 0777); err != nil {
-		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+PATH_BUILDER), "Failed to create builder aci path")
+	if err := os.MkdirAll(aci.target+pathBuilder+common.PathRootfs, 0777); err != nil {
+		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+pathBuilder), "Failed to create builder aci path")
 	}
 
-	if err := aci.WriteImageManifest(aci.manifest, aci.target+PATH_BUILDER+common.PATH_MANIFEST, common.PREFIX_BUILDER+aci.manifest.NameAndVersion.Name()); err != nil {
+	if err := aci.WriteImageManifest(aci.manifest, aci.target+pathBuilder+common.PathManifest, common.PrefixBuilder+aci.manifest.NameAndVersion.Name()); err != nil {
 		return "", err
 	}
-	if err := aci.tarAci(aci.target + PATH_BUILDER); err != nil {
+	if err := aci.tarAci(aci.target + pathBuilder); err != nil {
 		return "", err
 	}
 
-	logs.WithF(aci.fields.WithField("path", aci.target+PATH_BUILDER+PATH_IMAGE_ACI)).Info("Importing builder")
-	hash, err := Home.Rkt.Fetch(aci.target + PATH_BUILDER + PATH_IMAGE_ACI)
+	logs.WithF(aci.fields.WithField("path", aci.target+pathBuilder+pathImageAci)).Info("Importing builder")
+	hash, err := Home.Rkt.Fetch(aci.target + pathBuilder + pathImageAci)
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "fetch of builder aci failed")
 	}
@@ -184,7 +184,7 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 }
 
 func (aci *Aci) EnsureBuilt() error {
-	if _, err := os.Stat(aci.target + PATH_IMAGE_ACI); os.IsNotExist(err) {
+	if _, err := os.Stat(aci.target + pathImageAci); os.IsNotExist(err) {
 		if err := aci.CleanAndBuild(); err != nil {
 			return err
 		}
@@ -193,7 +193,7 @@ func (aci *Aci) EnsureBuilt() error {
 }
 
 func (aci *Aci) EnsureZip() error {
-	if _, err := os.Stat(aci.target + PATH_IMAGE_GZ_ACI); os.IsNotExist(err) {
+	if _, err := os.Stat(aci.target + pathImageGzAci); os.IsNotExist(err) {
 		if err := aci.EnsureBuilt(); err != nil {
 			return err
 		}
@@ -228,8 +228,8 @@ func (aci *Aci) WriteImageManifest(m *AciManifest, targetFile string, projectNam
 	im := schema.BlankImageManifest()
 	im.Annotations = m.Aci.Annotations
 
-	dgrBuilderIdentifier, _ := types.NewACIdentifier(MANIFEST_DRG_BUILDER)
-	dgrVersionIdentifier, _ := types.NewACIdentifier(MANIFEST_DRG_VERSION)
+	dgrBuilderIdentifier, _ := types.NewACIdentifier(manifestDrgBuilder)
+	dgrVersionIdentifier, _ := types.NewACIdentifier(manifestDrgVersion)
 	buildDateIdentifier, _ := types.NewACIdentifier("build-date")
 	im.Annotations.Set(*dgrVersionIdentifier, DgrVersion)
 	im.Annotations.Set(*dgrBuilderIdentifier, m.Builder.Image.String())

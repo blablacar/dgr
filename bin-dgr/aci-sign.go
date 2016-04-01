@@ -13,7 +13,7 @@ func (aci *Aci) Sign() error {
 		return errs.WithEF(err, aci.fields, "Failed to prepare image for signature")
 	}
 
-	err := common.ExecCmd("gpg", "--armor", "--output", aci.target+PATH_IMAGE_GZ_ACI_ASC, "--detach-sig", aci.target+PATH_IMAGE_GZ_ACI)
+	err := common.ExecCmd("gpg", "--armor", "--output", aci.target+pathImageGzAciAsc, "--detach-sig", aci.target+pathImageGzAci)
 	if err != nil {
 		return errs.WithEF(err, aci.fields, "Failed to sign image")
 	}

@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 )
 
-const POD_MANIFEST = "/pod-manifest.yml"
+const pathPodManifestYml = "/pod-manifest.yml"
 
 type Pod struct {
 	fields   data.Fields
@@ -26,18 +26,18 @@ func NewPod(path string, args BuildArgs) (*Pod, error) {
 		logs.WithE(err).WithField("path", path).Fatal("Cannot get fullpath")
 	}
 
-	manifest, err := readPodManifest(fullPath + POD_MANIFEST)
+	manifest, err := readPodManifest(fullPath + pathPodManifestYml)
 	if err != nil {
 		manifest2, err2 := readPodManifest(fullPath + "/cnt-pod-manifest.yml")
 		if err2 != nil {
-			return nil, errs.WithEF(err, data.WithField("path", fullPath+POD_MANIFEST).WithField("err2", err2), "Failed to read pod manifest")
+			return nil, errs.WithEF(err, data.WithField("path", fullPath+pathPodManifestYml).WithField("err2", err2), "Failed to read pod manifest")
 		}
 		logs.WithField("old", "cnt-pod-manifest.yml").WithField("new", "pod-manifest.yml").Warn("You are using the old aci configuration file")
 		manifest = manifest2
 	}
 	fields := data.WithField("pod", manifest.Name.String())
 
-	target := path + PATH_TARGET
+	target := path + pathTarget
 	if Home.Config.TargetWorkDir != "" {
 		currentAbsDir, err := filepath.Abs(Home.Config.TargetWorkDir + "/" + manifest.Name.ShortName())
 		if err != nil {

@@ -38,8 +38,8 @@ func (p *Pod) Graph() error {
 
 	buffer.WriteString("}\n")
 
-	if err := ioutil.WriteFile(p.target+PATH_GRAPH_DOT, buffer.Bytes(), 0644); err != nil {
-		return errs.WithEF(err, p.fields.WithField("file", p.target+PATH_GRAPH_DOT), "Failed to write file")
+	if err := ioutil.WriteFile(p.target+pathGraphDot, buffer.Bytes(), 0644); err != nil {
+		return errs.WithEF(err, p.fields.WithField("file", p.target+pathGraphDot), "Failed to write file")
 	}
 	return nil
 

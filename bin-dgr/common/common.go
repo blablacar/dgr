@@ -5,33 +5,33 @@ import (
 	"github.com/n0rad/go-erlog/errs"
 )
 
-const PATH_IMAGE_ACI = "/image.aci"
-const PATH_MANIFEST = "/manifest"
-const PATH_ROOTFS = "/rootfs"
+const PathImageAci = "/image.aci"
+const PathManifest = "/manifest"
+const PathRootfs = "/rootfs"
 
-const ENV_ACI_PATH = "ACI_PATH"
-const ENV_ACI_TARGET = "ACI_TARGET"
-const ENV_LOG_LEVEL = "LOG_LEVEL"
-const ENV_TRAP_ON_ERROR = "TRAP_ON_ERROR"
+const EnvAciPath = "ACI_PATH"
+const EnvAciTarget = "ACI_TARGET"
+const EnvLogLevel = "LOG_LEVEL"
+const EnvTrapOnError = "TRAP_ON_ERROR"
 
-const ENV_BUILDER_COMMAND = "BUILDER_COMMAND"
-const PREFIX_BUILDER = "builder/"
+const EnvBuilderCommand = "BUILDER_COMMAND"
+const PrefixBuilder = "builder/"
 
 type BuilderCommand string
 
 const (
-	COMMAND_BUILD BuilderCommand = "build"
-	COMMAND_INIT  BuilderCommand = "init"
-	COMMAND_TRY   BuilderCommand = "try"
+	CommandBuild BuilderCommand = "build"
+	CommandInit  BuilderCommand = "init"
+	CommandTry   BuilderCommand = "try"
 )
 
 func (b BuilderCommand) CommandManifestKey() (string, error) {
 	switch b {
-	case COMMAND_BUILD:
+	case CommandBuild:
 		return "dgrtool.com/dgr/stage1/build", nil
-	case COMMAND_INIT:
+	case CommandInit:
 		return "dgrtool.com/dgr/stage1/init", nil
-	case COMMAND_TRY:
+	case CommandTry:
 		return "dgrtool.com/dgr/stage1/try", nil
 	default:
 		return "", errs.WithF(data.WithField("command", b), "Unimplemented command manifest key")

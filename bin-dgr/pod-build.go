@@ -11,7 +11,7 @@ import (
 	"os"
 )
 
-const PATH_POD_MANIFEST = "/pod-manifest.json"
+const pathPodManifestJson = "/pod-manifest.json"
 
 func (p *Pod) CleanAndBuild() error {
 	p.Clean()
@@ -50,9 +50,9 @@ func (p *Pod) processAci() ([]schema.RuntimeApp, error) {
 			return nil, errs.WithEF(err, p.fields.WithField("name", e.Name), "Invalid name format")
 		}
 
-		sum, err := Sha512sum(aci.target + PATH_IMAGE_ACI)
+		sum, err := Sha512sum(aci.target + pathImageAci)
 		if err != nil {
-			return nil, errs.WithEF(err, p.fields.WithField("file", aci.target+PATH_IMAGE_ACI), "Failed to calculate sha512 of aci")
+			return nil, errs.WithEF(err, p.fields.WithField("file", aci.target+pathImageAci), "Failed to calculate sha512 of aci")
 		}
 
 		tmp, _ := types.NewHash("sha512-" + sum)
@@ -118,7 +118,7 @@ func (p *Pod) writePodManifest(apps []schema.RuntimeApp) {
 		Isolators:   m.Isolators,
 		Annotations: m.Annotations,
 		Ports:       m.Ports}
-	WritePodManifest(&manifest, p.target+PATH_POD_MANIFEST)
+	WritePodManifest(&manifest, p.target+pathPodManifestJson)
 }
 
 func WritePodManifest(im *schema.PodManifest, targetFile string) {

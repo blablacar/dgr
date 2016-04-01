@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-const INIT_MANIFEST_CONTENT = `name: aci.example.com/aci-dummy:1
+const initManifestContent = `name: aci.example.com/aci-dummy:1
 `
 
 var initCmd = &cobra.Command{
@@ -37,7 +37,7 @@ var initCmd = &cobra.Command{
 			}
 		}
 
-		if err := ioutil.WriteFile(workPath+PATH_ACI_MANIFEST, []byte(INIT_MANIFEST_CONTENT), 0644); err != nil {
+		if err := ioutil.WriteFile(workPath+pathAciManifest, []byte(initManifestContent), 0644); err != nil {
 			logs.WithEF(err, fields).Fatal("failed to write aci manifest")
 		}
 
