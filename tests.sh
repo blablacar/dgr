@@ -45,4 +45,4 @@ cd "${dir}/tests"
 execute_tests "."
 
 # examples
-#${dir}/examples/build.sh
+${dir}/examples/build.sh

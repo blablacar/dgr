@@ -31,7 +31,7 @@ buildAci ${dir}/alpine/aci-alpine-nginx
 
 # gentoo
 buildAci ${dir}/gentoo/aci-gentoo-stage4
-buildAci ${dir}/gentoo/aci-gentoo-lighttpd
+#buildAci ${dir}/gentoo/aci-gentoo-lighttpd # TODO build is too long for travis
 
 
 echo -e "\n\033[0;32mEverything looks good !\033[0m\n"
