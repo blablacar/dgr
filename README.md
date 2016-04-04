@@ -395,7 +395,7 @@ For example if you are buiding an aci for a go project from sources. you will pr
 
 *At this step, everybody can build any kind of project, since nothing on the host is used to build the project and the aci.*
 
-Also, if you are using a package manager like `pacman` or `emerge`, you can build and install packages on the final rootfs without build dependencies nor the package manager.
+Also, if you are using a package manager like `pacman` or `emerge`, you can build and install packages on the final **rootfs** without build dependencies nor the package manager.
 
 #### Note About dependencies
 
@@ -408,14 +408,13 @@ If you are using a debian or similar. I recommand to limit the dependencies to o
 ## Comparison with alternatives
 
 ### dgr vs Dockerfile
-
 A Dockerfile is purely configuration, describing the steps to build the container. It does not provide a common way of building containers across a team.
 It does not provide scripts levels, ending with very long bash scripting for the run option in the dockerfile.
-It does not handle configuration, nor at build time nor at runtime.
+It does not handle configuration, nor at build time nor at runtime and does not support any kind of build outside of the container feature.
 
 ### dgr vs acbuild
-
 acbuild is a command line tools to build ACIs. It is more flexible than Dockerfiles as it can be wrapped by other tools such as Makefiles but like Dockerfiles it doesn't provide a standard way of configuring the images.
+
 
 ## Requirement
 - [rkt](https://github.com/coreos/rkt) in your `$PATH` or configured in dgr global conf
