@@ -43,18 +43,6 @@ dgr provides various resources to build and configure an ACI:
 - build application version based on container name
 - extract aci version from the version of the software during installation
 
-## Comparison with alternatives
-
-### dgr vs Dockerfile
-
-A Dockerfile is purely configuration, describing the steps to build the container. It does not provide a common way of building containers across a team.
-It does not provide scripts levels, ending with very long bash scripting for the run option in the dockerfile.
-It does not handle configuration, nor at build time nor at runtime.
-
-### dgr vs acbuild
-
-acbuild is a command line tools to build ACIs. It is more flexible than Dockerfiles as it can be wrapped by other tools such as Makefiles but like Dockerfiles it doesn't provide a standard way of configuring the images.
-
 ## Commands
 
 ```bash
@@ -314,58 +302,20 @@ set -e
 /usr/bin/myapp-init
 ```
 
-## Troubleshoot
+## How it's working
+<img style="margin: 10px 30px 40px 0" src="https://docs.google.com/drawings/d/1bSP6Z2X79xkp6deSNaZ-ShrAPjAPa4bzyjL4df2HLwk/pub?w=850">
 
-dgr start by default with info log level. You can change this level with the `-L` command line argument.
-The log level is also propagated to all runlevels with the environment variable: **LOG_LEVEL**.
+dgr uses the **builder** information from the **aci-manifest.yml** to construct a rkt stage1. dgr then start rkt with this stage1 on an empty container with the final manifest of your aci (to have dependencies during build).
 
-You can activate debug on demand by including this code in your scripts:
+Inside rkt, the builder isolate the build process inside a **systemd-nspawn** on the builder's rootfs (with mount point on the final aci's rootfs and aci's home) and run the following steps :
+- using internal dgr filesystem (busybox, openssl, wget, curl) for the builder if no dependencies (nothing in /usr/bin)
+- run **builder** runlevel
+- copy **templater** and **inherit** runlevels
+- isolate on final rootfs and run **build** runlevels
+- copy **prestart**, **attributes**, **files**, **templates**
+- isolate on final rootfs and run **build-late** runlevels
 
-```
-#!/dgr/bin/busybox sh
-set -e
-. /dgr/bin/functions.sh
-isLevelEnabled "debug" && set -x
-```
 
-Build it
-
-```bash
-$ dgr -L debug build
-```
-
-You can also debug the start of your container (prestart, templates) the same way
-
-```bash
-$ rkt run --set-env=LOG_LEVEL=debug example.com/my-app
-```
-
-**trace** loglevel, will tell the templater to display the result
- 
-
-### Ok, but concretely how should I use it?
-
-`have a look at the examples/ directory where you can find aci for various distrib`
-
-Depending on distrib, package manager and what you want to do, you will not work the same way. but globally there is 2 way of building an aci.
-
-#### Building directly inside the aci
-This is what you will see everywhere else in docker or rkt. You use the **build** and **build-late** runlevels and run commands on the the final rootfs (like apt-get install...)
-
-#### Building outside of the aci
-If you are using a package manager that support working outside of the target's rootfs or want to build a project, you will work outside of the stage1 directly inside the builder.
-For example if you are buiding an aci for a go project from sources. you will prepare a **builder** with **go** to be able to build the project on the stage1 and put the binary on the aci's rootfs (go is not needed to run the aci).
-
-`At this step, everybody can build any kind of project, since nothing on the host is used to build the project and the aci.`
-
-Also, if you are using a package manager like `pacman` or `emerge`, you can build and install packages on the final rootfs without build dependencies nor the package manager.
-
-#### Note About dependencies
-
-Most package manager are not design for overlay and are working with a db file for installed software. this means than when your aci have multiple dependencies on the aci, the db files will overlap and the package manager will only see half of package installed.
-
-As far as I know only `pacman`, that uses a file tree structure for install package, can support overlay.
-If you are using a debian or similar. I recommand to limit the dependencies to only 2 layers. The base aci with debian minimal fs and one with the application you want.
 
 
 ## Building a POD
@@ -405,20 +355,71 @@ Default attributes values integrated in the aci can be overridden by adding a js
 # sudo rkt --set-env=LOG_LEVEL=trace  --net=host --insecure-options=image run --interactive target/image.aci '--set-env=TEMPLATER_OVERRIDE={"dns":{"nameservers":["10.11.254.253","10.11.254.254"]}}'
 ```
 
+## Troubleshoot
 
-## How it's working
-<img style="margin: 10px 30px 40px 0" src="https://docs.google.com/drawings/d/1bSP6Z2X79xkp6deSNaZ-ShrAPjAPa4bzyjL4df2HLwk/pub?w=850">
+dgr start by default with info log level. You can change this level with the `-L` command line argument.
+The log level is also propagated to all runlevels with the environment variable: **LOG_LEVEL**.
 
-dgr uses the `builder` information from the `aci-manifest.yml` to construct a rkt stage1. dgr then start rkt with this stage1 on an empty container with the final manifest of your aci (to have dependencies during build).
+You can activate debug on demand by including this code in your scripts:
 
-Inside rkt, the builder isolate the build process inside a `systemd-nspawn` on the builder's rootfs (with mount point on the final aci's rootfs and aci's home) and run the following steps :
-- using internal dgr filesystem (busybox, openssl, wget, curl) for the builder if no dependencies (nothing in /usr/bin)
-- run `builder` runlevel
-- copy `templater` and `inherit-build-*` runlevels
-- isolate on final rootfs and run `build` runlevels
-- copy `prestart`, `attributes`, `files`, `templates`
-- isolate on final rootfs and run `build-late` runlevels
+```
+#!/dgr/bin/busybox sh
+set -e
+. /dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
+```
 
+Build it
+
+```bash
+$ dgr -L debug build
+```
+
+You can also debug the start of your container (prestart, templates) the same way
+
+```bash
+$ rkt run --set-env=LOG_LEVEL=debug example.com/my-app
+```
+
+**trace** loglevel, will tell the templater to display the result
+
+
+## Ok, but concretely how should I use it?
+
+*have a look at the examples/ directory where you can find aci for various distrib*
+
+Depending on distrib, package manager and what you want to do, you will not work the same way. but globally there is 2 way of building an aci.
+
+#### Building directly inside the aci
+This is what you will see everywhere else in docker or rkt. You use the **build** and **build-late** runlevels and run commands on the the final rootfs (like apt-get install...)
+
+#### Building outside of the aci
+If you are using a package manager that support working outside of the target's rootfs or want to build a project, you will work outside of the stage1 directly inside the builder.
+For example if you are buiding an aci for a go project from sources. you will prepare a **builder** with **go** to be able to build the project on the stage1 and put the binary on the aci's rootfs (go is not needed to run the aci).
+
+*At this step, everybody can build any kind of project, since nothing on the host is used to build the project and the aci.*
+
+Also, if you are using a package manager like `pacman` or `emerge`, you can build and install packages on the final rootfs without build dependencies nor the package manager.
+
+#### Note About dependencies
+
+Most package manager are not design for overlay and are working with a db file for installed software. this means than when your aci have multiple dependencies on the aci, the db files will overlap and the package manager will only see half of package installed.
+
+As far as I know only `pacman`, that uses a file tree structure for install package, can support overlay.
+If you are using a debian or similar. I recommand to limit the dependencies to only 2 layers. The base aci with debian minimal fs and one with the application you want.
+
+
+## Comparison with alternatives
+
+### dgr vs Dockerfile
+
+A Dockerfile is purely configuration, describing the steps to build the container. It does not provide a common way of building containers across a team.
+It does not provide scripts levels, ending with very long bash scripting for the run option in the dockerfile.
+It does not handle configuration, nor at build time nor at runtime.
+
+### dgr vs acbuild
+
+acbuild is a command line tools to build ACIs. It is more flexible than Dockerfiles as it can be wrapped by other tools such as Makefiles but like Dockerfiles it doesn't provide a standard way of configuring the images.
 
 ## Requirement
 - [rkt](https://github.com/coreos/rkt) in your `$PATH` or configured in dgr global conf
