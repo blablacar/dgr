@@ -60,6 +60,8 @@ $ dgr build --help
 
 ## Configuration file
 
+*Global configuration is optional to start as long as you have rkt in $PATH*
+
 dgr global configuration is a yaml file located at `~/.config/dgr/config.yml`. Home is the home of starting user (the caller user if running with sudo).
 
 **targetWorkDir** is used to indicate the target work directory where dgr will work to build and create the ACI
