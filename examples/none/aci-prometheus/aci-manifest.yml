@@ -3,6 +3,6 @@ aci:
   dependencies:
     - dgrtool.com/aci-libc
   app:
-    exec: [/etc/prometheus/prometheus, -config.file, /etc/prometheus/prometheus.yml]
+    exec: [/prometheus/prometheus, -config.file, /etc/prometheus/prometheus.yml]
     mountPoints:
       - {name: data, path: /data, readOnly: false}

@@ -2,9 +2,9 @@
 set -e
 . /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
+version=${ACI_VERSION%-*}
 
-url="https://github.com/PrFalken/prometheus/releases/download/0.16.1%2Bnerve2/prometheus-0.16.1.nerve2.linux-amd64.tar.gz"
-PROGRAM_PATH="$ROOTFS/etc/prometheus"
-mkdir -p ${PROGRAM_PATH}
-curl ${url} -L | tar -C ${PROGRAM_PATH} -xzvf -
-chown -R 0:0 ${PROGRAM_PATH}
+url="https://github.com/prometheus/prometheus/releases/download/${version}/prometheus-${version}.linux-amd64.tar.gz"
+curl ${url} -L | tar -C ${ROOTFS} -xzvf -
+mv ${ROOTFS}/prometheus* ${ROOTFS}/prometheus
+chown -R 0:0 ${ROOTFS}/prometheus

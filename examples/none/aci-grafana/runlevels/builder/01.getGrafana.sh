@@ -3,7 +3,7 @@ set -e
 . /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
-VERSION="2.6.0"
+VERSION=${ACI_VERSION%-*}
 url_grafana="https://grafanarel.s3.amazonaws.com/builds/grafana-$VERSION.linux-x64.tar.gz"
 
 echo ":: Downloading grafana $VERSION"
