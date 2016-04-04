@@ -96,7 +96,12 @@ func (p *Pod) buildAci(e common.RuntimeApp) (*Aci, error) {
 			return nil, errs.WithEF(err, p.fields.WithField("path", path), "Cannot created pod's aci directory")
 		}
 	}
-	aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e))
+
+	tmpl, err := p.toAciManifestTemplate(e)
+	if err != nil {
+		return nil, err
+	}
+	aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, tmpl)
 	if err != nil {
 		return nil, errs.WithEF(err, p.fields.WithField("aci", path), "Failed to prepare aci")
 	}

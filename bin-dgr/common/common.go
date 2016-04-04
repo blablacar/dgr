@@ -5,18 +5,18 @@ import (
 	"github.com/n0rad/go-erlog/errs"
 )
 
-var CommitHash string
-var DgrVersion string
-var BuildDate string
-
 const PathImageAci = "/image.aci"
 const PathManifest = "/manifest"
 const PathRootfs = "/rootfs"
+const PathAciManifest = "/aci-manifest.yml"
+const PathManifestYmlTmpl = "/aci-manifest.yml.tmpl"
 
+const EnvDgrVersion = "DGR_VERSION"
 const EnvAciPath = "ACI_PATH"
 const EnvAciTarget = "ACI_TARGET"
 const EnvLogLevel = "LOG_LEVEL"
 const EnvTrapOnError = "TRAP_ON_ERROR"
+const EnvTrapOnStep = "TRAP_ON_STEP"
 
 const EnvBuilderCommand = "BUILDER_COMMAND"
 const PrefixBuilder = "builder/"

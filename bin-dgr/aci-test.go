@@ -5,6 +5,7 @@ import (
 	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -120,9 +121,20 @@ func (aci *Aci) cleanupTest(testerHash string, hashAcis []string) {
 }
 
 func (aci *Aci) buildTestAci() (string, error) {
-	fullname := common.NewACFullName(prefixTest + aci.manifest.NameAndVersion.Name() + ":" + aci.manifest.NameAndVersion.Version())
+	manifest, err := common.ExtractManifestFromAci(aci.target + common.PathImageAci)
+	if err != nil {
+		return "", errs.WithEF(err, aci.fields.WithField("file", aci.target+common.PathImageAci), "Failed to extract manifest from aci")
+	}
+
+	name := prefixTest + manifest.Name.String()
+	if version, ok := manifest.Labels.Get("version"); ok {
+		name += ":" + version
+	}
+
+	fullname := common.NewACFullName(name)
 	resultMountName, _ := types.NewACName(mountAcname)
-	testAci, err := NewAciWithManifest(aci.path, aci.args, &common.AciManifest{
+
+	aciManifest := &common.AciManifest{
 		Builder: aci.manifest.Tester.Builder,
 		Aci: common.AciDefinition{
 			App: common.DgrApp{
@@ -130,10 +142,17 @@ func (aci *Aci) buildTestAci() (string, error) {
 				MountPoints:      []types.MountPoint{{Path: pathTestsResult, Name: *resultMountName}},
 				WorkingDirectory: aci.manifest.Aci.App.WorkingDirectory,
 			},
-			Dependencies: append([]common.ACFullname{aci.manifest.NameAndVersion}, aci.manifest.Tester.Aci.Dependencies...),
+			Dependencies: append([]common.ACFullname{*common.NewACFullName(name[len(prefixTest):])}, aci.manifest.Tester.Aci.Dependencies...),
 		},
 		NameAndVersion: *fullname,
-	})
+	}
+
+	content, err := yaml.Marshal(aciManifest)
+	if err != nil {
+		return "", errs.WithEF(err, aci.fields, "Failed to marshall manifest for test aci")
+	}
+
+	testAci, err := NewAciWithManifest(aci.path, aci.args, string(content))
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "Failed to prepare test's build aci")
 	}

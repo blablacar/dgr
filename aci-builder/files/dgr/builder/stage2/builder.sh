@@ -31,12 +31,16 @@ fi
 
 echo "ce9d63a98a8b4438882fd795e294cd50" > /etc/machine-id
 
+mkdir -p /dgr/builder/attributes
 # save envs
-mkdir -p /dgr/builder
 export | grep -v -E " SHLV=| ROOTFS=| TARGET= | ACI_PATH= | ACI_HOME= | ACI_EXEC=" > /dgr/builder/export
 
-# builder
+# builder runlevel
 execute_files "${ACI_HOME}/runlevels/builder" || onError "Builder"
+if [ "$(ls -A "${ACI_HOME}/runlevels/builder" 2> /dev/null)" ] && [ "${TRAP_ON_STEP}" == "true" ]; then
+    echo_purple "Trap requested dropping to shell after builder"
+    sh
+fi
 
 # copy internals
 mkdir -p ${ROOTFS}/dgr/bin
@@ -58,14 +62,11 @@ if [ -d ${ACI_HOME}/runlevels/inherit-build-early ]; then
     cp -Rf ${ACI_HOME}/runlevels/inherit-build-early/. ${ROOTFS}/dgr/runlevels/inherit-build-early
 fi
 
-if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]; then
-    # build runlevels
+# build runlevel
+if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ROOTFS}/dgr/runlevels/inherit-build-early ]; then
     mkdir -p /dgr/builder/runlevels
     if [ -d ${ACI_HOME}/runlevels/build ]; then
         cp -Rf ${ACI_HOME}/runlevels/build /dgr/builder/runlevels
-    fi
-    if [ -d ${ACI_HOME}/runlevels/build-late ]; then
-        cp -Rf ${ACI_HOME}/runlevels/build-late /dgr/builder/runlevels
     fi
 
     LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn \
@@ -101,11 +102,20 @@ if [ "$(ls -A ${ACI_HOME}/templates 2> /dev/null)"  ]; then
 fi
 
 
-if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]; then
-    # build-late
+# build-late runlevel
+if [ -d ${ACI_HOME}/runlevels/build-late ] || [ -d ${ROOTFS}/dgr/runlevels/inherit-build-late ]; then
+    if [ -d ${ACI_HOME}/runlevels/build-late ]; then
+        cp -Rf ${ACI_HOME}/runlevels/build-late /dgr/builder/runlevels
+    fi
     LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn \
         --register=no -q --directory=${ROOTFS} --capability=all \
         --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build-late.sh || onError "Build-late"
 fi
 
-rm -Rf /dgr/builder || true
+
+rmdir ${ROOTFS}/dgr/builder &> /dev/null || true
+
+if [ "${TRAP_ON_STEP}" == "true" ]; then
+    echo_purple "Trap requested dropping to shell at end of build"
+    sh
+fi

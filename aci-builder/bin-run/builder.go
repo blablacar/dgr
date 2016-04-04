@@ -1,11 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/dgr/bin-dgr/common"
+	"github.com/blablacar/dgr/bin-templater/merger"
 	rktcommon "github.com/coreos/rkt/common"
 	"github.com/coreos/rkt/pkg/sys"
 	stage1commontypes "github.com/coreos/rkt/stage1/common/types"
@@ -99,27 +99,53 @@ func (b *Builder) writeManifest() error {
 		return err
 	}
 
-	manifestPath := b.stage1Rootfs + PATH_OPT + PATH_STAGE2 + "/" + manifestApp(b.pod).Name.String() + common.PathManifest
-	content, err := ioutil.ReadFile(manifestPath)
+	attrMerger, err := merger.NewAttributesMerger(b.stage1Rootfs + PATH_DGR + PATH_BUILDER + PATH_ATTRIBUTES)
 	if err != nil {
-		return errs.WithEF(err, b.fields.WithField("file", manifestPath), "Failed to read manifest file")
+		logs.WithE(err).Warn("Failed to prepare attributes")
 	}
-	im := &schema.ImageManifest{}
-	err = im.UnmarshalJSON(content)
+	attributes := attrMerger.Merge()
+	logs.WithFields(b.fields).WithField("attributes", attributes).Debug("Merged attributes for manifest templating")
+
+	content, err := ioutil.ReadFile(b.aciTargetPath + common.PathManifestYmlTmpl)
 	if err != nil {
-		return errs.WithEF(err, data.WithField("content", string(content)), "Cannot unmarshall json content")
+		return errs.WithEF(err, b.fields.WithField("file", b.aciTargetPath+common.PathManifestYmlTmpl), "Failed to read manifest template")
 	}
 
-	im.Name.Set(strings.Replace(im.Name.String(), common.PrefixBuilder, "", 1))
-	if _, ok := im.Labels.Get("version"); !ok {
-		os.Chdir(b.aciHomePath)
-		im.Labels = append(im.Labels, types.Label{Name: "version", Value: common.GenerateVersion(b.aciHomePath)})
+	aciManifest, err := common.ProcessManifestTemplate(string(content), attributes, true)
+	if err != nil {
+		return errs.WithEF(err, b.fields.WithField("content", string(content)), "Failed to process manifest template")
 	}
-	if content, err := json.MarshalIndent(im, "", "  "); err != nil {
-		return errs.WithEF(err, b.fields, "Failed to write manifest")
-	} else if err := ioutil.WriteFile(b.pod.Root+PATH_OVERLAY+"/"+upperId+PATH_UPPER+common.PathManifest, content, 0644); err != nil {
-		return errs.WithEF(err, b.fields, "Failed to write manifest")
+	target := b.pod.Root + PATH_OVERLAY + "/" + upperId + PATH_UPPER + common.PathManifest
+
+	dgrVersion, ok := manifestApp(b.pod).App.Environment.Get(common.EnvDgrVersion)
+	if !ok {
+		return errs.WithF(b.fields, "Cannot find dgr version")
 	}
+	if err := common.WriteAciManifest(aciManifest, target, aciManifest.NameAndVersion.Name(), dgrVersion); err != nil {
+		return errs.WithEF(err, b.fields.WithField("file", target), "Failed to write manifest")
+	}
+
+	//manifestPath := b.stage1Rootfs + PATH_OPT + PATH_STAGE2 + "/" + manifestApp(b.pod).Name.String() + common.PathManifest
+	//content, err := ioutil.ReadFile(manifestPath)
+	//if err != nil {
+	//	return errs.WithEF(err, b.fields.WithField("file", manifestPath), "Failed to read manifest file")
+	//}
+	//im := &schema.ImageManifest{}
+	//err = im.UnmarshalJSON(content)
+	//if err != nil {
+	//	return errs.WithEF(err, data.WithField("content", string(content)), "Cannot unmarshall json content")
+	//}
+	//
+	//im.Name.Set(strings.Replace(im.Name.String(), common.PrefixBuilder, "", 1))
+	//if _, ok := im.Labels.Get("version"); !ok {
+	//	os.Chdir(b.aciHomePath)
+	//	im.Labels = append(im.Labels, types.Label{Name: "version", Value: common.GenerateVersion(b.aciHomePath)})
+	//}
+	//if content, err := json.MarshalIndent(im, "", "  "); err != nil {
+	//	return errs.WithEF(err, b.fields, "Failed to write manifest")
+	//} else if err := ioutil.WriteFile(b.pod.Root+PATH_OVERLAY+"/"+upperId+PATH_UPPER+common.PathManifest, content, 0644); err != nil {
+	//	return errs.WithEF(err, b.fields, "Failed to write manifest")
+	//}
 	return nil
 }
 
@@ -252,8 +278,10 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 		}
 	}
 
-	trap, _ := manifestApp(b.pod).App.Environment.Get(common.EnvTrapOnError)
-	args = append(args, "--setenv="+common.EnvTrapOnError+"="+string(trap))
+	trapError, _ := manifestApp(b.pod).App.Environment.Get(common.EnvTrapOnError)
+	trapStep, _ := manifestApp(b.pod).App.Environment.Get(common.EnvTrapOnStep)
+	args = append(args, "--setenv="+common.EnvTrapOnError+"="+string(trapError))
+	args = append(args, "--setenv="+common.EnvTrapOnStep+"="+string(trapStep))
 
 	version, ok := manifestApp(b.pod).Image.Labels.Get("version")
 	if ok {

@@ -15,6 +15,10 @@ import (
 
 const dgrEnvPrefix = "DGR_ENV_"
 
+var commitHash string
+var dgrVersion string
+var buildDate string
+
 var Args = BuildArgs{}
 var workPath string
 
@@ -27,6 +31,7 @@ type BuildArgs struct {
 	NoTestFail  bool
 	KeepBuilder bool
 	TrapOnError bool
+	TrapOnStep  bool
 	SetEnv      envMap
 }
 
@@ -125,12 +130,12 @@ func SupportsOverlay() bool {
 
 func displayVersionAndExit() {
 	fmt.Print("dgr\n\n")
-	fmt.Printf("version    : %s\n", common.DgrVersion)
-	if common.BuildDate != "" {
-		fmt.Printf("build date : %s\n", common.BuildDate)
+	fmt.Printf("version    : %s\n", dgrVersion)
+	if buildDate != "" {
+		fmt.Printf("build date : %s\n", buildDate)
 	}
-	if common.CommitHash != "" {
-		fmt.Printf("CommitHash : %s\n", common.CommitHash)
+	if commitHash != "" {
+		fmt.Printf("CommitHash : %s\n", commitHash)
 	}
 	os.Exit(0)
 }

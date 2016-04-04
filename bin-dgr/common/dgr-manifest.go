@@ -10,28 +10,27 @@ import (
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
-	"io/ioutil"
 )
 
 type PodManifest struct {
-	Name ACFullname     `json:"name"`
-	Pod  *PodDefinition `json:"pod"`
+	Name ACFullname     `json:"name,omitempty" yaml:"name,omitempty"`
+	Pod  *PodDefinition `json:"pod,omitempty" yaml:"pod,omitempty"`
 }
 
 type PodDefinition struct {
-	Apps        []RuntimeApp        `json:"apps"`
-	Volumes     []types.Volume      `json:"volumes"`
-	Isolators   []types.Isolator    `json:"isolators"`
-	Annotations types.Annotations   `json:"annotations"`
-	Ports       []types.ExposedPort `json:"ports"`
+	Apps        []RuntimeApp        `json:"apps,omitempty" yaml:"apps,omitempty"`
+	Volumes     []types.Volume      `json:"volumes,omitempty" yaml:"volumes,omitempty"`
+	Isolators   []types.Isolator    `json:"isolators,omitempty" yaml:"isolators,omitempty"`
+	Annotations types.Annotations   `json:"annotations,omitempty" yaml:"annotations,omitempty"`
+	Ports       []types.ExposedPort `json:"ports,omitempty" yaml:"ports,omitempty"`
 }
 
 type RuntimeApp struct {
-	Dependencies []ACFullname      `json:"dependencies"`
-	Name         string            `json:"name"`
-	App          DgrApp            `json:"app"`
-	Mounts       []schema.Mount    `json:"mounts"`
-	Annotations  types.Annotations `json:"annotations"`
+	Dependencies []ACFullname      `json:"dependencies,omitempty" yaml:"dependencies,omitempty"`
+	Name         string            `json:"name,omitempty" yaml:"name,omitempty"`
+	App          DgrApp            `json:"app,omitempty" yaml:"app,omitempty"`
+	Mounts       []schema.Mount    `json:"mounts,omitempty" yaml:"mounts,omitempty"`
+	Annotations  types.Annotations `json:"annotations,omitempty" yaml:"annotations,omitempty"`
 }
 
 type Env struct {
@@ -40,21 +39,21 @@ type Env struct {
 }
 
 type BuildDefinition struct {
-	Image        ACFullname   `json:"image"`
-	Dependencies []ACFullname `json:"dependencies"`
+	Image        ACFullname   `json:"image,omitempty" yaml:"image,omitempty"`
+	Dependencies []ACFullname `json:"dependencies,omitempty" yaml:"dependencies,omitempty"`
 }
 
 type AciManifest struct {
-	NameAndVersion ACFullname      `json:"name"`
-	From           interface{}     `json:"from"`
-	Builder        BuildDefinition `json:"builder"`
-	Aci            AciDefinition   `json:"aci"`
-	Tester         TestManifest    `json:"tester"`
+	NameAndVersion ACFullname      `json:"name,omitempty" yaml:"name,omitempty"`
+	From           interface{}     `json:"from,omitempty" yaml:"from,omitempty"`
+	Builder        BuildDefinition `json:"builder,omitempty" yaml:"builder,omitempty"`
+	Aci            AciDefinition   `json:"aci,omitempty" yaml:"aci,omitempty"`
+	Tester         TestManifest    `json:"tester,omitempty" yaml:"tester,omitempty"`
 }
 
 type TestManifest struct {
-	Builder BuildDefinition `json:"builder"`
-	Aci     AciDefinition   `json:"aci"`
+	Builder BuildDefinition `json:"builder,omitempty" yaml:"builder,omitempty"`
+	Aci     AciDefinition   `json:"aci,omitempty" yaml:"aci,omitempty"`
 }
 
 func (m *AciManifest) GetFroms() ([]ACFullname, error) {
@@ -75,39 +74,35 @@ func (m *AciManifest) GetFroms() ([]ACFullname, error) {
 }
 
 type AciDefinition struct {
-	App           DgrApp            `json:"app,omitempty"`
-	Annotations   types.Annotations `json:"annotations,omitempty"`
-	Dependencies  []ACFullname      `json:"dependencies,omitempty"`
-	PathWhitelist []string          `json:"pathWhitelist,omitempty"`
+	App           DgrApp            `json:"app,omitempty" yaml:"app,omitempty"`
+	Annotations   types.Annotations `json:"annotations,omitempty" yaml:"annotations,omitempty"`
+	Dependencies  []ACFullname      `json:"dependencies,omitempty" yaml:"dependencies,omitempty"`
+	PathWhitelist []string          `json:"pathWhitelist,omitempty" yaml:"pathWhitelist,omitempty"`
 }
 
 type DgrApp struct {
-	Exec             types.Exec         `json:"exec"`
-	User             string             `json:"user"`
-	Group            string             `json:"group"`
-	WorkingDirectory string             `json:"workingDirectory,omitempty"`
-	Environment      types.Environment  `json:"environment,omitempty"`
-	MountPoints      []types.MountPoint `json:"mountPoints,omitempty"`
-	Ports            []types.Port       `json:"ports,omitempty"`
-	Isolators        types.Isolators    `json:"isolators,omitempty"`
+	Exec             types.Exec         `json:"exec,omitempty" yaml:"exec,omitempty"`
+	User             string             `json:"user,omitempty" yaml:"user,omitempty"`
+	Group            string             `json:"group,omitempty" yaml:"group,omitempty"`
+	WorkingDirectory string             `json:"workingDirectory,omitempty" yaml:"workingDirectory,omitempty"`
+	Environment      types.Environment  `json:"environment,omitempty" yaml:"environment,omitempty"`
+	MountPoints      []types.MountPoint `json:"mountPoints,omitempty" yaml:"mountPoints,omitempty"`
+	Ports            []types.Port       `json:"ports,omitempty" yaml:"ports,omitempty"`
+	Isolators        types.Isolators    `json:"isolators,omitempty" yaml:"isolators,omitempty"`
 }
 
-func ReadAciManifest(manifestPath string) (*AciManifest, error) {
+func ProcessManifestTemplate(manifestContent string, data2 interface{}, checkNoValue bool) (*AciManifest, error) {
 	manifest := AciManifest{Aci: AciDefinition{}}
-	fields := data.WithField("file", manifestPath)
+	fields := data.WithField("source", manifestContent)
 
-	source, err := ioutil.ReadFile(manifestPath)
-	if err != nil {
-		return nil, err
-	}
-	template, err := template.NewTemplating(nil, manifestPath, string(source))
+	template, err := template.NewTemplating(nil, "", manifestContent)
 	if err != nil {
 		return nil, errs.WithEF(err, fields, "Failed to load templating of manifest")
 	}
 
 	var b bytes.Buffer
 	writer := bufio.NewWriter(&b)
-	if err := template.Execute(writer, nil); err != nil {
+	if err := template.Execute(writer, data2); err != nil {
 		return nil, errs.WithEF(err, fields, "Failed to template manifest")
 	}
 	if err := writer.Flush(); err != nil {
@@ -117,6 +112,17 @@ func ReadAciManifest(manifestPath string) (*AciManifest, error) {
 	templated := b.Bytes()
 	if logs.IsDebugEnabled() {
 		logs.WithField("content", string(templated)).Debug("Templated manifest")
+	}
+
+	if checkNoValue {
+		scanner := bufio.NewScanner(bytes.NewReader(templated))
+		scanner.Split(bufio.ScanLines)
+		for i := 1; scanner.Scan(); i++ {
+			text := scanner.Text()
+			if bytes.Contains([]byte(text), []byte("<no value>")) {
+				return nil, errs.WithF(fields.WithField("line", i).WithField("text", text), "Templating result of manifest have <no value>")
+			}
+		}
 	}
 
 	err = yaml.Unmarshal(templated, &manifest)

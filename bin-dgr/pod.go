@@ -78,9 +78,9 @@ func readPodManifest(manifestPath string) (*common.PodManifest, error) {
 	return manifest, nil
 }
 
-func (p *Pod) toAciManifest(e common.RuntimeApp) *common.AciManifest {
+func (p *Pod) toAciManifestTemplate(e common.RuntimeApp) (string, error) {
 	fullname := common.NewACFullName(p.manifest.Name.Name() + "_" + e.Name + ":" + p.manifest.Name.Version())
-	return &common.AciManifest{
+	manifest := &common.AciManifest{
 		Aci: common.AciDefinition{
 			Annotations:   e.Annotations,
 			App:           e.App,
@@ -89,4 +89,9 @@ func (p *Pod) toAciManifest(e common.RuntimeApp) *common.AciManifest {
 		},
 		NameAndVersion: *fullname,
 	}
+	content, err := yaml.Marshal(manifest)
+	if err != nil {
+		return "", errs.WithEF(err, p.fields, "Failed to prepare manifest template")
+	}
+	return string(content), nil
 }

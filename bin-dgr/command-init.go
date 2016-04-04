@@ -37,7 +37,7 @@ var initCmd = &cobra.Command{
 			}
 		}
 
-		if err := ioutil.WriteFile(workPath+pathAciManifest, []byte(initManifestContent), 0644); err != nil {
+		if err := ioutil.WriteFile(workPath+common.PathAciManifest, []byte(initManifestContent), 0644); err != nil {
 			logs.WithEF(err, fields).Fatal("failed to write aci manifest")
 		}
 

@@ -34,9 +34,9 @@ if [ -z ${VERSION} ]; then
 fi
 
 # build
-GOOS=linux GOARCH=amd64 godep go build --ldflags "-s -w -X github.com/blablacar/dgr/bin-dgr/common.BuildDate=`date -u '+%Y-%m-%d_%H:%M'` \
- -X github.com/blablacar/dgr/bin-dgr/common.DgrVersion=${VERSION} \
- -X github.com/blablacar/dgr/bin-dgr/common.CommitHash=`git rev-parse HEAD`" \
+GOOS=linux GOARCH=amd64 godep go build --ldflags "-s -w -X main.buildDate=`date -u '+%Y-%m-%d_%H:%M'` \
+ -X main.dgrVersion=${VERSION} \
+ -X main.commitHash=`git rev-parse HEAD`" \
  -o ${dir}/dist/linux-amd64/dgr ${dir}/bin-dgr
 upx ${dir}/dist/linux-amd64/dgr
 

@@ -18,11 +18,13 @@ func (aci *Aci) prepareRktRunArguments(command common.BuilderCommand, builderHas
 	if logs.IsDebugEnabled() {
 		args = append(args, "--debug")
 	}
+	args = append(args, "--set-env="+common.EnvDgrVersion+"="+dgrVersion)
 	args = append(args, "--set-env="+common.EnvLogLevel+"="+logs.GetLevel().String())
 	args = append(args, "--set-env="+common.EnvAciPath+"="+aci.path)
 	args = append(args, "--set-env="+common.EnvAciTarget+"="+aci.target)
 	args = append(args, "--set-env="+common.EnvBuilderCommand+"="+string(command))
 	args = append(args, "--set-env="+common.EnvTrapOnError+"="+strconv.FormatBool(aci.args.TrapOnError))
+	args = append(args, "--set-env="+common.EnvTrapOnStep+"="+strconv.FormatBool(aci.args.TrapOnStep))
 	args = append(args, "--net=host")
 	args = append(args, "--insecure-options=image")
 	args = append(args, "--uuid-file-save="+aci.target+pathBuilderUuid)
@@ -45,8 +47,13 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 	aci.Clean()
 
 	logs.WithF(aci.fields).Info("Building")
+
 	if err := os.MkdirAll(aci.target, 0777); err != nil {
 		return errs.WithEF(err, aci.fields, "Cannot create target directory")
+	}
+
+	if err := ioutil.WriteFile(aci.target+common.PathManifestYmlTmpl, []byte(aci.manifestTmpl), 0644); err != nil {
+		return errs.WithEF(err, aci.fields.WithField("file", aci.target+common.PathManifestYmlTmpl), "Failed to write manifest template")
 	}
 
 	stage1Hash, err := aci.prepareStage1aci()
@@ -167,7 +174,7 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+pathBuilder), "Failed to create builder aci path")
 	}
 
-	if err := common.WriteAciManifest(aci.manifest, aci.target+pathBuilder+common.PathManifest, common.PrefixBuilder+aci.manifest.NameAndVersion.Name()); err != nil {
+	if err := common.WriteAciManifest(aci.manifest, aci.target+pathBuilder+common.PathManifest, common.PrefixBuilder+aci.manifest.NameAndVersion.Name(), dgrVersion); err != nil {
 		return "", err
 	}
 	if err := aci.tarAci(aci.target + pathBuilder); err != nil {

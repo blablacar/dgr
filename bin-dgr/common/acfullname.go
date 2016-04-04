@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"github.com/appc/spec/discovery"
 	"github.com/juju/errors"
+	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"net/http"
 	"regexp"
@@ -37,6 +39,10 @@ func (n ACFullname) LatestVersion() (string, error) {
 	}
 
 	r, _ := regexp.Compile(`^(\d+\.)?(\d+\.)?(\*|\d+)(\-[\dA-Za-z]+){0,1}$`) // TODO this is nexus specific
+
+	if len(endpoint.ACIEndpoints) == 0 {
+		return "", errs.WithF(data.WithField("aci", string(n)), "Discovery does not give an endpoint to check latest version")
+	}
 
 	url := getRedirectForLatest(endpoint.ACIEndpoints[0].ACI)
 	logs.WithField("url", url).Debug("latest verion url")

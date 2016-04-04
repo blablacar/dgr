@@ -62,7 +62,7 @@ func ExtractManifestFromAci(aciPath string) (*schema.ImageManifest, error) {
 	return im, nil
 }
 
-func WriteAciManifest(m *AciManifest, targetFile string, projectName string) error {
+func WriteAciManifest(m *AciManifest, targetFile string, projectName string, dgrVersion string) error {
 	fields := data.WithField("name", m.NameAndVersion.String())
 	name, err := types.NewACIdentifier(projectName)
 	if err != nil {
@@ -89,7 +89,7 @@ func WriteAciManifest(m *AciManifest, targetFile string, projectName string) err
 	//dgrBuilderIdentifier, _ := types.NewACIdentifier(ManifestDrgBuilder)
 	dgrVersionIdentifier, _ := types.NewACIdentifier(ManifestDrgVersion)
 	buildDateIdentifier, _ := types.NewACIdentifier("build-date")
-	im.Annotations.Set(*dgrVersionIdentifier, DgrVersion)
+	im.Annotations.Set(*dgrVersionIdentifier, dgrVersion)
 	//im.Annotations.Set(*dgrBuilderIdentifier, m.Builder.Image.String())
 	im.Annotations.Set(*buildDateIdentifier, time.Now().Format(time.RFC3339))
 	im.Dependencies, err = ToAppcDependencies(m.Aci.Dependencies)

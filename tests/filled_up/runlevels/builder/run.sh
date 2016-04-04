@@ -3,5 +3,5 @@ set -e
 
 export
 
-wget https://google.fr -O ${ROOTFS}/google.wget
-curl https://google.fr -o ${ROOTFS}/google.curl
+#wget https://google.fr -O ${ROOTFS}/google.wget
+#curl https://google.fr -o ${ROOTFS}/google.curl

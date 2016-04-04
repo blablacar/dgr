@@ -14,7 +14,12 @@ func (p *Pod) Push() error {
 	}
 
 	for _, e := range p.manifest.Pod.Apps {
-		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, p.toAciManifest(e))
+		tmpl, err := p.toAciManifestTemplate(e)
+		if err != nil {
+			return err
+		}
+
+		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, tmpl)
 		if err != nil {
 			return errs.WithEF(err, p.fields.WithField("name", e.Name), "Cannot prepare aci")
 		}

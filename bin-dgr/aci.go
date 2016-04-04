@@ -6,6 +6,7 @@ import (
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -17,7 +18,6 @@ const pathImageAci = "/image.aci"
 const pathImageGzAci = "/image.gz.aci"
 const pathImageGzAciAsc = "/image.gz.aci.asc"
 const pathTarget = "/target"
-const pathAciManifest = "/aci-manifest.yml"
 const pathManifestJson = "/manifest.json"
 
 const pathStage1 = "/stage1"
@@ -34,12 +34,17 @@ type Aci struct {
 	path            string
 	target          string
 	podName         *common.ACFullname
+	manifestTmpl    string
 	manifest        *common.AciManifest
 	args            BuildArgs
 	FullyResolveDep bool
 }
 
-func NewAciWithManifest(path string, args BuildArgs, manifest *common.AciManifest) (*Aci, error) {
+func NewAciWithManifest(path string, args BuildArgs, manifestTmpl string) (*Aci, error) {
+	manifest, err := common.ProcessManifestTemplate(manifestTmpl, nil, false)
+	if err != nil {
+		return nil, errs.WithEF(err, data.WithField("content", manifestTmpl), "Failed to process manifest")
+	}
 	if manifest.NameAndVersion == "" {
 		logs.WithField("path", path).Fatal("name is mandatory in manifest")
 	}
@@ -65,6 +70,7 @@ func NewAciWithManifest(path string, args BuildArgs, manifest *common.AciManifes
 		fields:          fields,
 		args:            args,
 		path:            fullPath,
+		manifestTmpl:    manifestTmpl,
 		manifest:        manifest,
 		target:          target,
 		FullyResolveDep: true,
@@ -89,16 +95,11 @@ func NewAciWithManifest(path string, args BuildArgs, manifest *common.AciManifes
 }
 
 func NewAci(path string, args BuildArgs) (*Aci, error) {
-	manifest, err := common.ReadAciManifest(path + pathAciManifest)
+	manifest, err := ioutil.ReadFile(path + common.PathAciManifest)
 	if err != nil {
-		manifest2, err2 := common.ReadAciManifest(path + "/cnt-manifest.yml")
-		if err2 != nil {
-			return nil, errs.WithEF(err, data.WithField("path", path+pathAciManifest).WithField("err2", err2), "Cannot read manifest")
-		}
-		logs.WithField("old", "cnt-manifest.yml").WithField("new", "aci-manifest.yml").Warn("You are using the old aci configuration file")
-		manifest = manifest2
+		return nil, errs.WithEF(err, data.WithField("path", path+common.PathAciManifest), "Cannot read manifest")
 	}
-	return NewAciWithManifest(path, args, manifest)
+	return NewAciWithManifest(path, args, string(manifest))
 }
 
 //////////////////////////////////////////////////////////////////
