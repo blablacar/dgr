@@ -34,15 +34,6 @@ dgr provides various resources to build and configure an ACI:
 ![demo](https://raw.githubusercontent.com/blablacar/dgr/gh-pages/aci-dummy.gif)
 
 
-## Nice other features
-
-- builder runlevel with dependencies allow you build a project of any kind (java, php, go, node, ...) and release an aci without anything else than dgr and rkt on the host
-- dgr will tell you if you are not using the latest version of a dependency and will tell you which version is the latest
-- integrated test system that can be extended to support any kind of test system
-- working with [pods](https://github.com/appc/spec/blob/master/spec/pods.md) as a unit during build too
-- build application version based on container name
-- extract aci version from the version of the software during installation
-
 ## Commands
 
 ```bash
@@ -146,6 +137,29 @@ It will generate the following file tree:
 This project is already valid which means that you can build it and it will result in a runnable ACI (dgr always adds busybox to the ACI). But you probably want to customize it at this point.
 
 The only mandatory information is the `aci-manifest.yml`, with only the aci `name:`. You can remove everything else depending on you needs.  
+
+## Nice other features
+
+- builder runlevel with dependencies allow you build a project of any kind (java, php, go, node, ...) and release an aci without anything else than dgr and rkt on the host
+- dgr will tell you if you are not using the latest version of a dependency and will tell you which version is the latest
+- integrated test system that can be extended to support any kind of test system
+- working with [pods](https://github.com/appc/spec/blob/master/spec/pods.md) as a unit during build too
+- build application version based on container name
+- extract aci version from the version of the software during installation
+
+## How it's working
+<img style="margin: 10px 30px 40px 0" src="https://docs.google.com/drawings/d/1bSP6Z2X79xkp6deSNaZ-ShrAPjAPa4bzyjL4df2HLwk/pub?w=850">
+
+dgr uses the **builder** information from the **aci-manifest.yml** to construct a rkt stage1. dgr then start rkt with this stage1 on an empty container with the final manifest of your aci (to have dependencies during build).
+
+Inside rkt, the builder isolate the build process inside a **systemd-nspawn** on the builder's rootfs (with mount point on the final aci's rootfs and aci's home) and run the following steps :
+- using internal dgr filesystem (busybox, openssl, wget, curl) for the builder if no dependencies (nothing in /usr/bin)
+- run **builder** runlevel
+- copy **templater** and **inherit** runlevels
+- isolate on final rootfs and run **build** runlevels
+- copy **prestart**, **attributes**, **files**, **templates**
+- isolate on final rootfs and run **build-late** runlevels
+
 
 ## Customizing
 
@@ -288,7 +302,7 @@ default:
       - bla.com
 ```
 
-### The prestart
+### Prestart
 
 dgr uses the "pre-start" eventHandler of the ACI to customize the ACI rootfs before the run depending on the instance or the environment.
 It resolves at that time the templates so it has all the context needed to do that.
@@ -302,24 +316,7 @@ set -e
 /usr/bin/myapp-init
 ```
 
-## How it's working
-<img style="margin: 10px 30px 40px 0" src="https://docs.google.com/drawings/d/1bSP6Z2X79xkp6deSNaZ-ShrAPjAPa4bzyjL4df2HLwk/pub?w=850">
-
-dgr uses the **builder** information from the **aci-manifest.yml** to construct a rkt stage1. dgr then start rkt with this stage1 on an empty container with the final manifest of your aci (to have dependencies during build).
-
-Inside rkt, the builder isolate the build process inside a **systemd-nspawn** on the builder's rootfs (with mount point on the final aci's rootfs and aci's home) and run the following steps :
-- using internal dgr filesystem (busybox, openssl, wget, curl) for the builder if no dependencies (nothing in /usr/bin)
-- run **builder** runlevel
-- copy **templater** and **inherit** runlevels
-- isolate on final rootfs and run **build** runlevels
-- copy **prestart**, **attributes**, **files**, **templates**
-- isolate on final rootfs and run **build-late** runlevels
-
-
-
-
 ## Building a POD
-
 
 
 ### Standard FileTree for POD
