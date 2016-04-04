@@ -403,6 +403,17 @@ Default attributes values integrated in the aci can be overridden by adding a js
 
 <img style="margin: 10px 30px 40px 0" src="https://docs.google.com/drawings/d/1bSP6Z2X79xkp6deSNaZ-ShrAPjAPa4bzyjL4df2HLwk/pub?w=850">
 
+dgr uses the `builder` information from the `aci-manifest.yml` to construct a rkt stage1. dgr then start rkt with this stage1 on an empty container with the final manifest of your aci (to have dependencies during build).
+
+Inside rkt, the builder isolate the build process inside a `systemd-nspawn` on the builder's rootfs (with mount point on the final aci's rootfs and aci's home) and run the following steps :
+- using internal dgr filesystem (busybox, openssl, wget, curl) for the builder if no dependencies (nothing in /usr/bin)
+- run `builder` runlevel
+- copy `templater` and `inherit-build-*` runlevels
+- isolate on final rootfs and run `build` runlevels
+- copy `prestart`, `attributes`, `files`, `templates`
+- isolate on final rootfs and run `build-late` runlevels
+
+
 ## I want to extend dgr
 
 If you think your idea can be integrated directly in the core of dgr, please create an issue or a pull request.
