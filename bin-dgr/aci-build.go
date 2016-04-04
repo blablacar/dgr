@@ -5,13 +5,11 @@ import (
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/dgr/bin-dgr/common"
-	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"os"
 	"strconv"
-	"time"
 )
 
 func (aci *Aci) prepareRktRunArguments(command common.BuilderCommand, builderHash string, stage1Hash string) []string {
@@ -121,13 +119,13 @@ func (aci *Aci) prepareStage1aci() (string, error) {
 	}
 
 	manifest.Dependencies = types.Dependencies{}
-	stage1Image, err := toAppcDependencies([]common.ACFullname{aci.manifest.Builder.Image})
+	stage1Image, err := common.ToAppcDependencies([]common.ACFullname{aci.manifest.Builder.Image})
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "Invalid image on stage1 for rkt")
 	}
 	manifest.Dependencies = append(manifest.Dependencies, stage1Image...)
 
-	dep, err := toAppcDependencies(aci.manifest.Builder.Dependencies)
+	dep, err := common.ToAppcDependencies(aci.manifest.Builder.Dependencies)
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "Invalid dependency on stage1 for rkt")
 	}
@@ -169,7 +167,7 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+pathBuilder), "Failed to create builder aci path")
 	}
 
-	if err := aci.WriteImageManifest(aci.manifest, aci.target+pathBuilder+common.PathManifest, common.PrefixBuilder+aci.manifest.NameAndVersion.Name()); err != nil {
+	if err := common.WriteAciManifest(aci.manifest, aci.target+pathBuilder+common.PathManifest, common.PrefixBuilder+aci.manifest.NameAndVersion.Name()); err != nil {
 		return "", err
 	}
 	if err := aci.tarAci(aci.target + pathBuilder); err != nil {
@@ -204,85 +202,4 @@ func (aci *Aci) EnsureZip() error {
 		}
 	}
 	return nil
-}
-
-func (aci *Aci) WriteImageManifest(m *AciManifest, targetFile string, projectName string) error {
-	name, err := types.NewACIdentifier(projectName)
-	if err != nil {
-		return errs.WithEF(err, aci.fields.WithField("name", projectName), "aci name is not a valid identifier for rkt")
-	}
-
-	labels := types.Labels{}
-	if m.NameAndVersion.Version() != "" {
-		labels = append(labels, types.Label{Name: "version", Value: m.NameAndVersion.Version()})
-	}
-	labels = append(labels, types.Label{Name: "os", Value: "linux"})
-	labels = append(labels, types.Label{Name: "arch", Value: "amd64"})
-
-	if m.Aci.App.User == "" {
-		m.Aci.App.User = "0"
-	}
-	if m.Aci.App.Group == "" {
-		m.Aci.App.Group = "0"
-	}
-
-	im := schema.BlankImageManifest()
-	im.Annotations = m.Aci.Annotations
-
-	dgrBuilderIdentifier, _ := types.NewACIdentifier(manifestDrgBuilder)
-	dgrVersionIdentifier, _ := types.NewACIdentifier(manifestDrgVersion)
-	buildDateIdentifier, _ := types.NewACIdentifier("build-date")
-	im.Annotations.Set(*dgrVersionIdentifier, DgrVersion)
-	im.Annotations.Set(*dgrBuilderIdentifier, m.Builder.Image.String())
-	im.Annotations.Set(*buildDateIdentifier, time.Now().Format(time.RFC3339))
-	im.Dependencies, err = toAppcDependencies(m.Aci.Dependencies)
-	if err != nil {
-		return errs.WithEF(err, aci.fields, "Failed to prepare dependencies for manifest")
-	}
-	im.Name = *name
-	im.Labels = labels
-
-	if len(m.Aci.App.Exec) == 0 {
-		m.Aci.App.Exec = []string{"/dgr/bin/busybox", "sh"}
-	}
-
-	im.App = &types.App{
-		Exec:             m.Aci.App.Exec,
-		EventHandlers:    []types.EventHandler{{Name: "pre-start", Exec: []string{"/dgr/bin/prestart"}}},
-		User:             m.Aci.App.User,
-		Group:            m.Aci.App.Group,
-		WorkingDirectory: m.Aci.App.WorkingDirectory,
-		Environment:      m.Aci.App.Environment,
-		MountPoints:      m.Aci.App.MountPoints,
-		Ports:            m.Aci.App.Ports,
-		Isolators:        m.Aci.App.Isolators,
-	}
-
-	buff, err := im.MarshalJSON()
-	if err != nil {
-		return errs.WithEF(err, aci.fields.WithField("object", im), "Failed to marshal manifest")
-	}
-	err = ioutil.WriteFile(targetFile, buff, 0644)
-	if err != nil {
-		return errs.WithEF(err, aci.fields.WithField("file", targetFile), "Failed to write manifest file")
-	}
-	return nil
-}
-
-func toAppcDependencies(dependencies []common.ACFullname) (types.Dependencies, error) {
-	appcDependencies := types.Dependencies{}
-	for _, dep := range dependencies {
-		id, err := types.NewACIdentifier(dep.Name())
-		if err != nil {
-			return nil, errs.WithEF(err, data.WithField("name", dep.Name()), "invalid identifer name for rkt")
-		}
-		t := types.Dependency{ImageName: *id}
-		if dep.Version() != "" {
-			t.Labels = types.Labels{}
-			t.Labels = append(t.Labels, types.Label{Name: "version", Value: dep.Version()})
-		}
-
-		appcDependencies = append(appcDependencies, t)
-	}
-	return appcDependencies, nil
 }

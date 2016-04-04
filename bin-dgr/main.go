@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/n0rad/go-erlog"
-	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	_ "github.com/n0rad/go-erlog/register"
 	"github.com/spf13/cobra"
@@ -16,43 +15,8 @@ import (
 
 const dgrEnvPrefix = "DGR_ENV_"
 
-var CommitHash string
-var DgrVersion string
-var BuildDate string
 var Args = BuildArgs{}
 var workPath string
-
-type envMap struct {
-	mapping map[string]string
-}
-
-func (e *envMap) Set(s string) error {
-	if e.mapping == nil {
-		e.mapping = make(map[string]string)
-	}
-	pair := strings.SplitN(s, "=", 2)
-	if len(pair) != 2 {
-		return errs.With("environment variable must be specified as name=value")
-	}
-	e.mapping[pair[0]] = pair[1]
-	return nil
-}
-
-func (e *envMap) String() string {
-	return strings.Join(e.Strings(), "\n")
-}
-
-func (e *envMap) Strings() []string {
-	var env []string
-	for n, v := range e.mapping {
-		env = append(env, n+"="+v)
-	}
-	return env
-}
-
-func (e *envMap) Type() string {
-	return "envMap"
-}
 
 type BuildArgs struct {
 	NoStore     bool
@@ -161,12 +125,12 @@ func SupportsOverlay() bool {
 
 func displayVersionAndExit() {
 	fmt.Print("dgr\n\n")
-	fmt.Printf("version    : %s\n", DgrVersion)
-	if BuildDate != "" {
-		fmt.Printf("build date : %s\n", BuildDate)
+	fmt.Printf("version    : %s\n", common.DgrVersion)
+	if common.BuildDate != "" {
+		fmt.Printf("build date : %s\n", common.BuildDate)
 	}
-	if CommitHash != "" {
-		fmt.Printf("CommitHash : %s\n", CommitHash)
+	if common.CommitHash != "" {
+		fmt.Printf("CommitHash : %s\n", common.CommitHash)
 	}
 	os.Exit(0)
 }

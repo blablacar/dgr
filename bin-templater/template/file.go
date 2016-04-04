@@ -3,13 +3,13 @@ package template
 import (
 	"bufio"
 	"bytes"
-	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	txttmpl "text/template"
 )
 
@@ -64,8 +64,6 @@ func (t *TemplateFile) loadTemplateConfig(src string) error {
 	}
 	return nil
 }
-
-//template.ExecuteTemplate(os.Stdout, "login", data)
 
 func (f *TemplateFile) runTemplate(dst string, attributes map[string]interface{}) error {
 	if logs.IsTraceEnabled() {
@@ -122,7 +120,11 @@ func (f *TemplateFile) runTemplate(dst string, attributes map[string]interface{}
 	}
 
 	if f.CheckCmd != "" {
-		if err = common.ExecCmd("/dgr/bin/busybox", "sh", "-c", f.CheckCmd); err != nil {
+		cmd := exec.Command("/dgr/bin/busybox", "sh", "-c", f.CheckCmd)
+		cmd.Stdout = os.Stdout
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
+		if err = cmd.Run(); err != nil {
 			return errs.WithEF(err, fields.WithField("file", dst), "Check command failed after templating")
 		}
 	}

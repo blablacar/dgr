@@ -122,10 +122,10 @@ func (aci *Aci) cleanupTest(testerHash string, hashAcis []string) {
 func (aci *Aci) buildTestAci() (string, error) {
 	fullname := common.NewACFullName(prefixTest + aci.manifest.NameAndVersion.Name() + ":" + aci.manifest.NameAndVersion.Version())
 	resultMountName, _ := types.NewACName(mountAcname)
-	testAci, err := NewAciWithManifest(aci.path, aci.args, &AciManifest{
+	testAci, err := NewAciWithManifest(aci.path, aci.args, &common.AciManifest{
 		Builder: aci.manifest.Tester.Builder,
-		Aci: AciDefinition{
-			App: DgrApp{
+		Aci: common.AciDefinition{
+			App: common.DgrApp{
 				Exec:             aci.manifest.Aci.App.Exec,
 				MountPoints:      []types.MountPoint{{Path: pathTestsResult, Name: *resultMountName}},
 				WorkingDirectory: aci.manifest.Aci.App.WorkingDirectory,

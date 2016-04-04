@@ -5,6 +5,10 @@ import (
 	"github.com/n0rad/go-erlog/errs"
 )
 
+var CommitHash string
+var DgrVersion string
+var BuildDate string
+
 const PathImageAci = "/image.aci"
 const PathManifest = "/manifest"
 const PathRootfs = "/rootfs"
@@ -16,6 +20,8 @@ const EnvTrapOnError = "TRAP_ON_ERROR"
 
 const EnvBuilderCommand = "BUILDER_COMMAND"
 const PrefixBuilder = "builder/"
+
+const ManifestDrgVersion = "dgr-version"
 
 type BuilderCommand string
 

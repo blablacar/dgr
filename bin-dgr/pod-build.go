@@ -89,7 +89,7 @@ func (p *Pod) processAci() ([]schema.RuntimeApp, error) {
 	return apps, nil
 }
 
-func (p *Pod) buildAci(e RuntimeApp) (*Aci, error) {
+func (p *Pod) buildAci(e common.RuntimeApp) (*Aci, error) {
 	path := p.path + "/" + e.Name
 	if dir, err := os.Stat(path); err != nil || !dir.IsDir() {
 		if err := os.Mkdir(path, 0777); err != nil {

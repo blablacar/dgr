@@ -3,11 +3,9 @@ package main
 import (
 	"github.com/appc/spec/schema"
 	"github.com/blablacar/dgr/bin-dgr/common"
-	"github.com/ghodss/yaml"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -28,9 +26,6 @@ const pathBuilder = "/builder"
 const pathBuilderUuid = "/builder.uuid"
 const pathTesterUuid = "/tester.uuid"
 
-const manifestDrgBuilder = "dgr-builder"
-const manifestDrgVersion = "dgr-version"
-
 const prefixTest = "test/"
 const prefixBuilderStage1 = "builder-stage1/"
 
@@ -39,12 +34,12 @@ type Aci struct {
 	path            string
 	target          string
 	podName         *common.ACFullname
-	manifest        *AciManifest
+	manifest        *common.AciManifest
 	args            BuildArgs
 	FullyResolveDep bool
 }
 
-func NewAciWithManifest(path string, args BuildArgs, manifest *AciManifest) (*Aci, error) {
+func NewAciWithManifest(path string, args BuildArgs, manifest *common.AciManifest) (*Aci, error) {
 	if manifest.NameAndVersion == "" {
 		logs.WithField("path", path).Fatal("name is mandatory in manifest")
 	}
@@ -94,9 +89,9 @@ func NewAciWithManifest(path string, args BuildArgs, manifest *AciManifest) (*Ac
 }
 
 func NewAci(path string, args BuildArgs) (*Aci, error) {
-	manifest, err := readAciManifest(path + pathAciManifest)
+	manifest, err := common.ReadAciManifest(path + pathAciManifest)
 	if err != nil {
-		manifest2, err2 := readAciManifest(path + "/cnt-manifest.yml")
+		manifest2, err2 := common.ReadAciManifest(path + "/cnt-manifest.yml")
 		if err2 != nil {
 			return nil, errs.WithEF(err, data.WithField("path", path+pathAciManifest).WithField("err2", err2), "Cannot read manifest")
 		}
@@ -107,21 +102,6 @@ func NewAci(path string, args BuildArgs) (*Aci, error) {
 }
 
 //////////////////////////////////////////////////////////////////
-
-func readAciManifest(manifestPath string) (*AciManifest, error) {
-	manifest := AciManifest{Aci: AciDefinition{}}
-
-	source, err := ioutil.ReadFile(manifestPath)
-	if err != nil {
-		return nil, err
-	}
-	err = yaml.Unmarshal([]byte(source), &manifest)
-	if err != nil {
-		return nil, errs.WithE(err, "Cannot unmarshall manifest")
-	}
-
-	return &manifest, nil
-}
 
 func (aci *Aci) tarAci(path string) error {
 	target := pathImageAci[1:]
@@ -198,12 +178,12 @@ func GetDependencyDgrVersion(acName common.ACFullname) (int, error) {
 		return 0, errs.WithEF(err, depFields.WithField("content", out), "Cannot read manifest cat by rkt image")
 	}
 
-	version, ok := im.Annotations.Get(manifestDrgVersion)
+	version, ok := im.Annotations.Get(common.ManifestDrgVersion)
 	var val int
 	if ok {
 		val, err = strconv.Atoi(version)
 		if err != nil {
-			return 0, errs.WithEF(err, depFields.WithField("version", version), "Failed to parse "+manifestDrgVersion+" from manifest")
+			return 0, errs.WithEF(err, depFields.WithField("version", version), "Failed to parse "+common.ManifestDrgVersion+" from manifest")
 		}
 	}
 	return val, nil

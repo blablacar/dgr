@@ -17,7 +17,7 @@ type Pod struct {
 	path     string
 	args     BuildArgs
 	target   string
-	manifest PodManifest
+	manifest common.PodManifest
 }
 
 func NewPod(path string, args BuildArgs) (*Pod, error) {
@@ -57,13 +57,13 @@ func NewPod(path string, args BuildArgs) (*Pod, error) {
 	return pod, nil
 }
 
-func readPodManifest(manifestPath string) (*PodManifest, error) {
+func readPodManifest(manifestPath string) (*common.PodManifest, error) {
 	source, err := ioutil.ReadFile(manifestPath)
 	if err != nil {
 		return nil, err
 	}
 
-	manifest := &PodManifest{}
+	manifest := &common.PodManifest{}
 	err = yaml.Unmarshal([]byte(source), manifest)
 	if err != nil {
 		return nil, err
@@ -78,10 +78,10 @@ func readPodManifest(manifestPath string) (*PodManifest, error) {
 	return manifest, nil
 }
 
-func (p *Pod) toAciManifest(e RuntimeApp) *AciManifest {
+func (p *Pod) toAciManifest(e common.RuntimeApp) *common.AciManifest {
 	fullname := common.NewACFullName(p.manifest.Name.Name() + "_" + e.Name + ":" + p.manifest.Name.Version())
-	return &AciManifest{
-		Aci: AciDefinition{
+	return &common.AciManifest{
+		Aci: common.AciDefinition{
 			Annotations:   e.Annotations,
 			App:           e.App,
 			Dependencies:  e.Dependencies,

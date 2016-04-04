@@ -15,14 +15,14 @@ var aciTester = common.NewACFullName("dgrtool.com/aci-tester:1")
 
 //var internalAcis = []*spec.ACFullname{ACI_BATS, ACI_BUILDER}
 
-func ImportInternalBuilderIfNeeded(manifest *AciManifest) {
+func ImportInternalBuilderIfNeeded(manifest *common.AciManifest) {
 	if manifest.Builder.Image.String() == "" {
 		manifest.Builder.Image = *aciBuilder
 		importInternalAci("aci-builder.aci") // TODO
 	}
 }
 
-func ImportInternalTesterIfNeeded(manifest *AciManifest) {
+func ImportInternalTesterIfNeeded(manifest *common.AciManifest) {
 	ImportInternalBuilderIfNeeded(manifest)
 	if manifest.Tester.Builder.Image.String() == "" {
 		manifest.Tester.Builder.Image = *aciTester

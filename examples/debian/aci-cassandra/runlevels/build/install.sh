@@ -19,3 +19,8 @@ gpg --export --armor 0353B12C | apt-key add -
 
 apt-get update
 apt-get install -y cassandra cassandra-tools
+
+
+export CASSANDRA_VERSION=`dpkg -s cassandra | grep 'Version: ' | cut -d' ' -f 2`
+
+sh

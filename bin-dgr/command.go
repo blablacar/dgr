@@ -7,6 +7,18 @@ import (
 	"os"
 )
 
+type DgrCommand interface {
+	CleanAndBuild() error
+	CleanAndTry() error
+	Clean()
+	Push() error
+	Install() ([]string, error)
+	Test() error
+	Graph() error
+	Sign() error
+	Init() error
+}
+
 var cleanCmd = &cobra.Command{
 	Use:   "clean",
 	Short: "clean build",
@@ -209,5 +221,4 @@ func init() {
 	cleanCmd.AddCommand(newBuildCommand(true))
 	cleanCmd.AddCommand(newTryCommand(true))
 	cleanCmd.AddCommand(newSignCommand(true))
-
 }

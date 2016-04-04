@@ -1,1 +1,7 @@
-name: example.com/aci-test
+name: example.com/aci-test:{{.version}}-1
+aci:
+  annotations:
+  {{range $index, $element := .annotations}}
+    - {name: test, value: test2}
+    - {name: test42, value: test43}
+  {{end}}
