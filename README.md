@@ -83,8 +83,8 @@ rkt:                            # arguments to rkt. See rkt --help
   systemConfig: /usr/lib/rkt
   userConfig:
   trustKeysFromHttps: false
-  noStore: false
-  storeOnly: false
+  noStore: false                # can be set by command line
+  storeOnly: false              # can be set by command line
 ```
 
 
@@ -316,26 +316,12 @@ set -e
 /usr/bin/myapp-init
 ```
 
-## Building a POD
 
-
-### Standard FileTree for POD
-TODO
-
-```bash
-├── aci-elasticsearch               # Directory that match the pod app shortname (or name)
-│   ├── attributes
-│   │   └── attributes.yml          # Attributes file for templating in this ACI
-│   ├── files                       # Files to be inserted into this ACI
-│   ...
-├── pod-manifest.yml            # Pod Manifest
-
-```
 
 
 ## Running the aci
-At this stage you should have a runnable aci. During build, dgr integrated into the aci a prestart that will take care of running templater using `templates` and `attributes`
 
+At this stage you should have a runnable aci. During build, dgr integrated into the aci a prestart that will take care of running templater using `templates` and `attributes`
 
 ### log level
 Templates and default attribute values are integrated into the aci.
@@ -343,7 +329,7 @@ At start you can change log level of prestart scripts and the templater with the
 default level is info. At `debug`, prestart shell script will activate debug (set -x). At level `trace`, templater will display the result of templating.
 
 
-### override template's attributes
+### Override template's attributes
 Default attributes values integrated in the aci can be overridden by adding a json tree in the environment variable `TEMPLATER_OVERRIDE`
 
 
@@ -353,7 +339,6 @@ Default attributes values integrated in the aci can be overridden by adding a js
 ```
 
 ## Troubleshoot
-
 dgr start by default with info log level. You can change this level with the `-L` command line argument.
 The log level is also propagated to all runlevels with the environment variable: **LOG_LEVEL**.
 
@@ -365,20 +350,34 @@ set -e
 . /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 ```
-
 Build it
-
 ```bash
 $ dgr -L debug build
 ```
 
 You can also debug the start of your container (prestart, templates) the same way
-
 ```bash
 $ rkt run --set-env=LOG_LEVEL=debug example.com/my-app
 ```
 
 **trace** loglevel, will tell the templater to display the result
+
+
+## Building a POD
+
+A pod is a group of aci that will build and run together as a single unit.
+
+### Standard FileTree for POD
+TODO
+
+```bash
+├── aci-elasticsearch               # Directory that match the pod app shortname (or name)
+│   ├── attributes
+│   │   └── attributes.yml          # Attributes file for templating in this ACI
+│   ├── files                       # Files to be inserted into this ACI
+│   ...
+├── pod-manifest.yml            # Pod Manifest
+```
 
 
 ## Ok, but concretely how should I use it?
