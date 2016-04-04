@@ -36,7 +36,7 @@ dgr provides various resources to build and configure an ACI:
 
 ## Nice other features
 
-- builder runlevel with dependencies allow you build a project and release an aci without anything else than dgr and rkt on the host.
+- builder runlevel with dependencies allow you build a project of any kind (java, php, go, node, ...) and release an aci without anything else than dgr and rkt on the host
 - dgr will tell you if you are not using the latest version of a dependency and will tell you which version is the latest
 - integrated test system that can be extended to support any kind of test system
 - working with [pods](https://github.com/appc/spec/blob/master/spec/pods.md) as a unit during build too
@@ -343,25 +343,36 @@ $ rkt run --set-env=LOG_LEVEL=debug example.com/my-app
 **trace** loglevel, will tell the templater to display the result
  
 
-### Ok, but concretely how should I use it? (Need rework since deprecation of from)
+### Ok, but concretely how should I use it?
 
-Currently, Linux distrib and package managers are not designed to support container the way it should be used. Especially on the **from** & **dependencies** parts.
+`have a look at the examples/ directory where you can find aci for various distrib`
 
-So, here is how we are using it at Blablacar: where you want to use a package manager like *apt*, you should debootstrap a debian version in *build_setup* to create a **aci-debian**. Then use this image as *from* in the other aci to be able to run *apt get install* at *build* runlevel.
+Depending on distrib, package manager and what you want to do, you will not work the same way. but globally there is 2 way of building an aci.
 
-When you want to install application without dependencies, like Go (with libc linking), or java application:
-create an **aci-base** image that will just copy the libc, and template minor stuff like */etc/hosts*, */etc/hostname* and */etc/resolv.conf* to this image. then use this tiny image as from for you go application. For a Java application, use this image from and **aci-java** as dependencies.
+#### Building directly inside the aci
+This is what you will see everywhere else in docker or rkt. You use the **build** and **build-late** runlevels and run commands on the the final rootfs (like apt-get install...)
 
-Globally, our rule is to have only basic images as from to provide package manager, and get hand maid dependencies using *dependencies* tag.
+#### Building outside of the aci
+If you are using a package manager that support working outside of the target's rootfs or want to build a project, you will work outside of the stage1 directly inside the builder.
+For example if you are buiding an aci for a go project from sources. you will prepare a **builder** with **go** to be able to build the project on the stage1 and put the binary on the aci's rootfs (go is not needed to run the aci).
 
-*We are working on a cleaner solution to install application in the container without the need of the package manager coming along.*
+`At this step, everybody can build any kind of project, since nothing on the host is used to build the project and the aci.`
+
+Also, if you are using a package manager like `pacman` or `emerge`, you can build and install packages on the final rootfs without build dependencies nor the package manager.
+
+#### Note About dependencies
+
+Most package manager are not design for overlay and are working with a db file for installed software. this means than when your aci have multiple dependencies on the aci, the db files will overlap and the package manager will only see half of package installed.
+
+As far as I know only `pacman`, that uses a file tree structure for install package, can support overlay.
+If you are using a debian or similar. I recommand to limit the dependencies to only 2 layers. The base aci with debian minimal fs and one with the application you want.
 
 
 ## Building a POD
 
 
-### Standard FileTree for POD
 
+### Standard FileTree for POD
 TODO
 
 ```bash
@@ -374,33 +385,28 @@ TODO
 
 ```
 
-## Running the aci
 
+## Running the aci
 At this stage you should have a runnable aci. During build, dgr integrated into the aci a prestart that will take care of running templater using `templates` and `attributes`
 
-### log level
 
+### log level
 Templates and default attribute values are integrated into the aci.
 At start you can change log level of prestart scripts and the templater with the environment variable `--set-env=LOG_LEVEL=trace`.
 default level is info. At `debug`, prestart shell script will activate debug (set -x). At level `trace`, templater will display the result of templating.
 
-### override template's attributes
 
+### override template's attributes
 Default attributes values integrated in the aci can be overridden by adding a json tree in the environment variable `TEMPLATER_OVERRIDE`
+
 
 ### example
 ```
 # sudo rkt --set-env=LOG_LEVEL=trace  --net=host --insecure-options=image run --interactive target/image.aci '--set-env=TEMPLATER_OVERRIDE={"dns":{"nameservers":["10.11.254.253","10.11.254.254"]}}'
 ```
 
-## Requirement
-
-- [rkt](https://github.com/coreos/rkt) in your `$PATH` or configured in dgr global conf
-- being root is required to call rkt
-- linux >= 3.18 with overlay filesystem
 
 ## How it's working
-
 <img style="margin: 10px 30px 40px 0" src="https://docs.google.com/drawings/d/1bSP6Z2X79xkp6deSNaZ-ShrAPjAPa4bzyjL4df2HLwk/pub?w=850">
 
 dgr uses the `builder` information from the `aci-manifest.yml` to construct a rkt stage1. dgr then start rkt with this stage1 on an empty container with the final manifest of your aci (to have dependencies during build).
@@ -414,8 +420,13 @@ Inside rkt, the builder isolate the build process inside a `systemd-nspawn` on t
 - isolate on final rootfs and run `build-late` runlevels
 
 
-## I want to extend dgr
+## Requirement
+- [rkt](https://github.com/coreos/rkt) in your `$PATH` or configured in dgr global conf
+- being root is required to call rkt
+- linux >= 3.18 with overlay filesystem
 
+
+## I want to extend dgr
 If you think your idea can be integrated directly in the core of dgr, please create an issue or a pull request.
 
 If you want want to extend the way the **builder** is working (attributes, templates, files, ...), you can create a new **stage1 builder** and replace the internal one with : 
