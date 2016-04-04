@@ -177,7 +177,7 @@ func NewAciOrPod(path string, args BuildArgs) DgrCommand {
 	} else if pod, err2 := NewPod(path, args); err2 == nil {
 		return pod
 	} else {
-		logs.WithField("path", path).WithField("err", err).WithField("err2", err2).Fatal("Cannot construct aci or pod")
+		logs.WithE(err).WithField("path", path).WithField("err2", err2).Fatal("Cannot construct aci or pod")
 	}
 	return nil
 }
