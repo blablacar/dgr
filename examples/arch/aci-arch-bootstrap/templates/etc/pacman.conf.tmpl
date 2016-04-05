@@ -1,0 +1,56 @@
+[options]
+# The following paths are commented out with their default values listed.
+# If you wish to use different paths, uncomment and update the paths.
+{{if .rootfs}}
+RootDir     = {{.rootfs}}
+LogFile     = {{.rootfs}}/var/log/pacman.log
+{{end}}
+#DBPath      = /var/lib/pacman/
+CacheDir    = /var/cache/pacman/pkg/
+GPGDir      = /etc/pacman.d/gnupg/
+HoldPkg     =
+#XferCommand = /usr/bin/curl -C - -f %u > %o
+#XferCommand = /usr/bin/wget --passive-ftp -c -O %o %u
+#CleanMethod = KeepInstalled
+#UseDelta    = 0.7
+Architecture = auto
+
+# Pacman won't upgrade packages listed in IgnorePkg and members of IgnoreGroup
+IgnorePkg   =
+#IgnoreGroup =
+
+#NoUpgrade   =
+NoExtract   = usr/share/help/*
+NoExtract   = usr/share/locale/* !usr/share/locale/en_US/*
+NoExtract   = usr/share/man/*
+NoExtract   = usr/share/vim/vim74/lang/* usr/share/licenses*
+NoExtract   = usr/lib/systemd/*
+NoExtract   = usr/zoneinfo/*
+NoExtract   = usr/doc/*
+
+# Misc options
+#UseSyslog
+Color
+TotalDownload
+#CheckSpace
+#VerbosePkgLists
+
+SigLevel    = Required DatabaseOptional
+LocalFileSigLevel = Optional
+#RemoteFileSigLevel = Required
+
+[core]
+Include = /etc/pacman.d/mirrorlist
+
+[extra]
+Include = /etc/pacman.d/mirrorlist
+
+[community]
+Include = /etc/pacman.d/mirrorlist
+
+[multilib]
+Include = /etc/pacman.d/mirrorlist
+
+[archlinuxfr]
+SigLevel = Never
+Server = http://repo.archlinux.fr/$arch

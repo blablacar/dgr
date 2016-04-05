@@ -38,9 +38,15 @@ type Env struct {
 	Value string `json:"value"`
 }
 
+type MountInfo struct {
+	From string `json:"from"`
+	To   string `json:"to"`
+}
+
 type BuildDefinition struct {
 	Image        ACFullname   `json:"image,omitempty" yaml:"image,omitempty"`
 	Dependencies []ACFullname `json:"dependencies,omitempty" yaml:"dependencies,omitempty"`
+	MountPoints  []MountInfo  `json:"mountPoints,omitempty" yaml:"mountPoints,omitempty"`
 }
 
 type AciManifest struct {

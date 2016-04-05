@@ -218,7 +218,12 @@ func (b *Builder) runBuild() error {
 	}
 
 	logs.WithF(b.fields).Debug("Running build command")
-	args, env := b.prepareNspawnArgsAndEnv(command)
+	args, env, err := b.prepareNspawnArgsAndEnv(command)
+	if err != nil {
+		return err
+	}
+
+	os.Remove(b.stage1Rootfs+"/etc/machine-id")
 
 	if logs.IsDebugEnabled() {
 		logs.WithField("command", strings.Join([]string{args[0], " ", strings.Join(args[1:], " ")}, " ")).Debug("Running external command")
@@ -237,7 +242,7 @@ func (b *Builder) runBuild() error {
 	return nil
 }
 
-func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []string) {
+func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []string, error) {
 	var args []string
 	env := os.Environ()
 
@@ -295,9 +300,28 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 	args = append(args, "--directory="+b.stage1Rootfs)
 	args = append(args, "--bind="+b.aciHomePath+"/:/dgr/aci-home")
 	args = append(args, "--bind="+b.aciTargetPath+"/:/dgr/aci-target")
+
+	//
+	content, err := ioutil.ReadFile(b.aciTargetPath + common.PathManifestYmlTmpl)
+	if err != nil {
+		return args, env, errs.WithEF(err, b.fields.WithField("file", b.aciTargetPath+common.PathManifestYmlTmpl), "Failed to read manifest template")
+	}
+
+	aciManifest, err := common.ProcessManifestTemplate(string(content), nil, false)
+	if err != nil {
+		return args, env, errs.WithEF(err, b.fields.WithField("content", string(content)), "Failed to process manifest template")
+	}
+	for _, mount := range aciManifest.Builder.MountPoints {
+		from := mount.From
+		if from[0] != '/' {
+			from = "/" + from
+		}
+		args = append(args, "--bind="+b.aciHomePath+from+":"+mount.To)
+	}
+
 	args = append(args, commandPath)
 
-	return args, env
+	return args, env, nil
 }
 
 func (b *Builder) getCommandPath() (string, error) {
