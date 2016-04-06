@@ -36,6 +36,8 @@ buildAci ${dir}/gentoo/aci-gentoo-stage4
 
 # archlinux
 buildAci ${dir}/arch/aci-arch-bootstrap
+buildAci ${dir}/arch/aci-arch-pacman
+buildAci ${dir}/arch/aci-arch-yaourt
 buildAci ${dir}/arch/aci-arch-git
 buildAci ${dir}/arch/aci-arch-go
 buildAci ${dir}/arch/aci-arch-upx
