@@ -17,11 +17,13 @@ execute_files() {
 
   if [ "$(ls -A "${fdir}")" ]; then
       for file in "${fdir}"/*; do
-        [ -e "$file" ] && {
-            [ -x "$file" ] || chmod +x "$file"
-            isLevelEnabled 4 && echo_green "Running script -> $file"
-            "$file"
-        }
+        if [ -f "$file" ]; then
+            [ -e "$file" ] && {
+                [ -x "$file" ] || chmod +x "$file"
+                isLevelEnabled 4 && echo_green "Running script -> $file"
+                "$file"
+            }
+        fi
       done
   fi
 }
