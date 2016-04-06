@@ -1,0 +1,13 @@
+name: dgrtool.com/aci-dgr
+builder:
+  dependencies:
+    - dgrtool.com/aci-arch-upx
+    - dgrtool.com/aci-arch-go
+    - dgrtool.com/aci-arch-git
+    - dgrtool.com/aci-arch-gcc
+  mountPoints:
+    - {from: ../, to: /go/src/github.com/blablacar/dgr}
+
+aci:
+  dependencies:
+    - dgrtool.com/aci-arch-gcc

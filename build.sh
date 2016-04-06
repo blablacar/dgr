@@ -1,10 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 set -x
 start=`date +%s`
 dir=$( dirname $0 )
 
 [ -f ${GOPATH}/bin/godep ] || go get github.com/tools/godep
+[ -f ${GOPATH}/bin/go-bindata ] || go get github.com/jteeuwen/go-bindata
 [ -f /usr/bin/upx ] || (echo "upx is required to build dgr" && exit 1)
 
 # clean

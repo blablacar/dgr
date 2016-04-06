@@ -1,0 +1,4 @@
+name: dgrtool.com/aci-rkt:1.3.0
+aci:
+  dependencies:
+    - dgrtool.com/aci-libc

@@ -1,0 +1,9 @@
+name: dgrtool.com/aci-arch-upx
+
+builder:
+  dependencies:
+    - dgrtool.com/aci-arch-bootstrap
+
+aci:
+  dependencies:
+    - dgrtool.com/aci-base
