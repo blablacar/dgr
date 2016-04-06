@@ -223,7 +223,7 @@ func (b *Builder) runBuild() error {
 		return err
 	}
 
-	os.Remove(b.stage1Rootfs+"/etc/machine-id")
+	os.Remove(b.stage1Rootfs + "/etc/machine-id")
 
 	if logs.IsDebugEnabled() {
 		logs.WithField("command", strings.Join([]string{args[0], " ", strings.Join(args[1:], " ")}, " ")).Debug("Running external command")
