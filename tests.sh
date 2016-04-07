@@ -43,6 +43,3 @@ execute_tests() {
 
 cd "${dir}/tests"
 execute_tests "."
-
-# examples
-${dir}/examples/build.sh

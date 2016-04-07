@@ -18,3 +18,4 @@ install:
 script:
   - ./build.sh
   - sudo PATH=${GOPATH}/bin:$PATH ./tests.sh
+  - sudo PATH=${GOPATH}/bin:$PATH ./examples/build.sh
