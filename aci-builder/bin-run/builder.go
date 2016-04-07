@@ -121,31 +121,17 @@ func (b *Builder) writeManifest() error {
 	if !ok {
 		return errs.WithF(b.fields, "Cannot find dgr version")
 	}
+
+	froms, err := aciManifest.GetFroms()
+	if len(froms) != 0 {
+		if froms[0].String() != "" {
+			aciManifest.Aci.Dependencies = append(froms, aciManifest.Aci.Dependencies...)
+		}
+	}
+
 	if err := common.WriteAciManifest(aciManifest, target, aciManifest.NameAndVersion.Name(), dgrVersion); err != nil {
 		return errs.WithEF(err, b.fields.WithField("file", target), "Failed to write manifest")
 	}
-
-	//manifestPath := b.stage1Rootfs + PATH_OPT + PATH_STAGE2 + "/" + manifestApp(b.pod).Name.String() + common.PathManifest
-	//content, err := ioutil.ReadFile(manifestPath)
-	//if err != nil {
-	//	return errs.WithEF(err, b.fields.WithField("file", manifestPath), "Failed to read manifest file")
-	//}
-	//im := &schema.ImageManifest{}
-	//err = im.UnmarshalJSON(content)
-	//if err != nil {
-	//	return errs.WithEF(err, data.WithField("content", string(content)), "Cannot unmarshall json content")
-	//}
-	//
-	//im.Name.Set(strings.Replace(im.Name.String(), common.PrefixBuilder, "", 1))
-	//if _, ok := im.Labels.Get("version"); !ok {
-	//	os.Chdir(b.aciHomePath)
-	//	im.Labels = append(im.Labels, types.Label{Name: "version", Value: common.GenerateVersion(b.aciHomePath)})
-	//}
-	//if content, err := json.MarshalIndent(im, "", "  "); err != nil {
-	//	return errs.WithEF(err, b.fields, "Failed to write manifest")
-	//} else if err := ioutil.WriteFile(b.pod.Root+PATH_OVERLAY+"/"+upperId+PATH_UPPER+common.PathManifest, content, 0644); err != nil {
-	//	return errs.WithEF(err, b.fields, "Failed to write manifest")
-	//}
 	return nil
 }
 
@@ -223,7 +209,7 @@ func (b *Builder) runBuild() error {
 		return err
 	}
 
-	os.Remove(b.stage1Rootfs+"/etc/machine-id")
+	os.Remove(b.stage1Rootfs + "/etc/machine-id")
 
 	if logs.IsDebugEnabled() {
 		logs.WithField("command", strings.Join([]string{args[0], " ", strings.Join(args[1:], " ")}, " ")).Debug("Running external command")
