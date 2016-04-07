@@ -13,7 +13,9 @@ onError() {
 
 export SYSTEMD_LOG_LEVEL=err
 export ROOTFS="/opt/stage2/${ACI_NAME}/rootfs"
-    if [ -z ${ACI_HOME} ]; then
+chmod 755 /opt/stage2 && chmod 755 /opt/stage2/${ACI_NAME} # this is required as soon as you run builder action as non root
+
+if [ -z ${ACI_HOME} ]; then
     echo_red "'ACI_HOME' is not set in build aci. This is a builder issue"
     exit 1
 fi

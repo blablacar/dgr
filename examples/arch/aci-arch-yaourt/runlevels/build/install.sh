@@ -17,8 +17,6 @@ echo "Cmnd_Alias  PACMAN = /usr/bin/pacman, /usr/bin/yaourt
 
 # su -c 'yaourt -Sy jdk' yaourt
 
-sh
-
 #ln -s /proc/self/fd /dev/fd
 #ln -s /proc/self/fd/0 /dev/stdin
 #ln -s /proc/self/fd/1 /dev/stdout
