@@ -155,7 +155,7 @@ The only mandatory information is the `aci-manifest.yml`, with only the aci `nam
 dgr uses the **builder** information from the **aci-manifest.yml** to construct a rkt stage1. dgr then start rkt with this stage1 on an empty container with the final manifest of your aci (to have dependencies during build).
 
 Inside rkt, the builder isolate the build process inside a **systemd-nspawn** on the builder's rootfs (with mount point on the final aci's rootfs and aci's home) and run the following steps :
-- using internal dgr filesystem (busybox, openssl, wget, curl) for the builder if no dependencies (nothing in /usr/bin)
+- use internal dgr filesystem (busybox, openssl, wget, curl) for the builder if no dependencies (nothing in /usr/bin)
 - run **builder** runlevel
 - copy **templater** and **inherit** runlevels
 - isolate on final rootfs and run **build** runlevels
