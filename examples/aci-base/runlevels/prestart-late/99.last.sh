@@ -4,8 +4,8 @@ source /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
 
-isLevelEnabled "debug" && {
+if isLevelEnabled "debug"; then
     echo ""
     echo "Pre-victory !"
     echo ""
-}
+fi

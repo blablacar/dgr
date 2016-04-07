@@ -1,0 +1,5 @@
+name: dgrtool.com/aci-arch-yaourt
+
+aci:
+  dependencies:
+    - dgrtool.com/aci-arch-pacman

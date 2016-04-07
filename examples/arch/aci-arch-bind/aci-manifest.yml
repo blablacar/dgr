@@ -1,0 +1,6 @@
+name: norad.fr/aci-arch-bind
+aci:
+  app:
+    exec: [ /usr/sbin/named, -g, -4, -c, /etc/named.conf, -u, named ]
+    mountPoints:
+      - {name: data, path: /data, readOnly: false}
