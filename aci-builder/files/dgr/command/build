@@ -4,7 +4,9 @@ set -e
 isLevelEnabled "debug" && set -x
 
 isLevelEnabled "debug" && echo_purple "Running builder's prestart"
+execute_files "/dgr/runlevels/inherit-build-early" || onError "Inherit-build-early"
 /dgr/bin/prestart
+execute_files "/dgr/runlevels/inherit-build-late" || onError "Inherit-build-late"
 
 export ACI_HOME="/dgr/aci-home"
 /dgr/builder/stage2/builder.sh
