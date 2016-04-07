@@ -23,16 +23,15 @@ var Args = BuildArgs{}
 var workPath string
 
 type BuildArgs struct {
-	NoStore     bool
-	StoreOnly   bool
-	Force       bool
-	Clean       bool
-	Test        bool
-	NoTestFail  bool
-	KeepBuilder bool
-	TrapOnError bool
-	TrapOnStep  bool
-	SetEnv      envMap
+	NoStore      bool
+	StoreOnly    bool
+	Force        bool
+	Test         bool
+	NoTestFail   bool
+	KeepBuilder  bool
+	CatchOnError bool
+	CatchOnStep  bool
+	SetEnv       envMap
 }
 
 func main() {
@@ -81,7 +80,7 @@ func Execute() {
 			}
 		},
 	}
-	rootCmd.PersistentFlags().BoolVarP(&Args.Clean, "clean", "c", false, "Clean before doing anything")
+	//rootCmd.PersistentFlags().BoolVarP(&Args.Clean, "clean", "c", false, "Clean before doing anything")
 	rootCmd.PersistentFlags().StringVarP(&targetRootPath, "targets-root-path", "p", "", "Set targets root path")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "loglevel", "L", "info", "Set log level")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "Set log level")
@@ -149,13 +148,6 @@ func NewAciOrPod(path string, args BuildArgs) DgrCommand {
 		logs.WithE(err).WithField("path", path).WithField("err2", err2).Fatal("Cannot construct aci or pod")
 	}
 	return nil
-}
-
-func runCleanIfRequested(path string, args BuildArgs) {
-	if args.Clean {
-		logs.Warn("-c is deprecated and will be removed. Use 'dgr clean test', 'dgr clean install', 'dgr clean push' instead")
-		NewAciOrPod(path, args).Clean()
-	}
 }
 
 func giveBackUserRights(path string) {

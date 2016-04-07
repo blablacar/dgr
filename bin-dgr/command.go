@@ -114,8 +114,8 @@ func newBuildCommand(userClean bool) *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolVarP(&Args.KeepBuilder, "keep-builder", "k", false, "Keep builder container after exit")
-	cmd.Flags().BoolVarP(&Args.TrapOnError, "trap-on-error", "t", false, "Trap to shell on build failed") // TODO This is builder dependent and should be pushed by builder ? or find a way to become generic
-	cmd.Flags().BoolVarP(&Args.TrapOnStep, "trap-on-step", "T", false, "Trap on all steps")
+	cmd.Flags().BoolVarP(&Args.CatchOnError, "catch-on-error", "c", false, "Catch a shell on build* runlevel fail") // TODO This is builder dependent and should be pushed by builder ? or find a way to become generic
+	cmd.Flags().BoolVarP(&Args.CatchOnStep, "catch-on-step", "C", false, "Catch a shell after each build* runlevel")
 	return cmd
 }
 
@@ -130,8 +130,6 @@ func newSignCommand(underClean bool) *cobra.Command {
 			command := NewAciOrPod(workPath, Args)
 			if underClean {
 				command.Clean()
-			} else {
-				runCleanIfRequested(workPath, Args)
 			}
 			if err := command.Sign(); err != nil {
 				logs.WithE(err).Fatal("Sign command failed")
@@ -153,8 +151,6 @@ func newInstallCommand(underClean bool) *cobra.Command {
 			command := NewAciOrPod(workPath, Args)
 			if underClean {
 				command.Clean()
-			} else {
-				runCleanIfRequested(workPath, Args)
 			}
 			if _, err := command.Install(); err != nil {
 				logs.WithE(err).Fatal("Install command failed")
@@ -178,8 +174,6 @@ func newPushCommand(underClean bool) *cobra.Command {
 			command := NewAciOrPod(workPath, Args)
 			if underClean {
 				command.Clean()
-			} else {
-				runCleanIfRequested(workPath, Args)
 			}
 			if err := command.Push(); err != nil {
 				logs.WithE(err).Fatal("Push command failed")
@@ -202,8 +196,6 @@ func newTestCommand(underClean bool) *cobra.Command {
 			command := NewAciOrPod(workPath, Args)
 			if underClean {
 				command.Clean()
-			} else {
-				runCleanIfRequested(workPath, Args)
 			}
 			if err := command.Test(); err != nil {
 				logs.WithE(err).Fatal("Test command failed")

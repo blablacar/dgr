@@ -269,10 +269,10 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 		}
 	}
 
-	trapError, _ := manifestApp(b.pod).App.Environment.Get(common.EnvTrapOnError)
-	trapStep, _ := manifestApp(b.pod).App.Environment.Get(common.EnvTrapOnStep)
-	args = append(args, "--setenv="+common.EnvTrapOnError+"="+string(trapError))
-	args = append(args, "--setenv="+common.EnvTrapOnStep+"="+string(trapStep))
+	catchError, _ := manifestApp(b.pod).App.Environment.Get(common.EnvCatchOnError)
+	catchStep, _ := manifestApp(b.pod).App.Environment.Get(common.EnvCatchOnStep)
+	args = append(args, "--setenv="+common.EnvCatchOnError+"="+string(catchError))
+	args = append(args, "--setenv="+common.EnvCatchOnStep+"="+string(catchStep))
 
 	version, ok := manifestApp(b.pod).Image.Labels.Get("version")
 	if ok {

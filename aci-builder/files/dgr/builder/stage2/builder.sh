@@ -4,7 +4,7 @@ set -e
 isLevelEnabled "debug" && set -x
 
 onError() {
-    if [ "${TRAP_ON_ERROR}" == "true" ]; then
+    if [ "${CATCH_ON_ERROR}" == "true" ]; then
         echo_red "${1} failed. dropping to shell in builder"
         sh
     fi
@@ -39,8 +39,8 @@ export | grep -v -E " SHLV=| ROOTFS=| TARGET= | ACI_PATH= | ACI_HOME= | ACI_EXEC
 
 # builder runlevel
 execute_files "${ACI_HOME}/runlevels/builder" || onError "Builder"
-if [ "$(ls -A "${ACI_HOME}/runlevels/builder" 2> /dev/null)" ] && [ "${TRAP_ON_STEP}" == "true" ]; then
-    echo_purple "Trap requested dropping to shell after builder"
+if [ "$(ls -A "${ACI_HOME}/runlevels/builder" 2> /dev/null)" ] && [ "${CATCH_ON_STEP}" == "true" ]; then
+    echo_purple "Catch requested dropping to shell after builder"
     sh
 fi
 
@@ -117,7 +117,7 @@ fi
 
 rmdir ${ROOTFS}/dgr/builder &> /dev/null || true
 
-if [ "${TRAP_ON_STEP}" == "true" ]; then
-    echo_purple "Trap requested dropping to shell at end of build"
+if [ "${CATCH_ON_STEP}" == "true" ]; then
+    echo_purple "Catch requested dropping to shell at end of build"
     sh
 fi
