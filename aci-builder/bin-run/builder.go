@@ -314,9 +314,9 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 	for _, mount := range aciManifest.Builder.MountPoints {
 		from := mount.From
 		if from[0] != '/' {
-			from = "/" + from
+			from = b.aciHomePath + "/" + from
 		}
-		args = append(args, "--bind="+b.aciHomePath+from+":"+mount.To)
+		args = append(args, "--bind="+from+":"+mount.To)
 	}
 
 	args = append(args, commandPath)
