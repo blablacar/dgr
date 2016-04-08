@@ -129,6 +129,10 @@ func (b *Builder) writeManifest() error {
 		}
 	}
 
+	if aciManifest.NameAndVersion.Version() == "" {
+		aciManifest.NameAndVersion = *common.NewACFullName(aciManifest.NameAndVersion.Name() + ":" + common.GenerateVersion(b.aciTargetPath))
+	}
+
 	if err := common.WriteAciManifest(aciManifest, target, aciManifest.NameAndVersion.Name(), dgrVersion); err != nil {
 		return errs.WithEF(err, b.fields.WithField("file", target), "Failed to write manifest")
 	}

@@ -1,6 +1,7 @@
 package common
 
 import (
+	"encoding/json"
 	"github.com/appc/spec/aci"
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
@@ -114,8 +115,7 @@ func WriteAciManifest(m *AciManifest, targetFile string, projectName string, dgr
 		Ports:            m.Aci.App.Ports,
 		Isolators:        m.Aci.App.Isolators,
 	}
-
-	buff, err := im.MarshalJSON()
+	buff, err := json.MarshalIndent(im, "", "  ")
 	if err != nil {
 		return errs.WithEF(err, fields.WithField("object", im), "Failed to marshal manifest")
 	}
