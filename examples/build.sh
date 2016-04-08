@@ -13,26 +13,27 @@ buildAci() {
     sleep 1
     dgr -W ${1} -L debug clean install
 }
-# base
-buildAci ${dir}/aci-base
 
-# none
-buildAci ${dir}/none/aci-libc
-buildAci ${dir}/none/aci-grafana
-buildAci ${dir}/none/aci-prometheus
-buildAci ${dir}/none/aci-rkt
-
-# debian
-buildAci ${dir}/debian/aci-debian
-buildAci ${dir}/debian/aci-cassandra
-
-# alpine
-buildAci ${dir}/alpine/aci-alpine-base
-buildAci ${dir}/alpine/aci-alpine-nginx
-
-# gentoo
-buildAci ${dir}/gentoo/aci-gentoo-stage4
-#buildAci ${dir}/gentoo/aci-gentoo-lighttpd # TODO build is too long for travis
+## base
+#buildAci ${dir}/aci-base
+#
+## none
+#buildAci ${dir}/none/aci-libc
+#buildAci ${dir}/none/aci-grafana
+#buildAci ${dir}/none/aci-prometheus
+#buildAci ${dir}/none/aci-rkt
+#
+## debian
+#buildAci ${dir}/debian/aci-debian
+#buildAci ${dir}/debian/aci-cassandra
+#
+## alpine
+#buildAci ${dir}/alpine/aci-alpine-base
+#buildAci ${dir}/alpine/aci-alpine-nginx
+#
+## gentoo
+#buildAci ${dir}/gentoo/aci-gentoo-stage4
+##buildAci ${dir}/gentoo/aci-gentoo-lighttpd # TODO build is too long for travis
 
 # archlinux
 buildAci ${dir}/arch/aci-arch-bootstrap
