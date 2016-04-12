@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/dgr/bin-dgr/common"
+	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
@@ -26,7 +28,9 @@ func (p *Pod) CleanAndBuild() error {
 		return err
 	}
 
-	p.writePodManifest(apps)
+	if err := p.writePodManifest(apps); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -62,6 +66,8 @@ func (p *Pod) processAci() ([]schema.RuntimeApp, error) {
 		identifier, _ := types.NewACIdentifier(aci.manifest.NameAndVersion.Name())
 		ttmp := schema.RuntimeImage{Name: identifier, ID: *tmp, Labels: labels}
 
+		e.App.Group = aci.manifest.Aci.App.Group
+		e.App.User = aci.manifest.Aci.App.User
 		if e.App.User == "" {
 			e.App.User = "0"
 		}
@@ -89,7 +95,61 @@ func (p *Pod) processAci() ([]schema.RuntimeApp, error) {
 	return apps, nil
 }
 
+func (p *Pod) fillRuntimeAppFromDependencies(e *common.RuntimeApp) error {
+	fields := p.fields.WithField("aci", e.Name)
+	if len(e.Dependencies) > 1 && len(e.App.Exec) == 0 {
+		return errs.WithF(fields, "There is more than 1 dependency, manifest aci must be set explicitly")
+	}
+
+	if len(e.Dependencies) == 1 {
+		manifestStr, err := Home.Rkt.CatManifest(e.Dependencies[0].String())
+		if err != nil {
+			return errs.WithEF(err, fields.WithField("dependency", e.Dependencies[0].String()), "Failed to get dependency manifest")
+		}
+		manifest := schema.ImageManifest{}
+		if err := json.Unmarshal([]byte(manifestStr), &manifest); err != nil {
+			return errs.WithEF(err, fields.WithField("content", manifestStr), "Failed to unmarshal stage1 manifest received from rkt")
+		}
+
+		if len(e.App.Exec) == 0 {
+			e.App.Exec = manifest.App.Exec
+		}
+		if e.App.User == "" {
+			e.App.User = manifest.App.User
+		}
+		if e.App.Group == "" {
+			e.App.Group = manifest.App.Group
+		}
+		if e.App.WorkingDirectory == "" {
+			e.App.WorkingDirectory = manifest.App.WorkingDirectory
+		}
+		if len(e.App.Isolators) == 0 {
+			e.App.Isolators = manifest.App.Isolators
+		}
+		if len(e.App.Ports) == 0 {
+			e.App.Ports = manifest.App.Ports
+		}
+		if len(e.App.MountPoints) == 0 {
+			e.App.MountPoints = manifest.App.MountPoints
+		}
+		if len(e.App.Environment) == 0 {
+			e.App.Environment = manifest.App.Environment
+		}
+
+		anns := e.Annotations
+		e.Annotations = manifest.Annotations
+		for _, ann := range anns {
+			e.Annotations.Set(ann.Name, ann.Value)
+		}
+	}
+	return nil
+}
+
 func (p *Pod) buildAci(e common.RuntimeApp) (*Aci, error) {
+	if err := p.fillRuntimeAppFromDependencies(&e); err != nil {
+		return nil, err
+	}
+
 	path := p.path + "/" + e.Name
 	if dir, err := os.Stat(path); err != nil || !dir.IsDir() {
 		path = p.target + "/" + e.Name
@@ -113,7 +173,7 @@ func (p *Pod) buildAci(e common.RuntimeApp) (*Aci, error) {
 	return aci, nil
 }
 
-func (p *Pod) writePodManifest(apps []schema.RuntimeApp) {
+func (p *Pod) writePodManifest(apps []schema.RuntimeApp) error {
 	m := p.manifest.Pod
 	ver, _ := types.NewSemVer("0.6.1")
 	manifest := schema.PodManifest{
@@ -124,18 +184,19 @@ func (p *Pod) writePodManifest(apps []schema.RuntimeApp) {
 		Isolators:   m.Isolators,
 		Annotations: m.Annotations,
 		Ports:       m.Ports}
-	WritePodManifest(&manifest, p.target+pathPodManifestJson)
+	return WritePodManifest(&manifest, p.target+pathPodManifestJson)
 }
 
-func WritePodManifest(im *schema.PodManifest, targetFile string) {
-	buff, err := im.MarshalJSON()
+func WritePodManifest(im *schema.PodManifest, targetFile string) error {
+	buff, err := json.MarshalIndent(im, "", "  ")
 	if err != nil {
-		panic(err)
+		return errs.WithEF(err, data.WithField("object", im), "Failed to marshal manifest")
 	}
 	err = ioutil.WriteFile(targetFile, []byte(buff), 0644)
 	if err != nil {
-		panic(err)
+		return errs.WithEF(err, data.WithField("file", targetFile), "Failed to write pod manifest")
 	}
+	return nil
 }
 
 func (p *Pod) getVolumeMountValue(mountName types.ACName) (*types.Volume, error) {

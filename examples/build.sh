@@ -25,7 +25,7 @@ buildAci ${dir}/none/aci-rkt
 
 # debian
 buildAci ${dir}/debian/aci-debian
-buildAci ${dir}/debian/aci-cassandra
+buildAci ${dir}/debian/aci-debian-cassandra
 
 # alpine
 buildAci ${dir}/alpine/aci-alpine-base
@@ -45,7 +45,7 @@ buildAci ${dir}/arch/aci-arch-upx
 buildAci ${dir}/arch/aci-arch-gcc
 buildAci ${dir}/arch/aci-arch-java
 buildAci ${dir}/arch/aci-arch-maven
-buildAci ${dir}/arch/aci-prometheus-jmx-exporter
+buildAci ${dir}/arch/aci-arch-prometheus-jmx-exporter
 
 # pod
 buildAci ${dir}/pod/pod-cassandra
