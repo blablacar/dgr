@@ -1,6 +1,7 @@
 #!/dgr/bin/busybox sh
-set -x
 set -e
+. /dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
 
 cat > /etc/apt/sources.list.d/cassandra.list<<EOF
 deb http://ftp.fr.debian.org/debian/ sid main non-free contrib # needed for java8

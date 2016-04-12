@@ -33,7 +33,9 @@ fi
 
 echo "ce9d63a98a8b4438882fd795e294cd50" > /etc/machine-id
 
+mkdir -p /dgr/builder/runlevels
 mkdir -p /dgr/builder/attributes
+
 # save envs
 export | grep -v -E " SHLV=| ROOTFS=| TARGET= | ACI_PATH= | ACI_HOME= | ACI_EXEC=" > /dgr/builder/export
 
@@ -65,8 +67,7 @@ if [ -d ${ACI_HOME}/runlevels/inherit-build-early ]; then
 fi
 
 # build runlevel
-if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ROOTFS}/dgr/runlevels/inherit-build-early ]; then
-    mkdir -p /dgr/builder/runlevels
+if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]; then
     if [ -d ${ACI_HOME}/runlevels/build ]; then
         cp -Rf ${ACI_HOME}/runlevels/build /dgr/builder/runlevels
     fi
@@ -105,7 +106,7 @@ fi
 
 
 # build-late runlevel
-if [ -d ${ACI_HOME}/runlevels/build-late ] || [ -d ${ROOTFS}/dgr/runlevels/inherit-build-late ]; then
+if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]; then
     if [ -d ${ACI_HOME}/runlevels/build-late ]; then
         cp -Rf ${ACI_HOME}/runlevels/build-late /dgr/builder/runlevels
     fi

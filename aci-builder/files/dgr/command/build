@@ -8,5 +8,7 @@ execute_files "/dgr/runlevels/inherit-build-early" || onError "Inherit-build-ear
 /dgr/bin/prestart
 execute_files "/dgr/runlevels/inherit-build-late" || onError "Inherit-build-late"
 
+echo_green "\nBuilder is ready\n"
+
 export ACI_HOME="/dgr/aci-home"
 /dgr/builder/stage2/builder.sh
