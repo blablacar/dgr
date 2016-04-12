@@ -43,6 +43,11 @@ buildAci ${dir}/arch/aci-arch-git
 buildAci ${dir}/arch/aci-arch-go
 buildAci ${dir}/arch/aci-arch-upx
 buildAci ${dir}/arch/aci-arch-gcc
+buildAci ${dir}/arch/aci-arch-java
+buildAci ${dir}/arch/aci-arch-maven
+buildAci ${dir}/arch/aci-prometheus-jmx-exporter
 
+# pod
+buildAci ${dir}/pod/pod-cassandra
 
 echo -e "\n\033[0;32mEverything looks good !\033[0m\n"

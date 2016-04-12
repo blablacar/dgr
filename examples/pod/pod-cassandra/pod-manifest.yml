@@ -1,0 +1,8 @@
+name: dgrtool.com/pod-cassandra
+pod:
+  apps:
+    - dependencies:
+        - dgrtool.com/aci-debian-cassandra
+
+    - dependencies:
+        - dgrtool.com/aci-arch-prometheus-jmx-exporter

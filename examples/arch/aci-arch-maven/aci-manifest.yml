@@ -2,8 +2,8 @@ name: dgrtool.com/aci-arch-maven
 
 builder:
   dependencies:
-    - dgrtool.com/aci-arch-yaourt
+    - dgrtool.com/aci-arch-pacman
 
 aci:
   dependencies:
-    - dgrtool.com/aci-base
+    - dgrtool.com/aci-arch-jdk

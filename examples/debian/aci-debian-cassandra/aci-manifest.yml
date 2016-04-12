@@ -1,4 +1,4 @@
-name: dgrtool.com/aci-cassandra:{{.version}}-1
+name: dgrtool.com/aci-debian-cassandra:{{.version}}-1
 aci:
   dependencies:
     - dgrtool.com/aci-debian:8

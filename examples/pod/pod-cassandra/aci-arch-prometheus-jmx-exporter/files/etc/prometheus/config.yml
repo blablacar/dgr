@@ -1,0 +1,27 @@
+---
+hostPort: 127.0.0.1:7199
+jmxUrl: service:jmx:rmi:///jndi/rmi://127.0.0.1:7199/jmxrmi
+lowercaseOutputLabelNames: true
+lowercaseOutputName: true
+rules:
+- pattern: org.apache.cassandra.metrics<type=(Connection|Streaming), scope=(\S*), name=(\S*)><>(Count|Value)
+  name: cassandra_$1_$3
+  labels:
+    address: "$2"
+- pattern: org.apache.cassandra.metrics<type=(\S*)(?:, ((?!scope)\S*)=(\S*))?(?:, scope=(\S*))?,
+    name=(\S*)><>(Count|Value)
+  name: cassandra_$1_$5
+  labels:
+    "$1": "$4"
+    "$2": "$3"
+
+- "pattern": "java.lang<type=Memory><HeapMemoryUsage>(.+): .*"
+  "name": "java_lang_Memory_HeapMemoryUsage_$1"
+- "pattern": "java.lang<type=Memory><NonHeapMemoryUsage>(.+): .*"
+  "name": "java_lang_Memory_NonHeapMemoryUsage_$1"
+- "pattern": "java.lang<type=OperatingSystem><.*>(.+)DescriptorCount: .*"
+  "name": "java_lang_OperatingSystem_$1DescriptorCount"
+- "pattern": "java.lang<type=OperatingSystem><.*>(.+)CpuLoad: .*"
+  "name": "java_lang_OperatingSystem_$1CpuLoad"
+- "pattern": "java.lang<type=Threading><(.*)>(.*)ThreadCount: .*"
+  "name": "java_lang_Threading_$2ThreadCount"

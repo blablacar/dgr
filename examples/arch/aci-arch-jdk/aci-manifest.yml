@@ -1,0 +1,9 @@
+name: dgrtool.com/aci-arch-jdk
+
+builder:
+  dependencies:
+    - dgrtool.com/aci-arch-yaourt
+
+aci:
+  dependencies:
+    - dgrtool.com/aci-base
