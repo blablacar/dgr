@@ -43,7 +43,7 @@ buildAci ${dir}/arch/aci-arch-git
 buildAci ${dir}/arch/aci-arch-go
 buildAci ${dir}/arch/aci-arch-upx
 buildAci ${dir}/arch/aci-arch-gcc
-buildAci ${dir}/arch/aci-arch-java
+buildAci ${dir}/arch/aci-arch-jdk
 buildAci ${dir}/arch/aci-arch-maven
 buildAci ${dir}/arch/aci-arch-prometheus-jmx-exporter
 
