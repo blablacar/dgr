@@ -10,7 +10,7 @@
 
 dgr allows you to build generic container images for a service and to configure them at runtime. Therefore you can use the same image for different environments, clusters, or nodes by overriding the appropriate attributes when launching the container.
 
-_dgr is actively used at blablacar to build and run more than an hundred different aci and pod to [run all platforms](http://blablatech.com/blog/why-and-how-blablacar-went-full-containers)._
+_dgr is actively used at blablacar to build and run more than an hundred different aci and pod to [run all our platforms](http://blablatech.com/blog/why-and-how-blablacar-went-full-containers)._
 
 
 ## Build the ACI once, configure your app at runtime.
@@ -138,7 +138,7 @@ It will generate the following file tree:
 
 This project is already valid which means that you can build it and it will result in a runnable ACI (dgr always adds busybox to the ACI). But you probably want to customize it at this point.
 
-The only mandatory information is the `aci-manifest.yml`, with only the aci `name:`. You can remove everything else depending on you needs.  
+The only mandatory information is the `aci-manifest.yml`, with only the aci `name:`. You can remove everything else depending on your needs.  
 
 ## Nice other features
 
