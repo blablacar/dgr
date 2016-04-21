@@ -8,3 +8,8 @@ default:
   pod:
     hostname: zk1
 #    domain: yopla
+  test:
+    toto: 1
+    toto1: 1.1
+    toto2: yoplalala
+    toto3: "1.1"

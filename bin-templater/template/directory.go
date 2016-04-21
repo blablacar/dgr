@@ -1,6 +1,7 @@
 package template
 
 import (
+	"github.com/leekchan/gtf"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
@@ -51,9 +52,9 @@ func (t *TemplateDir) LoadPartial() error {
 	var tmpl *txttmpl.Template
 	for _, partial := range partials {
 		if tmpl == nil {
-			tmpl = txttmpl.New(partial)
+			tmpl = txttmpl.New(partial).Funcs(TemplateFunctions).Funcs(map[string]interface{}(gtf.GtfFuncMap))
 		} else {
-			tmpl = tmpl.New(partial)
+			tmpl = tmpl.New(partial).Funcs(TemplateFunctions).Funcs(map[string]interface{}(gtf.GtfFuncMap))
 		}
 
 		content, err := ioutil.ReadFile(partial)

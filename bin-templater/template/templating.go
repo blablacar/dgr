@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"reflect"
 	"strings"
 	txttmpl "text/template"
 	"time"
@@ -115,6 +116,66 @@ func UnmarshalJsonArray(data string) ([]interface{}, error) {
 	return ret, err
 }
 
+func IsType(data interface{}, t string) bool {
+	dataType := reflect.TypeOf(data)
+	if dataType.String() == t {
+		return true
+	}
+	return false
+}
+
+func IsKind(data interface{}, t string) bool {
+	dataType := reflect.TypeOf(data)
+	if dataType.Kind().String() == t {
+		return true
+	}
+	return false
+}
+
+func IsMap(data interface{}) bool {
+	dataType := reflect.TypeOf(data)
+	if dataType.Kind() == reflect.Map {
+		return true
+	}
+	return false
+}
+
+func IsArray(data interface{}) bool {
+	dataType := reflect.TypeOf(data)
+	if dataType.Kind() == reflect.Array || dataType.Kind() == reflect.Slice {
+		return true
+	}
+	return false
+}
+
+func IsString(data interface{}) bool {
+	dataType := reflect.TypeOf(data)
+	if dataType.Kind() == reflect.String {
+		return true
+	}
+	return false
+}
+
+func add(x, y int) int {
+	return x + y
+}
+
+func mul(x, y int) int {
+	return x * y
+}
+
+func div(x, y int) int {
+	return x / y
+}
+
+func mod(x, y int) int {
+	return x % y
+}
+
+func sub(x, y int) int {
+	return x - y
+}
+
 func init() {
 	TemplateFunctions = make(map[string]interface{})
 	TemplateFunctions["base"] = path.Base
@@ -129,8 +190,18 @@ func init() {
 	TemplateFunctions["toLower"] = strings.ToLower
 	TemplateFunctions["contains"] = strings.Contains
 	TemplateFunctions["replace"] = strings.Replace
+	TemplateFunctions["repeat"] = strings.Repeat
 	TemplateFunctions["orDef"] = orDef
 	TemplateFunctions["orDefs"] = orDefs
 	TemplateFunctions["ifOrDef"] = ifOrDef
-
+	TemplateFunctions["isType"] = IsType
+	TemplateFunctions["isMap"] = IsMap
+	TemplateFunctions["isArray"] = IsArray
+	TemplateFunctions["isKind"] = IsKind
+	TemplateFunctions["isString"] = IsString
+	TemplateFunctions["add"] = add
+	TemplateFunctions["mul"] = mul
+	TemplateFunctions["div"] = div
+	TemplateFunctions["sub"] = sub
+	TemplateFunctions["mod"] = mod
 }

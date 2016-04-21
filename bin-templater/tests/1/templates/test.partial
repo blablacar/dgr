@@ -1,0 +1,23 @@
+{{define "config" -}}
+{{if . -}}
+{{if isString . -}}{{template "stringType" . -}}
+{{else if isArray . }}{{template "arrayType" . -}}
+{{else if isMap .}}{{template "mapType" . -}}
+{{else}}{{.}}{{end -}}
+{{end -}}
+{{end}}
+
+{{define "stringType" -}}
+"{{.}}"{{end}}
+
+
+{{define "mapType"}}
+{{range $a,$b := . -}}
+{{template "indent" 2}}{{$a}}: {{template "config" $b}}
+{{end -}}
+{{end}}
+
+{{define "arrayType" -}}
+[{{ range . }}{{ template "config" . }},{{ end }}]{{end}}
+
+{{define "indent"}}{{repeat "  "  .}}{{end}}
