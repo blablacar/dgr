@@ -46,6 +46,7 @@ buildAci ${dir}/arch/aci-arch-gcc
 buildAci ${dir}/arch/aci-arch-jdk
 buildAci ${dir}/arch/aci-arch-maven
 buildAci ${dir}/arch/aci-arch-prometheus-jmx-exporter
+buildAci ${dir}/centos/aci-centos
 
 # pod
 buildAci ${dir}/pod/pod-cassandra

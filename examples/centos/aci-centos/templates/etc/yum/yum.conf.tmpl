@@ -1,0 +1,12 @@
+{{ $data := .}}
+{{- range $key,$value := .yum.config -}}
+[{{ $key }}]
+{{ if $data.rootfs  }}
+{{ if eq $key "main"  }}
+installroot={{ $data.rootfs }}
+{{- end -}}
+{{- end -}}
+{{- range $a,$b := $value -}}
+{{ $a }}={{ $b }}
+{{- end -}}
+{{- end -}}
