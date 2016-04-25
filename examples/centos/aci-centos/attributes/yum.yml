@@ -1,0 +1,9 @@
+---
+default:
+  yum:
+    config:
+      main:
+        assumeyes: 1
+        tsflags: nodocs
+        group_package_types: mandatory
+        override_install_langs: en

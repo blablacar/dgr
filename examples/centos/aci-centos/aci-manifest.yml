@@ -1,0 +1,4 @@
+name: dgrtool.com/aci-centos
+aci:
+  dependencies:
+    - dgrtool.com/aci-base
