@@ -116,7 +116,7 @@ if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]
 fi
 
 
-rmdir ${ROOTFS}/dgr/builder &> /dev/null || true
+rmdir ${ROOTFS}/dgr/builder >/dev/null 2>&1 || true
 
 if [ "${CATCH_ON_STEP}" == "true" ]; then
     echo_purple "Catch requested dropping to shell at end of build"
