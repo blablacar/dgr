@@ -21,7 +21,7 @@ execute_files() {
             [ -e "$file" ] && {
                 [ -x "$file" ] || chmod +x "$file"
                 isLevelEnabled 4 && echo_green "Running script -> $file"
-                "$file"
+                "$file" || return 1
             }
         fi
       done
