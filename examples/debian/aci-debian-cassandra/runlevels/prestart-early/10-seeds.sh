@@ -3,7 +3,7 @@ set -e
 . /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
-cat > /dgr/attributes/aci-cassandra/prestart.yml <<EOF
+cat > /dgr/attributes/aci-debian-cassandra/prestart.yml <<EOF
 default:
   cassandra:
     seeds: $IP

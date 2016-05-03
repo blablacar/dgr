@@ -19,7 +19,7 @@ execute_files() {
       for file in "${fdir}"/*; do
         if [ -f "$file" ]; then
             [ -e "$file" ] && {
-                [ -x "$file" ] || chmod +x "$file"
+                [ -x "$file" ] || chmod +x "$file" >/dev/null 2>&1 || true
                 isLevelEnabled 4 && echo_green "Running script -> $file"
                 "$file" || return 1
             }

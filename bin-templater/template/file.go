@@ -37,8 +37,8 @@ func NewTemplateFile(partials *txttmpl.Template, src string, mode os.FileMode) (
 	}
 
 	t := &TemplateFile{
-		Uid:      0,
-		Gid:      0,
+		Uid:      os.Getuid(),
+		Gid:      os.Getgid(),
 		fields:   fields,
 		template: template,
 		Mode:     mode,

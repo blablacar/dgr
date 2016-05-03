@@ -4,5 +4,7 @@ aci:
     - dgrtool.com/aci-debian:8
   app:
     exec: [ "/bin/bash", "-c", "CASSANDRA_CONF=/etc/cassandra source /etc/cassandra/cassandra-env.sh && /usr/sbin/cassandra -f" ]
+    user: {{.user}}
+    group: {{.group}}
     mountPoints:
       - {name: data, path: /data, readOnly: false}

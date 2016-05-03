@@ -20,3 +20,7 @@ gpg --export --armor 0353B12C | apt-key add -
 
 apt-get update
 apt-get install -y cassandra cassandra-tools
+
+chown -R cassandra: /etc/cassandra
+mkdir /data
+chown cassandra: /data
