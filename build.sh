@@ -13,7 +13,7 @@ rm -Rf ${dir}/dist/*-amd64
 mkdir -p ${dir}/dist
 
 #save dep
-godep save ${dir}/bin-dgr ${dir}/bin-templater ${dir}/aci-builder/bin-run || true
+godep save ${dir}/... || true
 
 # format
 gofmt -w -s ${dir}/bin-dgr ${dir}/bin-templater ${dir}/aci-builder/bin-run

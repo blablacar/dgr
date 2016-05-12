@@ -1,6 +1,6 @@
 {{define "config" -}}
 {{if . -}}
-{{if isString . -}}{{template "stringType" . -}}
+{{if isString . }}{{template "stringType" . -}}
 {{else if isArray . }}{{template "arrayType" . -}}
 {{else if isMap .}}{{template "mapType" . -}}
 {{else}}{{.}}{{end -}}

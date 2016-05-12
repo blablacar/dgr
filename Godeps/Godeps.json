@@ -1,10 +1,9 @@
 {
 	"ImportPath": "github.com/blablacar/dgr",
 	"GoVersion": "go1.6",
+	"GodepVersion": "v65",
 	"Packages": [
-		"./bin-dgr",
-		"./bin-templater",
-		"./aci-builder/bin-run"
+		"./..."
 	],
 	"Deps": [
 		{
@@ -29,6 +28,16 @@
 		},
 		{
 			"ImportPath": "github.com/appc/spec/schema",
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/schema/common",
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/schema/types",
 			"Comment": "v0.7.1-30-g1e5ab3d",
 			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
 		},
@@ -89,6 +98,82 @@
 			"Rev": "73ef27688910c7154b1428a4aa63b1d3f4ada1f9"
 		},
 		{
+			"ImportPath": "github.com/n0rad/go-erlog/data",
+			"Rev": "73ef27688910c7154b1428a4aa63b1d3f4ada1f9"
+		},
+		{
+			"ImportPath": "github.com/n0rad/go-erlog/errs",
+			"Rev": "73ef27688910c7154b1428a4aa63b1d3f4ada1f9"
+		},
+		{
+			"ImportPath": "github.com/n0rad/go-erlog/logs",
+			"Rev": "73ef27688910c7154b1428a4aa63b1d3f4ada1f9"
+		},
+		{
+			"ImportPath": "github.com/n0rad/go-erlog/register",
+			"Rev": "73ef27688910c7154b1428a4aa63b1d3f4ada1f9"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/format",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/internal/assertion",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/internal/asyncassertion",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/internal/oraclematcher",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/internal/testingtsupport",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/matchers",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/matchers/support/goraph/bipartitegraph",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/matchers/support/goraph/edge",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/matchers/support/goraph/node",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/matchers/support/goraph/util",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/types",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
 			"ImportPath": "github.com/peterbourgon/mergemap",
 			"Rev": "e21c03b7a721e413718d2703181ead350d3c9d6f"
 		},
@@ -106,6 +191,10 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/html",
+			"Rev": "ea47fc708ee3e20177f3ca3716217c4ab75942cb"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html/atom",
 			"Rev": "ea47fc708ee3e20177f3ca3716217c4ab75942cb"
 		},
 		{
