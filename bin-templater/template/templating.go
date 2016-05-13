@@ -118,6 +118,9 @@ func UnmarshalJsonArray(data string) ([]interface{}, error) {
 
 func IsType(data interface{}, t string) bool {
 	dataType := reflect.TypeOf(data)
+	if dataType == nil {
+		return false
+	}
 	if dataType.String() == t {
 		return true
 	}
@@ -126,6 +129,9 @@ func IsType(data interface{}, t string) bool {
 
 func IsKind(data interface{}, t string) bool {
 	dataType := reflect.TypeOf(data)
+	if dataType == nil {
+		return false
+	}
 	if dataType.Kind().String() == t {
 		return true
 	}
@@ -134,6 +140,9 @@ func IsKind(data interface{}, t string) bool {
 
 func IsMap(data interface{}) bool {
 	dataType := reflect.TypeOf(data)
+	if dataType == nil {
+		return false
+	}
 	if dataType.Kind() == reflect.Map {
 		return true
 	}
@@ -142,6 +151,9 @@ func IsMap(data interface{}) bool {
 
 func IsArray(data interface{}) bool {
 	dataType := reflect.TypeOf(data)
+	if dataType == nil {
+		return false
+	}
 	if dataType.Kind() == reflect.Array || dataType.Kind() == reflect.Slice {
 		return true
 	}
@@ -150,6 +162,9 @@ func IsArray(data interface{}) bool {
 
 func IsString(data interface{}) bool {
 	dataType := reflect.TypeOf(data)
+	if dataType == nil {
+		return false
+	}
 	if dataType.Kind() == reflect.String {
 		return true
 	}
