@@ -142,7 +142,7 @@ func (aci *Aci) buildTestAci() (string, error) {
 				MountPoints:      []types.MountPoint{{Path: pathTestsResult, Name: *resultMountName}},
 				WorkingDirectory: aci.manifest.Aci.App.WorkingDirectory,
 			},
-			Dependencies: append([]common.ACFullname{*common.NewACFullName(name[len(prefixTest):])}, aci.manifest.Tester.Aci.Dependencies...),
+			Dependencies: append(aci.manifest.Tester.Aci.Dependencies, *common.NewACFullName(name[len(prefixTest):])),
 		},
 		NameAndVersion: *fullname,
 	}
