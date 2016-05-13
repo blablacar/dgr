@@ -105,15 +105,16 @@ func WriteAciManifest(m *AciManifest, targetFile string, projectName string, dgr
 	}
 
 	im.App = &types.App{
-		Exec:             m.Aci.App.Exec,
-		EventHandlers:    []types.EventHandler{{Name: "pre-start", Exec: []string{"/dgr/bin/prestart"}}},
-		User:             m.Aci.App.User,
-		Group:            m.Aci.App.Group,
-		WorkingDirectory: m.Aci.App.WorkingDirectory,
-		Environment:      m.Aci.App.Environment,
-		MountPoints:      m.Aci.App.MountPoints,
-		Ports:            m.Aci.App.Ports,
-		Isolators:        m.Aci.App.Isolators,
+		Exec:              m.Aci.App.Exec,
+		EventHandlers:     []types.EventHandler{{Name: "pre-start", Exec: []string{"/dgr/bin/prestart"}}},
+		User:              m.Aci.App.User,
+		Group:             m.Aci.App.Group,
+		WorkingDirectory:  m.Aci.App.WorkingDirectory,
+		SupplementaryGIDs: m.Aci.App.SupplementaryGIDs,
+		Environment:       m.Aci.App.Environment,
+		MountPoints:       m.Aci.App.MountPoints,
+		Ports:             m.Aci.App.Ports,
+		Isolators:         m.Aci.App.Isolators,
 	}
 	buff, err := json.MarshalIndent(im, "", "  ")
 	if err != nil {

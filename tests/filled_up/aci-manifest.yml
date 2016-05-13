@@ -1,5 +1,7 @@
 name: example.com/aci-test:{{.version}}-1
 aci:
+  app:
+    supplementaryGIDs: [42, 43]
   annotations:
   {{range $index, $element := .annotations}}
     - {name: test, value: test2}

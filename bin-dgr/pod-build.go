@@ -79,14 +79,15 @@ func (p *Pod) processAci() ([]schema.RuntimeApp, error) {
 			Name:  *name,
 			Image: ttmp,
 			App: &types.App{
-				Exec:             e.App.Exec,
-				User:             e.App.User,
-				Group:            e.App.Group,
-				WorkingDirectory: e.App.WorkingDirectory,
-				Environment:      e.App.Environment,
-				MountPoints:      e.App.MountPoints,
-				Ports:            e.App.Ports,
-				Isolators:        e.App.Isolators,
+				Exec:              e.App.Exec,
+				User:              e.App.User,
+				Group:             e.App.Group,
+				WorkingDirectory:  e.App.WorkingDirectory,
+				SupplementaryGIDs: e.App.SupplementaryGIDs,
+				Environment:       e.App.Environment,
+				MountPoints:       e.App.MountPoints,
+				Ports:             e.App.Ports,
+				Isolators:         e.App.Isolators,
 			},
 			Mounts:      e.Mounts,
 			Annotations: e.Annotations})
@@ -122,6 +123,9 @@ func (p *Pod) fillRuntimeAppFromDependencies(e *common.RuntimeApp) error {
 		}
 		if e.App.WorkingDirectory == "" {
 			e.App.WorkingDirectory = manifest.App.WorkingDirectory
+		}
+		if len(e.App.SupplementaryGIDs) == 0 {
+			e.App.SupplementaryGIDs = manifest.App.SupplementaryGIDs
 		}
 		if len(e.App.Isolators) == 0 {
 			e.App.Isolators = manifest.App.Isolators
