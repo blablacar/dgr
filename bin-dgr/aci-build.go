@@ -125,13 +125,13 @@ func (aci *Aci) prepareStage1aci() (string, error) {
 		return "", errs.WithEF(err, aci.fields.WithField("content", manifestStr), "Failed to unmarshal stage1 manifest received from rkt")
 	}
 
+	manifest.Dependencies = types.Dependencies{}
 	dep, err := common.ToAppcDependencies(aci.manifest.Builder.Dependencies)
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "Invalid dependency on stage1 for rkt")
 	}
 	manifest.Dependencies = append(manifest.Dependencies, dep...)
 
-	manifest.Dependencies = types.Dependencies{}
 	stage1Image, err := common.ToAppcDependencies([]common.ACFullname{aci.manifest.Builder.Image})
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "Invalid image on stage1 for rkt")
