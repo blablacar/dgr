@@ -145,7 +145,7 @@ func (aci *Aci) prepareStage1aci() (string, error) {
 	}
 	manifest.Name = *name
 
-	content, err := json.Marshal(&manifest)
+	content, err := json.MarshalIndent(&manifest, "", "  ")
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "Failed to marshal builder's stage1 manifest")
 	}
