@@ -115,7 +115,7 @@ if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]
         --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build-late.sh || onError "Build-late"
 fi
 
-chmod -R 777 ${ROOTFS}/dgr/*
+chmod -R 777 ${ROOTFS}/dgr
 
 rmdir ${ROOTFS}/dgr/builder >/dev/null 2>&1 || true
 
