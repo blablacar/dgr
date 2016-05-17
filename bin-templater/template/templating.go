@@ -210,7 +210,7 @@ func HowDeepIsIt(data interface{},element interface{},deep int) int{
 	mapItem := reflect.ValueOf(data)
 	elemItem := reflect.ValueOf(element)
 	switch elemType {
-		case reflect.String:
+		//case reflect.String:
 		//	fmt.Println("1Bis: Type:",elemType,"Value",elemItem,"ValueData",mapItem)
 		// 	fmt.Println("Type:",dataType,"Value",mapItem)
 		// 	for _, b := range reflect.ValueOf(data).MapKeys() {cd ~g
@@ -231,14 +231,14 @@ func HowDeepIsIt(data interface{},element interface{},deep int) int{
 				if reflect.DeepEqual(mapItem.MapIndex(b).Interface(), elemItem.Interface()) {
 					return deep + 1
 				}
-				// if IsMap(mapItem.MapIndex(b).Interface()) {
-				// 	fmt.Println("3: IsMap:",mapItem.MapIndex(b).Interface())
-				// 	index := HowDeepIsIt(mapItem.MapIndex(b).Interface(),element,deep + 1 )
-				// 	if index == deep + 2 {
-				// 		fmt.Println("4: Key:",mapItem.MapIndex(b).Interface() ,"Deepness",index)
-				// 		return index
-				// 	}
-				// }
+				if IsMap(mapItem.MapIndex(b).Interface()) {
+				 	//fmt.Println("3: IsMap:",mapItem.MapIndex(b).Interface())
+				 	index := HowDeepIsIt(mapItem.MapIndex(b).Interface(),element,deep + 1 )
+				 	if index == deep + 2 {
+				 		//fmt.Println("4: Key:",mapItem.MapIndex(b).Interface() ,"Deepness",index)
+				 		return index
+				 	}
+				}
 			}
 	}
 
