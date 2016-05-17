@@ -102,8 +102,12 @@ func (t *TemplateDir) processSingleDir(src string, dst string, attributes map[st
 			if err := t.processSingleDir(srcObj, dstObj, attributes); err != nil {
 				return err
 			}
-		} else if strings.HasSuffix(obj.Name(), ".tmpl") {
-			dstObj := dstObj[:len(dstObj)-5]
+		} else if strings.HasSuffix(obj.Name(), ".tmpl") || strings.Contains(obj.Name(), ".tmpl.") {
+			if strings.HasSuffix(obj.Name(), ".tmpl") {
+				dstObj = dstObj[:len(dstObj)-5]
+			} else {
+				dstObj = dst + "/" + strings.Replace(obj.Name(), ".tmpl.", ".", 1)
+			}
 			template, err := NewTemplateFile(t.partials, srcObj, obj.Mode())
 			if err != nil {
 				return err
