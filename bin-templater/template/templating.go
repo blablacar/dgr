@@ -213,7 +213,7 @@ func HowDeepIsIt(data interface{},element interface{},deep int) int{
 		case reflect.String:
 		//	fmt.Println("1Bis: Type:",elemType,"Value",elemItem,"ValueData",mapItem)
 		// 	fmt.Println("Type:",dataType,"Value",mapItem)
-		// 	for _, b := range reflect.ValueOf(data).MapKeys() {
+		// 	for _, b := range reflect.ValueOf(data).MapKeys() {cd ~g
 		// 		//fmt.Println("Reflect:",elemItem , "Value:",b,"MapValue",mapItem.MapIndex(b),"Equal",reflect.DeepEqual(mapItem.MapIndex(b).Interface(), elemItem.Interface()))
 		// 		//fmt.Println("Reflect:",IsMap(mapItem.MapIndex(b).Interface()),"b",mapItem.MapIndex(b).Interface())
 		// 		// fmt.Println("Reflect:",(elemItem.Interface()) ,mapItem.MapIndex(b).Interface())
