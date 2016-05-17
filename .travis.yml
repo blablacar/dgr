@@ -4,7 +4,7 @@ sudo: required
 dist: trusty
 
 go:
- - 1.5
+ - 1.6
 
 install:
   - sudo rm -rf /var/lib/apt/lists/*
