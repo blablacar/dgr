@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"reflect"
+	"sort"
 	"strings"
 	txttmpl "text/template"
 	"time"
@@ -171,6 +172,64 @@ func IsString(data interface{}) bool {
 	return false
 }
 
+func IsMapFirst(data interface{}, element interface{}) bool {
+	switch reflect.TypeOf(data).Kind() {
+	case reflect.Map:
+		mapItem := reflect.ValueOf(data).MapKeys()
+
+		var keys []string
+		for _, k := range mapItem {
+			keys = append(keys, k.String())
+		}
+		sort.Strings(keys)
+		mapItemType := keys[0]
+		return (mapItemType == element)
+	}
+	return false
+}
+
+func IsMapLast(data interface{}, element interface{}) bool {
+	switch reflect.TypeOf(data).Kind() {
+	case reflect.Map:
+		mapItem := reflect.ValueOf(data).MapKeys()
+
+		var keys []string
+		for _, k := range mapItem {
+			keys = append(keys, k.String())
+		}
+		sort.Strings(keys)
+		mapItemType := keys[len(keys)-1]
+		return (mapItemType == element)
+	}
+	return false
+}
+
+func HowDeep(data interface{}, element interface{}) int {
+	return HowDeepIsIt(data, element, 0)
+}
+
+func HowDeepIsIt(data interface{}, element interface{}, deep int) int {
+	elemType := reflect.TypeOf(element).Kind()
+	mapItem := reflect.ValueOf(data)
+	elemItem := reflect.ValueOf(element)
+	switch elemType {
+	case reflect.Map:
+		for _, b := range reflect.ValueOf(data).MapKeys() {
+			if reflect.DeepEqual(mapItem.MapIndex(b).Interface(), elemItem.Interface()) {
+				return deep + 1
+			}
+			if IsMap(mapItem.MapIndex(b).Interface()) {
+				index := HowDeepIsIt(mapItem.MapIndex(b).Interface(), element, deep+1)
+				if index == deep+2 {
+					return index
+				}
+			}
+		}
+	}
+
+	return deep
+}
+
 func add(x, y int) int {
 	return x + y
 }
@@ -214,6 +273,9 @@ func init() {
 	TemplateFunctions["isArray"] = IsArray
 	TemplateFunctions["isKind"] = IsKind
 	TemplateFunctions["isString"] = IsString
+	TemplateFunctions["IsMapFirst"] = IsMapFirst
+	TemplateFunctions["IsMapLast"] = IsMapLast
+	TemplateFunctions["HowDeep"] = HowDeep
 	TemplateFunctions["add"] = add
 	TemplateFunctions["mul"] = mul
 	TemplateFunctions["div"] = div

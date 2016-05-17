@@ -36,12 +36,17 @@ echo "ce9d63a98a8b4438882fd795e294cd50" > /etc/machine-id
 mkdir -p /dgr/builder/runlevels
 mkdir -p /dgr/builder/attributes
 
+# allow adding attributes and runlevels in prestart without being root
+mkdir -p ${ROOTFS}/dgr/runlevels
+mkdir -p ${ROOTFS}/dgr/attributes
+chmod 777 ${ROOTFS}/dgr/runlevels
+chmod 777 ${ROOTFS}/dgr/attributes
+
 # save envs
 export | grep -v -E " SHLV=| ROOTFS=| TARGET= | ACI_PATH= | ACI_HOME= | ACI_EXEC=" > /dgr/builder/export
 
 # inherit build
 execute_files "/dgr/runlevels/inherit-build-early" || onError "Inherit-build-early"
-
 
 # builder runlevel
 execute_files "${ACI_HOME}/runlevels/builder" || onError "Builder"
@@ -59,15 +64,16 @@ cmp -s /dgr/bin/templater ${ROOTFS}/dgr/bin/templater || cp /dgr/bin/templater $
 
 mkdir -p ${ROOTFS}/usr/bin # this is required by the systemd-nspawn
 
-
 # inherit
-if [ -d ${ACI_HOME}/runlevels/inherit-build-late ]; then
-    mkdir -p ${ROOTFS}/dgr/runlevels/inherit-build-late
-    cp -Rf ${ACI_HOME}/runlevels/inherit-build-late/. ${ROOTFS}/dgr/runlevels/inherit-build-late
-fi
 if [ -d ${ACI_HOME}/runlevels/inherit-build-early ]; then
     mkdir -p ${ROOTFS}/dgr/runlevels/inherit-build-early
+    chmod 777 ${ROOTFS}/dgr/runlevels/inherit-build-early
     cp -Rf ${ACI_HOME}/runlevels/inherit-build-early/. ${ROOTFS}/dgr/runlevels/inherit-build-early
+fi
+if [ -d ${ACI_HOME}/runlevels/inherit-build-late ]; then
+    mkdir -p ${ROOTFS}/dgr/runlevels/inherit-build-late
+    chmod 777 ${ROOTFS}/dgr/runlevels/inherit-build-late
+    cp -Rf ${ACI_HOME}/runlevels/inherit-build-late/. ${ROOTFS}/dgr/runlevels/inherit-build-late
 fi
 
 # build runlevel
@@ -84,10 +90,12 @@ fi
 # prestart
 if [ "$(ls -A ${ACI_HOME}/runlevels/prestart-early 2> /dev/null)" ]; then
     mkdir -p ${ROOTFS}/dgr/runlevels/prestart-early
+    chmod 777 ${ROOTFS}/dgr/runlevels/prestart-early
     cp -Rf ${ACI_HOME}/runlevels/prestart-early/. ${ROOTFS}/dgr/runlevels/prestart-early
 fi
 if [ "$(ls -A ${ACI_HOME}/runlevels/prestart-late 2> /dev/null)" ]; then
     mkdir -p ${ROOTFS}/dgr/runlevels/prestart-late
+    chmod 777 ${ROOTFS}/dgr/runlevels/prestart-late
     cp -Rf ${ACI_HOME}/runlevels/prestart-late/. ${ROOTFS}/dgr/runlevels/prestart-late
 fi
 
@@ -108,7 +116,6 @@ if [ "$(ls -A ${ACI_HOME}/templates 2> /dev/null)"  ]; then
     cp -Rf ${ACI_HOME}/templates/. ${ROOTFS}/dgr/templates
 fi
 
-
 # build-late runlevel
 if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]; then
     if [ -d ${ACI_HOME}/runlevels/build-late ]; then
@@ -121,9 +128,6 @@ fi
 
 # inherit build
 execute_files "/dgr/runlevels/inherit-build-late" || onError "Inherit-build-late"
-
-
-chmod -R 777 ${ROOTFS}/dgr
 
 rmdir ${ROOTFS}/dgr/builder >/dev/null 2>&1 || true
 
