@@ -11,6 +11,7 @@ import (
 	"strings"
 	txttmpl "text/template"
 	"time"
+	"sort"
 )
 
 type Templating struct {
@@ -171,6 +172,81 @@ func IsString(data interface{}) bool {
 	return false
 }
 
+func IsMapFirst(data interface{},element interface{}) bool {
+	switch reflect.TypeOf(data).Kind() {
+		case reflect.Map :
+				mapItem := reflect.ValueOf(data).MapKeys()
+
+			  var keys []string
+				for _,k := range mapItem {
+				    keys = append(keys,k.String())
+				}
+				sort.Strings(keys)
+				mapItemType := keys[0]
+				return (mapItemType == element)
+	}
+	return false
+}
+
+func IsMapLast(data interface{},element interface{}) bool {
+	switch reflect.TypeOf(data).Kind() {
+		case reflect.Map :
+			mapItem := reflect.ValueOf(data).MapKeys()
+			mapLen := reflect.ValueOf(data).Len()
+			mapItemType := mapItem[mapLen - 1].String()
+			return (mapItemType == element)
+	}
+	return false
+}
+
+
+func HowDeep(data interface{},element interface{}) int{
+ 	return HowDeepIsIt(data,element,0)
+}
+
+func HowDeepIsIt(data interface{},element interface{},deep int) int{
+	//elemType := reflect.TypeOf(element).Kind()
+	// dataType := reflect.TypeOf(data).Kind()
+	mapItem := reflect.ValueOf(data)
+	elemItem := reflect.ValueOf(element)
+	switch elemType {
+		case reflect.String:
+		//	fmt.Println("1Bis: Type:",elemType,"Value",elemItem,"ValueData",mapItem)
+		// 	fmt.Println("Type:",dataType,"Value",mapItem)
+		// 	for _, b := range reflect.ValueOf(data).MapKeys() {
+		// 		//fmt.Println("Reflect:",elemItem , "Value:",b,"MapValue",mapItem.MapIndex(b),"Equal",reflect.DeepEqual(mapItem.MapIndex(b).Interface(), elemItem.Interface()))
+		// 		//fmt.Println("Reflect:",IsMap(mapItem.MapIndex(b).Interface()),"b",mapItem.MapIndex(b).Interface())
+		// 		// fmt.Println("Reflect:",(elemItem.Interface()) ,mapItem.MapIndex(b).Interface())
+		// 		if reflect.DeepEqual(mapItem.MapIndex(b).Interface(), elemItem.Interface()) {
+		// 			return deep + 1
+		// 		}
+		// 	}
+		case reflect.Map :
+			//fmt.Println("1: Key:",elemType , "Value:",element ,"Reflect",elemItem)
+			//fmt.Println("Key:",data , "Value:",dataType,"Reflect",mapItem)
+			for _, b := range reflect.ValueOf(data).MapKeys() {
+				//fmt.Println("Reflect:",elemItem , "Value:",b,"MapValue",mapItem.MapIndex(b),"Equal",reflect.DeepEqual(mapItem.MapIndex(b).Interface(), elemItem.Interface()))
+				//fmt.Println("Reflect:",IsMap(mapItem.MapIndex(b).Interface()),"b",mapItem.MapIndex(b).Interface())
+				//fmt.Println("2: Reflect:",(elemItem.Interface()) ,mapItem.MapIndex(b).Interface())
+				if reflect.DeepEqual(mapItem.MapIndex(b).Interface(), elemItem.Interface()) {
+					return deep + 1
+				}
+				// if IsMap(mapItem.MapIndex(b).Interface()) {
+				// 	fmt.Println("3: IsMap:",mapItem.MapIndex(b).Interface())
+				// 	index := HowDeepIsIt(mapItem.MapIndex(b).Interface(),element,deep + 1 )
+				// 	if index == deep + 2 {
+				// 		fmt.Println("4: Key:",mapItem.MapIndex(b).Interface() ,"Deepness",index)
+				// 		return index
+				// 	}
+				// }
+			}
+	}
+
+
+	return deep
+}
+
+
 func add(x, y int) int {
 	return x + y
 }
@@ -214,6 +290,9 @@ func init() {
 	TemplateFunctions["isArray"] = IsArray
 	TemplateFunctions["isKind"] = IsKind
 	TemplateFunctions["isString"] = IsString
+	TemplateFunctions["IsMapFirst"] = IsMapFirst
+	TemplateFunctions["IsMapLast"] = IsMapLast
+	TemplateFunctions["HowDeep"] = HowDeep
 	TemplateFunctions["add"] = add
 	TemplateFunctions["mul"] = mul
 	TemplateFunctions["div"] = div

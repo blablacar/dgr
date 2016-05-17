@@ -12,10 +12,12 @@
 
 
 {{define "mapType"}}
+{{$deep := .}}
 {{range $a,$b := . -}}
-{{template "indent" 2}}{{$a}}: {{template "config" $b}}
-{{end -}}
-{{end}}
+{{- if (IsMapFirst $deep $a )}} # First{{end}}
+{{$a}}: {{template "config" $b}}
+{{- end -}}
+{{- end -}}
 
 {{define "arrayType" -}}
 [{{ range . }}{{ template "config" . }},{{ end }}]{{end}}
