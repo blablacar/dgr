@@ -30,6 +30,45 @@ func (aci *Aci) Graph() error {
 		buffer.WriteString("\n")
 	}
 
+	for _, dep := range aci.manifest.Builder.Dependencies {
+		buffer.WriteString("  ")
+		buffer.WriteString("\"")
+		buffer.WriteString(dep.ShortNameId())
+		buffer.WriteString("\"")
+		buffer.WriteString(" -> ")
+		buffer.WriteString("\"")
+		buffer.WriteString(aci.manifest.NameAndVersion.ShortNameId())
+		buffer.WriteString("\"")
+		buffer.WriteString("[color=red,penwidth=2.0]")
+		buffer.WriteString("\n")
+	}
+
+	for _, dep := range aci.manifest.Tester.Builder.Dependencies {
+		buffer.WriteString("  ")
+		buffer.WriteString("\"")
+		buffer.WriteString(dep.ShortNameId())
+		buffer.WriteString("\"")
+		buffer.WriteString(" -> ")
+		buffer.WriteString("\"")
+		buffer.WriteString(aci.manifest.NameAndVersion.ShortNameId())
+		buffer.WriteString("\"")
+		buffer.WriteString("[color=green,penwidth=2.0]")
+		buffer.WriteString("\n")
+	}
+
+	for _, dep := range aci.manifest.Tester.Aci.Dependencies {
+		buffer.WriteString("  ")
+		buffer.WriteString("\"")
+		buffer.WriteString(dep.ShortNameId())
+		buffer.WriteString("\"")
+		buffer.WriteString(" -> ")
+		buffer.WriteString("\"")
+		buffer.WriteString(aci.manifest.NameAndVersion.ShortNameId())
+		buffer.WriteString("\"")
+		buffer.WriteString("[color=blue,penwidth=2.0]")
+		buffer.WriteString("\n")
+	}
+
 	buffer.WriteString("}\n")
 
 	if err := ioutil.WriteFile(aci.target+pathGraphDot, buffer.Bytes(), 0644); err != nil {
