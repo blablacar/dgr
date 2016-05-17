@@ -8,9 +8,11 @@ go:
 
 install:
   - sudo rm -rf /var/lib/apt/lists/*
+  - sudo add-apt-repository ppa:duggan/bats --yes
   - sudo apt-get update -qq
   - sudo apt-get install -qq upx
   - sudo ./.travis-install-rkt.sh
+  - sudo apt-get install -qq bats
 
 script:
   - ./build.sh
