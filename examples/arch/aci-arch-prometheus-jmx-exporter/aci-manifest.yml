@@ -1,6 +1,0 @@
-name: dgrtool.com/aci-arch-prometheus-jmx-exporter:0.5-4
-aci:
-  app:
-    exec: ["java", "-jar", "/jmx_prometheus_httpserver.jar", "9090", "/etc/prometheus/config.yml"]
-  dependencies:
-    - dgrtool.com/aci-arch-jdk

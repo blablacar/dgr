@@ -1,9 +1,0 @@
-name: dgrtool.com/aci-arch-gcc
-
-builder:
-  dependencies:
-    - dgrtool.com/aci-arch-pacman
-
-aci:
-  dependencies:
-    - dgrtool.com/aci-base

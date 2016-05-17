@@ -39,6 +39,10 @@ mkdir -p /dgr/builder/attributes
 # save envs
 export | grep -v -E " SHLV=| ROOTFS=| TARGET= | ACI_PATH= | ACI_HOME= | ACI_EXEC=" > /dgr/builder/export
 
+# inherit build
+execute_files "/dgr/runlevels/inherit-build-early" || onError "Inherit-build-early"
+
+
 # builder runlevel
 execute_files "${ACI_HOME}/runlevels/builder" || onError "Builder"
 if [ "$(ls -A "${ACI_HOME}/runlevels/builder" 2> /dev/null)" ] && [ "${CATCH_ON_STEP}" == "true" ]; then
@@ -114,6 +118,10 @@ if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]
         --register=no -q --directory=${ROOTFS} --capability=all \
         --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build-late.sh || onError "Build-late"
 fi
+
+# inherit build
+execute_files "/dgr/runlevels/inherit-build-late" || onError "Inherit-build-late"
+
 
 chmod -R 777 ${ROOTFS}/dgr
 

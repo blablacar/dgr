@@ -1,0 +1,4 @@
+name: dgrtool.com/aci-debian-openjdk7-jre:{{.version}}-1
+aci:
+  dependencies:
+    - dgrtool.com/aci-debian:8

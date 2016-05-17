@@ -5,4 +5,4 @@ pod:
         - dgrtool.com/aci-debian-cassandra
 
     - dependencies:
-        - dgrtool.com/aci-arch-prometheus-jmx-exporter
+        - dgrtool.com/aci-debian-prometheus-jmx-exporter

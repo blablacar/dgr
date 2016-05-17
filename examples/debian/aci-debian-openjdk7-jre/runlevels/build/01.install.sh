@@ -3,4 +3,4 @@ set -e
 . /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
-pacman -S glibc git --noconfirm
+apt-get install -y openjdk-7-jre

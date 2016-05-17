@@ -26,6 +26,8 @@ buildAci ${dir}/none/aci-rkt
 # debian
 buildAci ${dir}/debian/aci-debian
 buildAci ${dir}/debian/aci-debian-cassandra
+buildAci ${dir}/debian/aci-debian-openjdk7-jre
+buildAci ${dir}/debian/aci-debian-prometheus-jmx-exporter
 
 # alpine
 buildAci ${dir}/alpine/aci-alpine-base
@@ -34,19 +36,6 @@ buildAci ${dir}/alpine/aci-alpine-nginx
 # gentoo
 buildAci ${dir}/gentoo/aci-gentoo-stage4
 #buildAci ${dir}/gentoo/aci-gentoo-lighttpd # TODO build is too long for travis
-
-# archlinux
-buildAci ${dir}/arch/aci-arch-bootstrap
-buildAci ${dir}/arch/aci-arch-pacman
-buildAci ${dir}/arch/aci-arch-yaourt
-buildAci ${dir}/arch/aci-arch-git
-buildAci ${dir}/arch/aci-arch-go
-buildAci ${dir}/arch/aci-arch-upx
-buildAci ${dir}/arch/aci-arch-gcc
-buildAci ${dir}/arch/aci-arch-jdk
-buildAci ${dir}/arch/aci-arch-maven
-buildAci ${dir}/arch/aci-arch-prometheus-jmx-exporter
-buildAci ${dir}/centos/aci-centos
 
 # pod
 buildAci ${dir}/pod/pod-cassandra

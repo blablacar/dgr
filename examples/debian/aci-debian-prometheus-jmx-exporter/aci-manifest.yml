@@ -1,0 +1,6 @@
+name: dgrtool.com/aci-debian-prometheus-jmx-exporter:0.5-4
+aci:
+  app:
+    exec: ["/usr/bin/java", "-jar", "/jmx_prometheus_httpserver.jar", "9090", "/etc/prometheus/config.yml"]
+  dependencies:
+    - dgrtool.com/aci-debian-openjdk7-jre

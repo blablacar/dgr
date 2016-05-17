@@ -1,4 +1,7 @@
 #!/dgr/bin/busybox sh
+set -e
+. /dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
 
 version=${ACI_VERSION%-*}
 
