@@ -1,16 +1,21 @@
 package merger
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
+	"github.com/n0rad/go-erlog/logs"
 	"github.com/peterbourgon/mergemap"
 	"io/ioutil"
 	"os"
 	"strconv"
+	"text/template"
+	tpl "github.com/blablacar/dgr/bin-templater/template"
+	"github.com/leekchan/gtf"
 )
 
 type AttributesMerger struct {
@@ -96,7 +101,13 @@ func MergeAttributesFilesForMap(omap map[string]interface{}, files []string) map
 		json := data.(map[string]interface{})
 		omap = mergemap.Merge(newMap, json)
 	}
-	return ProcessOverride(newMap)
+	data := ProcessOverride(newMap)
+
+	data2, err := processAttributesTemplating(data, data)
+	if err != nil {
+		panic(err)
+	}
+	return data2.(map[string]interface{})
 }
 
 func MergeAttributesFiles(files []string) map[string]interface{} {
@@ -140,6 +151,56 @@ func Merge(envName string, files []string) []byte { // inputDir string,
 	}
 
 	return out
+}
+
+func processAttributesTemplating(in interface{}, attributes interface{}) (_ interface{}, err error) {
+	switch in.(type) {
+	case map[string]interface{}:
+		o := make(map[string]interface{})
+		for k, v := range in.(map[string]interface{}) {
+			v, err = processAttributesTemplating(v, attributes)
+			if err != nil {
+				return nil, err
+			}
+			o[k] = v
+		}
+		return o, nil
+	case []interface{}:
+		in1 := in.([]interface{})
+		len1 := len(in1)
+		o := make([]interface{}, len1)
+		for i := 0; i < len1; i++ {
+			o[i], err = processAttributesTemplating(in1[i], attributes)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return o, nil
+	case string:
+		templated, err := templateAttribute(in.(string), attributes)
+		if err != nil {
+			return nil, err
+		}
+		return templated, nil
+	default:
+		return in, nil
+	}
+}
+
+func templateAttribute(text string, attributes interface{}) (string, error) {
+	tmpl, err := template.New("").Funcs(tpl.TemplateFunctions).Funcs(map[string]interface{}(gtf.GtfFuncMap)).Parse(text)
+	if err != nil {
+		return "", errs.WithEF(err, data.WithField("attribute", text), "Failed to parse template for attribute")
+	}
+	var b bytes.Buffer
+	if err := tmpl.Execute(&b, attributes); err != nil {
+		return "", errs.WithEF(err, data.WithField("attribute", text), "Failed to template attribute")
+	}
+	res := b.String()
+	if logs.IsDebugEnabled() {
+		logs.WithField("from", text).WithField("to", res).Debug("attribute templated")
+	}
+	return res, nil
 }
 
 // transform YAML to JSON

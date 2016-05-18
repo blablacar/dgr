@@ -1,6 +1,11 @@
 ---
 default:
   dns:
+    name: toto42
     nameservers:
       - "8.8.8.8"
       - "8.8.4.4"
+  yop:
+    hostname:
+      - "{{.dns.name}}"
+      - "{{index .dns.nameservers 0}}"

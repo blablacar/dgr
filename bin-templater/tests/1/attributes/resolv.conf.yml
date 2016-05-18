@@ -13,3 +13,5 @@ default:
     toto1: 1.1
     toto2: yoplalala
     toto3: "1.1"
+    toto4: "{{.pod.hostname}}"
+    toto5: "{{mul 3 3}}"
