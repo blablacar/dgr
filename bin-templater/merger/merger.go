@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	tpl "github.com/blablacar/dgr/bin-templater/template"
 	"github.com/ghodss/yaml"
+	"github.com/leekchan/gtf"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
@@ -14,8 +16,6 @@ import (
 	"os"
 	"strconv"
 	"text/template"
-	tpl "github.com/blablacar/dgr/bin-templater/template"
-	"github.com/leekchan/gtf"
 )
 
 type AttributesMerger struct {
@@ -98,6 +98,9 @@ func MergeAttributesFilesForMap(omap map[string]interface{}, files []string) map
 			panic(err)
 		}
 		// data to map
+		if data == nil {
+			continue
+		}
 		json := data.(map[string]interface{})
 		omap = mergemap.Merge(newMap, json)
 	}
