@@ -10,7 +10,7 @@ $(rkt version | grep "${version}") || {
     mkdir -p "/tmp/rkt"
     cd "/tmp/rkt"
 	wget $url
-	tar xvzf "${filename}" --strip=1
-	cp rkt stage1* /bin/
+	tar xvzf "${filename}"
+	cp rkt*/rkt rkt*/stage1* /bin/
 	cd -
 }
