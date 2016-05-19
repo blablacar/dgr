@@ -12,5 +12,9 @@ $(rkt version | grep "${version}") || {
 	wget $url
 	tar xvzf "${filename}"
 	cp rkt*/rkt rkt*/stage1* /bin/
+	chmod +x /bin/rkt
+	mkdir -p /var/lib/rkt
 	cd -
 }
+
+rkt version

@@ -175,6 +175,10 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+pathBuilder), "Failed to create builder aci path")
 	}
 
+	if err := ioutil.WriteFile(aci.target+pathBuilder+common.PathRootfs+"/.keep", []byte(""), 0644); err != nil {
+		return "", errs.WithEF(err, aci.fields.WithField("file", aci.target+pathBuilder+common.PathRootfs+"/.keep"), "Failed to write keep file")
+	}
+
 	if err := common.WriteAciManifest(aci.manifest, aci.target+pathBuilder+common.PathManifest, common.PrefixBuilder+aci.manifest.NameAndVersion.Name(), dgrVersion); err != nil {
 		return "", err
 	}

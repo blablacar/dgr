@@ -122,7 +122,7 @@ func (aci *Aci) tarAci(path string) error {
 	if err := tar.AddFile(path + common.PathManifest); err != nil {
 		return errs.WithEF(err, aci.fields.WithField("path", path+common.PathManifest), "Failed to add manifest to tar")
 	}
-	if err := tar.AddAll(path+common.PathRootfs, false); err != nil {
+	if err := tar.AddAll(path+common.PathRootfs, true); err != nil {
 		return errs.WithEF(err, aci.fields.WithField("path", path+common.PathRootfs), "Failed to add rootfs to tar")
 	}
 	if err := tar.Close(); err != nil {
