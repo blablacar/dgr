@@ -2,7 +2,7 @@
 set -x
 set -e
 
-version="v1.0.0"
+version="v1.4.0"
 filename="rkt-${version}.tar.gz"
 url="https://github.com/coreos/rkt/releases/download/${version}/${filename}"
 
