@@ -90,8 +90,8 @@ func NewAciWithManifest(path string, args BuildArgs, manifestTmpl string) (*Aci,
 		}
 	}
 
-	aci.checkCompatibilityVersions()
-	aci.checkLatestVersions()
+	go aci.checkCompatibilityVersions()
+	go aci.checkLatestVersions()
 	return aci, nil
 }
 
