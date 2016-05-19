@@ -11,6 +11,7 @@ import (
 	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"os"
+	"sync"
 )
 
 const pathPodManifestJson = "/pod-manifest.json"
@@ -23,7 +24,7 @@ func (p *Pod) CleanAndBuild() error {
 	os.MkdirAll(p.target, 0777)
 
 	p.preparePodVersion()
-	apps, err := p.processAci()
+	apps, err := p.processAcis()
 	if err != nil {
 		return err
 	}
@@ -40,60 +41,91 @@ func (p *Pod) preparePodVersion() {
 	}
 }
 
-func (p *Pod) processAci() ([]schema.RuntimeApp, error) {
-	apps := []schema.RuntimeApp{}
-	for _, e := range p.manifest.Pod.Apps {
+func (p *Pod) processAcis() ([]schema.RuntimeApp, error) {
+	apps := make([]schema.RuntimeApp, len(p.manifest.Pod.Apps))
+	errors := make([]error, len(p.manifest.Pod.Apps))
+	var wg sync.WaitGroup
+	for i, e := range p.manifest.Pod.Apps {
+		wg.Add(1)
+		f := func(i int, e common.RuntimeApp) {
+			defer wg.Done()
 
-		aci, err := p.buildAci(e)
+			app, err := p.processAci(e)
+			if app != nil {
+				apps[i] = *app
+			}
+			errors[i] = err
+		}
+
+		if p.args.SerialBuild {
+			f(i, e)
+		} else {
+			go f(i, e)
+		}
+	}
+	wg.Wait()
+
+	failed := 0
+	for _, err := range errors {
 		if err != nil {
-			return nil, err
+			logs.WithE(err).Error("Aci process failed")
+			failed++
 		}
+	}
+	if failed > 0 {
+		return apps, errs.With("Aci process failed")
+	}
+	return apps, nil
+}
 
-		name, err := types.NewACName(e.Name)
-		if err != nil {
-			return nil, errs.WithEF(err, p.fields.WithField("name", e.Name), "Invalid name format")
-		}
-
-		sum, err := Sha512sum(aci.target + pathImageAci)
-		if err != nil {
-			return nil, errs.WithEF(err, p.fields.WithField("file", aci.target+pathImageAci), "Failed to calculate sha512 of aci")
-		}
-
-		tmp, _ := types.NewHash("sha512-" + sum)
-
-		labels := types.Labels{}
-		labels = append(labels, types.Label{Name: "version", Value: aci.manifest.NameAndVersion.Version()})
-		identifier, _ := types.NewACIdentifier(aci.manifest.NameAndVersion.Name())
-		ttmp := schema.RuntimeImage{Name: identifier, ID: *tmp, Labels: labels}
-
-		e.App.Group = aci.manifest.Aci.App.Group
-		e.App.User = aci.manifest.Aci.App.User
-		if e.App.User == "" {
-			e.App.User = "0"
-		}
-		if e.App.Group == "" {
-			e.App.Group = "0"
-		}
-
-		apps = append(apps, schema.RuntimeApp{
-			Name:  *name,
-			Image: ttmp,
-			App: &types.App{
-				Exec:              e.App.Exec,
-				User:              e.App.User,
-				Group:             e.App.Group,
-				WorkingDirectory:  e.App.WorkingDirectory,
-				SupplementaryGIDs: e.App.SupplementaryGIDs,
-				Environment:       e.App.Environment,
-				MountPoints:       e.App.MountPoints,
-				Ports:             e.App.Ports,
-				Isolators:         e.App.Isolators,
-			},
-			Mounts:      e.Mounts,
-			Annotations: e.Annotations})
+func (p *Pod) processAci(e common.RuntimeApp) (*schema.RuntimeApp, error) {
+	aci, err := p.buildAci(e)
+	if err != nil {
+		return nil, err
 	}
 
-	return apps, nil
+	name, err := types.NewACName(e.Name)
+	if err != nil {
+		return nil, errs.WithEF(err, p.fields.WithField("name", e.Name), "Invalid name format")
+	}
+
+	sum, err := Sha512sum(aci.target + pathImageAci)
+	if err != nil {
+		return nil, errs.WithEF(err, p.fields.WithField("file", aci.target+pathImageAci), "Failed to calculate sha512 of aci")
+	}
+
+	tmp, _ := types.NewHash("sha512-" + sum)
+
+	labels := types.Labels{}
+	labels = append(labels, types.Label{Name: "version", Value: aci.manifest.NameAndVersion.Version()})
+	identifier, _ := types.NewACIdentifier(aci.manifest.NameAndVersion.Name())
+	ttmp := schema.RuntimeImage{Name: identifier, ID: *tmp, Labels: labels}
+
+	e.App.Group = aci.manifest.Aci.App.Group
+	e.App.User = aci.manifest.Aci.App.User
+	if e.App.User == "" {
+		e.App.User = "0"
+	}
+	if e.App.Group == "" {
+		e.App.Group = "0"
+	}
+
+	return &schema.RuntimeApp{
+		Name:  *name,
+		Image: ttmp,
+		App: &types.App{
+			Exec:              e.App.Exec,
+			User:              e.App.User,
+			Group:             e.App.Group,
+			WorkingDirectory:  e.App.WorkingDirectory,
+			SupplementaryGIDs: e.App.SupplementaryGIDs,
+			Environment:       e.App.Environment,
+			MountPoints:       e.App.MountPoints,
+			Ports:             e.App.Ports,
+			Isolators:         e.App.Isolators,
+		},
+		Mounts:      e.Mounts,
+		Annotations: e.Annotations}, nil
 }
 
 func (p *Pod) fillRuntimeAppFromDependencies(e *common.RuntimeApp) error {

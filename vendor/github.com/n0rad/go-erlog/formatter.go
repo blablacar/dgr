@@ -93,9 +93,9 @@ func (f *ErlogWriterAppender) Fire(event *LogEvent) {
 
 	f.logError(b, event)
 
-	//	f.mu.Lock() //TODO
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.Out.Write(b.Bytes())
-	//	f.mu.Unlock()
 }
 
 func (f *ErlogWriterAppender) logError(b *bytes.Buffer, event *LogEvent) {

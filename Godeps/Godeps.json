@@ -3,9 +3,46 @@
 	"GoVersion": "go1.6",
 	"GodepVersion": "v65",
 	"Packages": [
-		"./..."
+		"././aci-builder/...",
+		"././bin-templater/...",
+		"././bin-dgr/..."
 	],
 	"Deps": [
+		{
+			"ImportPath": "github.com/appc/spec/Godeps/_workspace/src/github.com/camlistore/camlistore/pkg/errorutil",
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/Godeps/_workspace/src/github.com/coreos/go-semver/semver",
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/Godeps/_workspace/src/github.com/spf13/pflag",
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/Godeps/_workspace/src/golang.org/x/net/html",
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/Godeps/_workspace/src/golang.org/x/net/html/atom",
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/Godeps/_workspace/src/k8s.io/kubernetes/pkg/api/resource",
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/Godeps/_workspace/src/speter.net/go/exp/math/dec/inf",
+			"Comment": "v0.7.1-30-g1e5ab3d",
+			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
+		},
 		{
 			"ImportPath": "github.com/appc/spec/aci",
 			"Comment": "v0.7.1-30-g1e5ab3d",
@@ -42,14 +79,6 @@
 			"Rev": "1e5ab3d857c146e0834c5a14857728d6c04c6f85"
 		},
 		{
-			"ImportPath": "github.com/camlistore/camlistore/pkg/errorutil",
-			"Rev": "58958f44ee2eaa5139097dec3e02f47df0aba180"
-		},
-		{
-			"ImportPath": "github.com/coreos/go-semver/semver",
-			"Rev": "d043ae190b3202550d026daf009359bb5d761672"
-		},
-		{
 			"ImportPath": "github.com/coreos/rkt/common",
 			"Comment": "v1.2.0-2-gb00ba40",
 			"Rev": "b00ba407d3bf8d0ecbec63f4aed534837a3e2e1e"
@@ -82,6 +111,10 @@
 			"Rev": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
 		},
 		{
+			"ImportPath": "github.com/jhoonb/archivex",
+			"Rev": "333107c714224dd425951d488a51a03a42592fd8"
+		},
+		{
 			"ImportPath": "github.com/juju/errors",
 			"Rev": "1b5e39b83d1835fa480e0c2ddefb040ee82d58b3"
 		},
@@ -95,23 +128,23 @@
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog",
-			"Rev": "73ef27688910c7154b1428a4aa63b1d3f4ada1f9"
+			"Rev": "7b72dfd0d87a75ac6e38ef77901e9114cb24be48"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/data",
-			"Rev": "73ef27688910c7154b1428a4aa63b1d3f4ada1f9"
+			"Rev": "7b72dfd0d87a75ac6e38ef77901e9114cb24be48"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/errs",
-			"Rev": "73ef27688910c7154b1428a4aa63b1d3f4ada1f9"
+			"Rev": "7b72dfd0d87a75ac6e38ef77901e9114cb24be48"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/logs",
-			"Rev": "73ef27688910c7154b1428a4aa63b1d3f4ada1f9"
+			"Rev": "7b72dfd0d87a75ac6e38ef77901e9114cb24be48"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/register",
-			"Rev": "73ef27688910c7154b1428a4aa63b1d3f4ada1f9"
+			"Rev": "7b72dfd0d87a75ac6e38ef77901e9114cb24be48"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
@@ -190,25 +223,8 @@
 			"Rev": "2c00daeb6c3b45114c80ac44119e7b8801fdd852"
 		},
 		{
-			"ImportPath": "golang.org/x/net/html",
-			"Rev": "ea47fc708ee3e20177f3ca3716217c4ab75942cb"
-		},
-		{
-			"ImportPath": "golang.org/x/net/html/atom",
-			"Rev": "ea47fc708ee3e20177f3ca3716217c4ab75942cb"
-		},
-		{
 			"ImportPath": "gopkg.in/yaml.v2",
 			"Rev": "7ad95dd0798a40da1ccdff6dff35fd177b5edf40"
-		},
-		{
-			"ImportPath": "k8s.io/kubernetes/pkg/api/resource",
-			"Comment": "v1.1.0-alpha.1-152-g77e2d4f",
-			"Rev": "77e2d4f9185ecbedab327f228960d4ba33703025"
-		},
-		{
-			"ImportPath": "speter.net/go/exp/math/dec/inf",
-			"Rev": "42ca6cd68aa922bc3f32f1e056e61b65945d9ad7"
 		}
 	]
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/appc/spec/schema"
 	"github.com/blablacar/dgr/bin-dgr/common"
+	"github.com/jhoonb/archivex"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
@@ -105,15 +106,20 @@ func NewAci(path string, args BuildArgs) (*Aci, error) {
 //////////////////////////////////////////////////////////////////
 
 func (aci *Aci) tarAci(path string) error {
-	target := pathImageAci[1:]
-	dir, _ := os.Getwd()
-	logs.WithField("path", path).Debug("chdir")
-	os.Chdir(path)
-	if err := common.Tar(target, common.PathManifest[1:], common.PathRootfs[1:]); err != nil {
-		return errs.WithEF(err, aci.fields.WithField("path", path), "Failed to tar container")
+	tar := new(archivex.TarFile)
+	if err := tar.Create(path + pathImageAci); err != nil {
+		return errs.WithEF(err, aci.fields.WithField("path", path+pathImageAci), "Failed to create image tar")
 	}
-	logs.WithField("path", dir).Debug("chdir")
-	os.Chdir(dir)
+	if err := tar.AddFile(path + common.PathManifest); err != nil {
+		return errs.WithEF(err, aci.fields.WithField("path", path+common.PathManifest), "Failed to add manifest to tar")
+	}
+	if err := tar.AddAll(path+common.PathRootfs, false); err != nil {
+		return errs.WithEF(err, aci.fields.WithField("path", path+common.PathRootfs), "Failed to add rootfs to tar")
+	}
+	if err := tar.Close(); err != nil {
+		return errs.WithEF(err, aci.fields.WithField("path", path), "Failed to tar aci")
+	}
+	os.Rename(path+pathImageAci+".tar", path+pathImageAci)
 	return nil
 }
 
