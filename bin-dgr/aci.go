@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
 )
 
 const pathGraphPng = "/graph.png"
@@ -31,6 +32,7 @@ const prefixTest = "test/"
 const prefixBuilderStage1 = "builder-stage1/"
 
 type Aci struct {
+	checkWg         *sync.WaitGroup
 	fields          data.Fields
 	path            string
 	target          string
@@ -41,7 +43,7 @@ type Aci struct {
 	FullyResolveDep bool
 }
 
-func NewAciWithManifest(path string, args BuildArgs, manifestTmpl string) (*Aci, error) {
+func NewAciWithManifest(path string, args BuildArgs, manifestTmpl string, checkWg *sync.WaitGroup) (*Aci, error) {
 	manifest, err := common.ProcessManifestTemplate(manifestTmpl, nil, false)
 	if err != nil {
 		return nil, errs.WithEF(err, data.WithField("content", manifestTmpl), "Failed to process manifest")
@@ -75,6 +77,7 @@ func NewAciWithManifest(path string, args BuildArgs, manifestTmpl string) (*Aci,
 		manifest:        manifest,
 		target:          target,
 		FullyResolveDep: true,
+		checkWg:         checkWg,
 	}
 
 	froms, err := manifest.GetFroms()
@@ -90,17 +93,23 @@ func NewAciWithManifest(path string, args BuildArgs, manifestTmpl string) (*Aci,
 		}
 	}
 
-	go aci.checkCompatibilityVersions()
-	go aci.checkLatestVersions()
+	checkWg.Add(2)
+	if aci.args.SerialBuild {
+		aci.checkCompatibilityVersions()
+		aci.checkLatestVersions()
+	} else {
+		go aci.checkCompatibilityVersions()
+		go aci.checkLatestVersions()
+	}
 	return aci, nil
 }
 
-func NewAci(path string, args BuildArgs) (*Aci, error) {
+func NewAci(path string, args BuildArgs, checkWg *sync.WaitGroup) (*Aci, error) {
 	manifest, err := ioutil.ReadFile(path + common.PathAciManifest)
 	if err != nil {
 		return nil, errs.WithEF(err, data.WithField("path", path+common.PathAciManifest), "Cannot read manifest")
 	}
-	return NewAciWithManifest(path, args, string(manifest))
+	return NewAciWithManifest(path, args, string(manifest), checkWg)
 }
 
 //////////////////////////////////////////////////////////////////
@@ -138,6 +147,7 @@ func (aci *Aci) zipAci() error {
 }
 
 func (aci *Aci) checkCompatibilityVersions() {
+	defer aci.checkWg.Done()
 	for _, dep := range aci.manifest.Aci.Dependencies {
 		depFields := aci.fields.WithField("dependency", dep.String())
 
@@ -159,6 +169,7 @@ func (aci *Aci) checkCompatibilityVersions() {
 }
 
 func (aci *Aci) checkLatestVersions() {
+	defer aci.checkWg.Done()
 	CheckLatestVersion(aci.manifest.Aci.Dependencies, "dependency")
 	CheckLatestVersion(aci.manifest.Builder.Dependencies, "builder dependency")
 	CheckLatestVersion(aci.manifest.Tester.Builder.Dependencies, "tester builder dependency")

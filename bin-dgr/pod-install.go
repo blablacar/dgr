@@ -17,7 +17,7 @@ func (p *Pod) Install() ([]string, error) {
 			return nil, err
 		}
 
-		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, tmpl)
+		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, tmpl, p.checkWg)
 		if err != nil {
 			logs.WithEF(err, p.fields.WithField("name", e.Name)).Fatal("Cannot prepare aci")
 		}

@@ -135,6 +135,7 @@ func (p *Pod) fillRuntimeAppFromDependencies(e *common.RuntimeApp) error {
 	}
 
 	if len(e.Dependencies) == 1 {
+		Home.Rkt.Fetch(e.Dependencies[0].String())
 		manifestStr, err := Home.Rkt.CatManifest(e.Dependencies[0].String())
 		if err != nil {
 			return errs.WithEF(err, fields.WithField("dependency", e.Dependencies[0].String()), "Failed to get dependency manifest")
@@ -198,7 +199,7 @@ func (p *Pod) buildAci(e common.RuntimeApp) (*Aci, error) {
 	if err != nil {
 		return nil, err
 	}
-	aci, err := NewAciWithManifest(path, p.args, tmpl)
+	aci, err := NewAciWithManifest(path, p.args, tmpl, p.checkWg)
 	if err != nil {
 		return nil, errs.WithEF(err, p.fields.WithField("aci", path), "Failed to prepare aci")
 	}

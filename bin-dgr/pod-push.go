@@ -19,7 +19,7 @@ func (p *Pod) Push() error {
 			return err
 		}
 
-		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, tmpl)
+		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, tmpl, p.checkWg)
 		if err != nil {
 			return errs.WithEF(err, p.fields.WithField("name", e.Name), "Cannot prepare aci")
 		}

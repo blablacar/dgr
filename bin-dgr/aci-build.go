@@ -115,6 +115,7 @@ func (aci *Aci) prepareStage1aci() (string, error) {
 		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+pathBuilder), "Failed to create stage1 aci path")
 	}
 
+	Home.Rkt.Fetch(aci.manifest.Builder.Image.String())
 	manifestStr, err := Home.Rkt.CatManifest(aci.manifest.Builder.Image.String())
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "Failed to read stage1 image manifest")

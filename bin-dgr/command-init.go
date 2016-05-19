@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
+	"sync"
 )
 
 const initManifestContent = `name: aci.example.com/aci-dummy:1
@@ -42,9 +43,11 @@ var initCmd = &cobra.Command{
 		}
 
 		defer giveBackUserRights(workPath)
-		if err := NewAciOrPod(workPath, Args).Init(); err != nil {
+		checkWg := &sync.WaitGroup{}
+		if err := NewAciOrPod(workPath, Args, checkWg).Init(); err != nil {
 			logs.WithE(err).Fatal("Init command failed")
 		}
+		checkWg.Wait()
 	},
 }
 

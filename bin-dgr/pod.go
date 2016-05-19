@@ -8,11 +8,13 @@ import (
 	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"path/filepath"
+	"sync"
 )
 
 const pathPodManifestYml = "/pod-manifest.yml"
 
 type Pod struct {
+	checkWg  *sync.WaitGroup
 	fields   data.Fields
 	path     string
 	args     BuildArgs
@@ -20,7 +22,11 @@ type Pod struct {
 	manifest common.PodManifest
 }
 
-func NewPod(path string, args BuildArgs) (*Pod, error) {
+func NewPod(path string, args BuildArgs, checkWg *sync.WaitGroup) (*Pod, error) {
+	if (args.CatchOnError || args.CatchOnStep) && !args.SerialBuild {
+		args.SerialBuild = true
+	}
+
 	fullPath, err := filepath.Abs(path)
 	if err != nil {
 		logs.WithE(err).WithField("path", path).Fatal("Cannot get fullpath")
@@ -47,6 +53,7 @@ func NewPod(path string, args BuildArgs) (*Pod, error) {
 	}
 
 	pod := &Pod{
+		checkWg:  checkWg,
 		fields:   fields,
 		path:     fullPath,
 		args:     args,

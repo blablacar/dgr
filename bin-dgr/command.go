@@ -5,6 +5,7 @@ import (
 	"github.com/n0rad/go-erlog/logs"
 	"github.com/spf13/cobra"
 	"os"
+	"sync"
 )
 
 type DgrCommand interface {
@@ -26,7 +27,9 @@ var cleanCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		checkNoArgs(args)
 
-		NewAciOrPod(workPath, Args).Clean()
+		checkWg := &sync.WaitGroup{}
+		NewAciOrPod(workPath, Args, checkWg).Clean()
+		checkWg.Wait()
 	},
 }
 
@@ -37,9 +40,11 @@ var graphCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		checkNoArgs(args)
 
-		if err := NewAciOrPod(workPath, Args).Graph(); err != nil {
+		checkWg := &sync.WaitGroup{}
+		if err := NewAciOrPod(workPath, Args, checkWg).Graph(); err != nil {
 			logs.WithE(err).Fatal("Install command failed")
 		}
+		checkWg.Wait()
 	},
 }
 
@@ -92,9 +97,11 @@ func newTryCommand(userClean bool) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			checkNoArgs(args)
 
-			if err := NewAciOrPod(workPath, Args).CleanAndTry(); err != nil {
+			checkWg := &sync.WaitGroup{}
+			if err := NewAciOrPod(workPath, Args, checkWg).CleanAndTry(); err != nil {
 				logs.WithE(err).Fatal("Try command failed")
 			}
+			checkWg.Wait()
 		},
 	}
 	return cmd
@@ -108,9 +115,11 @@ func newBuildCommand(userClean bool) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			checkNoArgs(args)
 
-			if err := NewAciOrPod(workPath, Args).CleanAndBuild(); err != nil {
+			checkWg := &sync.WaitGroup{}
+			if err := NewAciOrPod(workPath, Args, checkWg).CleanAndBuild(); err != nil {
 				logs.WithE(err).Fatal("Build command failed")
 			}
+			checkWg.Wait()
 		},
 	}
 	cmd.Flags().BoolVarP(&Args.KeepBuilder, "keep-builder", "k", false, "Keep builder container after exit")
@@ -127,13 +136,15 @@ func newSignCommand(underClean bool) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			checkNoArgs(args)
 
-			command := NewAciOrPod(workPath, Args)
+			checkWg := &sync.WaitGroup{}
+			command := NewAciOrPod(workPath, Args, checkWg)
 			if underClean {
 				command.Clean()
 			}
 			if err := command.Sign(); err != nil {
 				logs.WithE(err).Fatal("Sign command failed")
 			}
+			checkWg.Wait()
 		},
 	}
 
@@ -148,13 +159,15 @@ func newInstallCommand(underClean bool) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			checkNoArgs(args)
 
-			command := NewAciOrPod(workPath, Args)
+			checkWg := &sync.WaitGroup{}
+			command := NewAciOrPod(workPath, Args, checkWg)
 			if underClean {
 				command.Clean()
 			}
 			if _, err := command.Install(); err != nil {
 				logs.WithE(err).Fatal("Install command failed")
 			}
+			checkWg.Wait()
 		},
 	}
 
@@ -171,13 +184,15 @@ func newPushCommand(underClean bool) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			checkNoArgs(args)
 
-			command := NewAciOrPod(workPath, Args)
+			checkWg := &sync.WaitGroup{}
+			command := NewAciOrPod(workPath, Args, checkWg)
 			if underClean {
 				command.Clean()
 			}
 			if err := command.Push(); err != nil {
 				logs.WithE(err).Fatal("Push command failed")
 			}
+			checkWg.Wait()
 		},
 	}
 	cmd.Flags().BoolVarP(&Args.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")
@@ -193,13 +208,15 @@ func newTestCommand(underClean bool) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			checkNoArgs(args)
 
-			command := NewAciOrPod(workPath, Args)
+			checkWg := &sync.WaitGroup{}
+			command := NewAciOrPod(workPath, Args, checkWg)
 			if underClean {
 				command.Clean()
 			}
 			if err := command.Test(); err != nil {
 				logs.WithE(err).Fatal("Test command failed")
 			}
+			checkWg.Wait()
 		},
 	}
 	cmd.Flags().BoolVarP(&Args.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")

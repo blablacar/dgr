@@ -15,7 +15,7 @@ func (p *Pod) Sign() error {
 			return err
 		}
 
-		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, tmpl)
+		aci, err := NewAciWithManifest(p.path+"/"+e.Name, p.args, tmpl, p.checkWg)
 		if err != nil {
 			logs.WithEF(err, appFields).Error("Cannot prepare aci to sign")
 		}
