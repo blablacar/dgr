@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const rktSupportedVersion Version = "1.0.0"
+const rktSupportedVersion Version = "1.4.0"
 
 type RktConfig struct {
 	Path               string   `yaml:"path"`
