@@ -159,7 +159,14 @@ func (aci *Aci) checkCompatibilityVersions() {
 }
 
 func (aci *Aci) checkLatestVersions() {
-	for _, dep := range aci.manifest.Aci.Dependencies {
+	CheckLatestVersion(aci.manifest.Aci.Dependencies, "dependency")
+	CheckLatestVersion(aci.manifest.Builder.Dependencies, "builder dependency")
+	CheckLatestVersion(aci.manifest.Tester.Builder.Dependencies, "tester builder dependency")
+	CheckLatestVersion(aci.manifest.Tester.Aci.Dependencies, "tester dependency")
+}
+
+func CheckLatestVersion(deps []common.ACFullname, warnText string) {
+	for _, dep := range deps {
 		if dep.Version() == "" {
 			continue
 		}
@@ -167,7 +174,7 @@ func (aci *Aci) checkLatestVersions() {
 		if version != "" && common.Version(dep.Version()).LessThan(common.Version(version)) {
 			logs.WithField("newer", dep.Name()+":"+version).
 				WithField("current", dep.String()).
-				Warn("Newer 'dependency' version")
+				Warn("Newer " + warnText + " version")
 		}
 	}
 }
