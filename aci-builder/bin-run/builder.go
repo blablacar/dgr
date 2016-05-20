@@ -15,6 +15,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
@@ -302,6 +303,13 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 		return args, env, errs.WithEF(err, b.fields.WithField("content", string(content)), "Failed to process manifest template")
 	}
 	for _, mount := range aciManifest.Builder.MountPoints {
+		if strings.HasPrefix(mount.From, "~/") {
+			user, err := user.Current()
+			if err != nil {
+				return args, env, errs.WithEF(err, b.fields, "Cannot found current user")
+			}
+			mount.From = user.HomeDir + mount.From[1:]
+		}
 		from := mount.From
 		if from[0] != '/' {
 			from = b.aciHomePath + "/" + from
