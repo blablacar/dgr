@@ -1,10 +1,10 @@
 {{$data := .}}
 {{range $a,$b := $data -}}
-{{/*$indent := (HowDeep $data . )*/}}
+{{/*$indent := (howDeep $data . )*/}}
 {{$indent := 0}}
 {{template "indent" $indent }}{{ $a }}:
 {{range $c,$d := $b -}}
-{{template "indent" (HowDeep $data $b )}}{{$c}}: {{template "config" $d}}{{/*(HowDeep $data . )*/}}
+{{template "indent" (howDeep $data $b )}}{{$c}}: {{template "config" $d}}{{/*(HowDeep $data . )*/}}
 {{end}}
 {{end}}
 {{/*template "config" .*/}}

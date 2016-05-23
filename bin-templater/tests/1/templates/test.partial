@@ -14,7 +14,7 @@
 {{define "mapType"}}
 {{$deep := .}}
 {{range $a,$b := . -}}
-{{- if (IsMapFirst $deep $a )}} # First{{end}}
+{{- if (isMapFirst $deep $a )}} # First{{end}}
 {{$a}}: {{template "config" $b}}
 {{- end -}}
 {{- end -}}
