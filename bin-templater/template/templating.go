@@ -273,9 +273,9 @@ func init() {
 	TemplateFunctions["isArray"] = IsArray
 	TemplateFunctions["isKind"] = IsKind
 	TemplateFunctions["isString"] = IsString
-	TemplateFunctions["IsMapFirst"] = IsMapFirst
-	TemplateFunctions["IsMapLast"] = IsMapLast
-	TemplateFunctions["HowDeep"] = HowDeep
+	TemplateFunctions["isMapFirst"] = IsMapFirst
+	TemplateFunctions["isMapLast"] = IsMapLast
+	TemplateFunctions["howDeep"] = HowDeep
 	TemplateFunctions["add"] = add
 	TemplateFunctions["mul"] = mul
 	TemplateFunctions["div"] = div

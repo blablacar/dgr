@@ -15,7 +15,7 @@ type TemplateDir struct {
 	fields   data.Fields
 	src      string
 	dst      string
-	partials *txttmpl.Template
+	Partials *txttmpl.Template
 }
 
 func NewTemplateDir(path string, targetRoot string) (*TemplateDir, error) {
@@ -66,7 +66,7 @@ func (t *TemplateDir) LoadPartial() error {
 			return errs.WithEF(err, t.fields.WithField("partial", partial), "Failed to parse partial")
 		}
 	}
-	t.partials = tmpl
+	t.Partials = tmpl
 	return nil
 }
 
@@ -108,7 +108,7 @@ func (t *TemplateDir) processSingleDir(src string, dst string, attributes map[st
 			} else {
 				dstObj = dst + "/" + strings.Replace(obj.Name(), ".tmpl.", ".", 1)
 			}
-			template, err := NewTemplateFile(t.partials, srcObj, obj.Mode())
+			template, err := NewTemplateFile(t.Partials, srcObj, obj.Mode())
 			if err != nil {
 				return err
 			}
