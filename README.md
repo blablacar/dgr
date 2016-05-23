@@ -12,8 +12,9 @@ dgr allows you to build generic container images for a service and to configure 
 
 _dgr is actively used at blablacar to build and run more than an hundred different aci and pod to [run all our platforms](http://blablatech.com/blog/why-and-how-blablacar-went-full-containers)._
 
-
 ## Build the ACI once, configure your app at runtime.
+
+_You can also have a look at [examples](https://github.com/blablacar/dgr/tree/master/examples) that uses most of the features_
 
 dgr provides various resources to build and configure an ACI:
 
@@ -48,6 +49,7 @@ $ dgr install       # use already built aci in target directory to install in rk
 $ dgr push          # use already built aci in target directory to push to remote storage
 $ dgr test          # run tests on already built aci
 $ dgr try           # run templating only to target/try (experimental)
+$ dgr graph         # generate graph image of .dot file of dependencies (app, builder and tester)
 ```
 
 There is a lot of different flags on each command. use the helper to see them :
@@ -147,7 +149,7 @@ The only mandatory information is the `aci-manifest.yml`, with only the aci `nam
 - integrated test system that can be extended to support any kind of test system
 - working with [pods](https://github.com/appc/spec/blob/master/spec/pods.md) as a unit during build too
 - build application version based on container name
-- extract aci version from the version of the software during installation
+- extract aci version from the version of the software during installation (templating of manifest)
 
 ## How it's working
 <img style="margin: 10px 30px 40px 0" src="https://docs.google.com/drawings/d/1bSP6Z2X79xkp6deSNaZ-ShrAPjAPa4bzyjL4df2HLwk/pub?w=850">
@@ -225,7 +227,9 @@ You can create templates in your ACI. Templates are stored in the ACI as long as
 
 Example:
 
-*templates/etc/resolv.conf.tmpl*
+*templates/etc/resolv.conf.tmpl* 
+
+You can also use _templates/etc/resolv.tmpl.conf_ filename format to keep IDE language detection
 
 ```
 {{ range .dns.nameservers -}}
@@ -283,6 +287,19 @@ Templater provides functions to manipulate data inside the template. Here is the
 | orDef     | orDef                | if first element is nil, use second as default              |
 | orDefs    | orDefs               | if first array param is empty use second element to fill it |
 | ifOrDef   | ifOrDef              | if first param is not nil, use second, else third           |
+| add       | add                  | add 2 numbers                                               |
+| mul       | mul                  | mutiply 2 numbers                                           |
+| div       | div                  | divide 2 numbers                                            |
+| sub       | sub                  | substract 2 numbers                                         |
+| mod       | mod                  | modulo of 2 numbers                                         |
+| howDeep   | HowDeep              | deep level of an object in tree structure. usefull for indent|
+| isMapLast | isMapLast            | is last element of a sorted keys map                        |
+| isMapFirst| isMapLast            | is first element of a sorted keys map                       |
+| isString  | isString             |                                                             |
+| isArray   | isArray              |                                                             |
+| isMap     | isMap                |                                                             |
+| isKind    | isKind               |                                                             |
+| isType    | isType               |                                                            |
 
 It also provide all function defined by [gtf project](https://github.com/leekchan/gtf)
 
@@ -302,6 +319,7 @@ default:
       - "8.8.4.4"
     search:
       - bla.com
+  myAttribute: "{{index .dns.nameservers 0}}" # example of templating in attributes
 ```
 
 ### Prestart
