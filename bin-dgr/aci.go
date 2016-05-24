@@ -93,14 +93,6 @@ func NewAciWithManifest(path string, args BuildArgs, manifestTmpl string, checkW
 		}
 	}
 
-	checkWg.Add(2)
-	if aci.args.SerialBuild {
-		aci.checkCompatibilityVersions()
-		aci.checkLatestVersions()
-	} else {
-		go aci.checkCompatibilityVersions()
-		go aci.checkLatestVersions()
-	}
 	return aci, nil
 }
 

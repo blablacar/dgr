@@ -100,6 +100,14 @@ func (aci *Aci) cleanupRun(builderHash string, stage1Hash string) {
 }
 
 func (aci *Aci) CleanAndBuild() error {
+	aci.checkWg.Add(2)
+	if aci.args.SerialBuild {
+		aci.checkCompatibilityVersions()
+		aci.checkLatestVersions()
+	} else {
+		go aci.checkCompatibilityVersions()
+		go aci.checkLatestVersions()
+	}
 	return aci.RunBuilderCommand(common.CommandBuild)
 }
 
