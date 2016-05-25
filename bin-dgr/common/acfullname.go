@@ -33,18 +33,18 @@ func (n ACFullname) LatestVersion() (string, error) {
 		app.Labels["arch"] = "amd64"
 	}
 
-	endpoint, _, err := discovery.DiscoverEndpoints(*app, nil, false)
+	endpoints, _, err := discovery.DiscoverACIEndpoints(*app, nil, discovery.InsecureTLS|discovery.InsecureHTTP)
 	if err != nil {
 		return "", errors.Annotate(err, "Latest discovery fail")
 	}
 
 	r, _ := regexp.Compile(`^(\d+\.)?(\d+\.)?(\*|\d+)(\-[\dA-Za-z]+){0,1}$`) // TODO this is nexus specific
 
-	if len(endpoint.ACIEndpoints) == 0 {
+	if len(endpoints) == 0 {
 		return "", errs.WithF(data.WithField("aci", string(n)), "Discovery does not give an endpoint to check latest version")
 	}
 
-	url := getRedirectForLatest(endpoint.ACIEndpoints[0].ACI)
+	url := getRedirectForLatest(endpoints[0].ACI)
 	logs.WithField("url", url).Debug("latest verion url")
 
 	for _, part := range strings.Split(url, "/") {

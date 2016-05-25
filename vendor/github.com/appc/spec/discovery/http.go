@@ -15,6 +15,7 @@
 package discovery
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net"
@@ -23,17 +24,28 @@ import (
 	"time"
 )
 
+type InsecureOption int
+
 const (
 	defaultDialTimeout = 5 * time.Second
 )
 
+const (
+	InsecureNone InsecureOption = 0
+
+	InsecureTLS InsecureOption = 1 << iota
+	InsecureHTTP
+)
+
 var (
 	// Client is the default http.Client used for discovery requests.
-	Client *http.Client
+	Client            *http.Client
+	ClientInsecureTLS *http.Client
 
 	// httpDo is the internal object used by discovery to retrieve URLs; it is
 	// defined here so it can be overridden for testing
-	httpDo httpDoer
+	httpDo            httpDoer
+	httpDoInsecureTLS httpDoer
 )
 
 // httpDoer is an interface used to wrap http.Client for real requests and
@@ -53,9 +65,17 @@ func init() {
 		Transport: t,
 	}
 	httpDo = Client
+
+	// copy for InsecureTLS
+	tInsecureTLS := *t
+	tInsecureTLS.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	ClientInsecureTLS = &http.Client{
+		Transport: &tInsecureTLS,
+	}
+	httpDoInsecureTLS = ClientInsecureTLS
 }
 
-func httpsOrHTTP(name string, hostHeaders map[string]http.Header, insecure bool) (urlStr string, body io.ReadCloser, err error) {
+func httpsOrHTTP(name string, hostHeaders map[string]http.Header, insecure InsecureOption) (urlStr string, body io.ReadCloser, err error) {
 	fetch := func(scheme string) (urlStr string, res *http.Response, err error) {
 		u, err := url.Parse(scheme + "://" + name)
 		if err != nil {
@@ -70,6 +90,10 @@ func httpsOrHTTP(name string, hostHeaders map[string]http.Header, insecure bool)
 		if hostHeader, ok := hostHeaders[u.Host]; ok {
 			req.Header = hostHeader
 		}
+		if insecure&InsecureTLS != 0 {
+			res, err = httpDoInsecureTLS.Do(req)
+			return
+		}
 		res, err = httpDo.Do(req)
 		return
 	}
@@ -80,7 +104,7 @@ func httpsOrHTTP(name string, hostHeaders map[string]http.Header, insecure bool)
 	}
 	urlStr, res, err := fetch("https")
 	if err != nil || res.StatusCode != http.StatusOK {
-		if insecure {
+		if insecure&InsecureHTTP != 0 {
 			closeBody(res)
 			urlStr, res, err = fetch("http")
 		}
