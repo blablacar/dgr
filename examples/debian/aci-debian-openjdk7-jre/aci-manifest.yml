@@ -1,4 +1,4 @@
-name: dgrtool.com/aci-debian-openjdk7-jre:{{.version}}-1
+name: blablacar.github.io/dgr/aci-debian-openjdk7-jre:{{.version}}-1
 aci:
   dependencies:
-    - dgrtool.com/aci-debian:8
+    - blablacar.github.io/dgr/aci-debian:8

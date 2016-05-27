@@ -1,7 +1,7 @@
 {
     "acKind": "ImageManifest",
     "acVersion": "0.6.1",
-    "name": "dgrtool.com/aci-tester",
+    "name": "blablacar.github.io/dgr/aci-tester",
     "labels": [
         {
             "name": "arch",
@@ -26,13 +26,13 @@
             "value": "/dgr/builder/stage1/gc"
         },
         {
-            "name": "dgrtool.com/dgr/stage1/build",
+            "name": "blablacar.github.io/dgr/stage1/build",
             "value": "/dgr/command/build"
         }
     ],
     "dependencies": [
         {
-            "imageName": "dgrtool.com/aci-builder",
+            "imageName": "blablacar.github.io/aci-builder",
             "labels": [
                 {
                     "name": "os",

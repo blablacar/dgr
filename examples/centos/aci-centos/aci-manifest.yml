@@ -1,4 +1,4 @@
-name: dgrtool.com/aci-centos
+name: blablacar.github.io/dgr/aci-centos
 aci:
   dependencies:
-    - dgrtool.com/aci-base
+    - blablacar.github.io/dgr/aci-base

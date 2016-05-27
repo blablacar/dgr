@@ -19,7 +19,7 @@ godep save ./${dir}/aci-builder/... ./${dir}/bin-templater/... ./${dir}/bin-dgr/
 gofmt -w -s ${dir}/bin-dgr ${dir}/bin-templater ${dir}/aci-builder/bin-run
 
 # bin
-mkdir -p ${dir}/dist/bindata/aci/dgrtool.com
+mkdir -p ${dir}/dist/bindata/aci/blablacar.github.io/dgr
 [ -f ${dir}/dist/templater ] || ${dir}/bin-templater/build.sh
 [ -f ${dir}/dist/bindata/aci-tester.aci ] || ${dir}/aci-tester/build.sh
 [ -f ${dir}/dist/bindata/aci-builder.aci ] || ${dir}/aci-builder/build.sh

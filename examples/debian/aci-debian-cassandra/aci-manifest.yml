@@ -1,7 +1,7 @@
-name: dgrtool.com/aci-debian-cassandra:{{.version}}-1
+name: blablacar.github.io/dgr/aci-debian-cassandra:{{.version}}-1
 aci:
   dependencies:
-    - dgrtool.com/aci-debian:8
+    - blablacar.github.io/dgr/aci-debian:8
   app:
     exec: [ "/bin/bash", "-c", "CASSANDRA_CONF=/etc/cassandra source /etc/cassandra/cassandra-env.sh && /usr/sbin/cassandra -f" ]
     user: {{.user}}

@@ -1,7 +1,7 @@
-name: dgrtool.com/aci-alpine-nginx
+name: blablacar.github.io/dgr/aci-alpine-nginx
 aci:
   dependencies:
-    - dgrtool.com/aci-base
-    - dgrtool.com/aci-alpine-base
+    - blablacar.github.io/dgr/aci-base
+    - blablacar.github.io/dgr/aci-alpine-base
   app:
     exec: [ /usr/sbin/nginx, -g, daemon off; ]

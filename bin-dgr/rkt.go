@@ -10,8 +10,8 @@ import (
 	"time"
 )
 
-var aciBuilder = common.NewACFullName("dgrtool.com/aci-builder")
-var aciTester = common.NewACFullName("dgrtool.com/aci-tester")
+var aciBuilder = common.NewACFullName("blablacar.github.io/dgr/aci-builder")
+var aciTester = common.NewACFullName("blablacar.github.io/dgr/aci-tester")
 
 func ImportInternalBuilderIfNeeded(manifest *common.AciManifest) {
 	if manifest.Builder.Image.String() == "" {

@@ -34,11 +34,11 @@ const (
 func (b BuilderCommand) CommandManifestKey() (string, error) {
 	switch b {
 	case CommandBuild:
-		return "dgrtool.com/dgr/stage1/build", nil
+		return "blablacar.github.io/dgr/dgr/stage1/build", nil
 	case CommandInit:
-		return "dgrtool.com/dgr/stage1/init", nil
+		return "blablacar.github.io/dgr/dgr/stage1/init", nil
 	case CommandTry:
-		return "dgrtool.com/dgr/stage1/try", nil
+		return "blablacar.github.io/dgr/dgr/stage1/try", nil
 	default:
 		return "", errs.WithF(data.WithField("command", b), "Unimplemented command manifest key")
 	}

@@ -1,7 +1,7 @@
-name: dgrtool.com/aci-grafana:2.6.0-1
+name: blablacar.github.io/dgr/aci-grafana:2.6.0-1
 aci:
   dependencies:
-    - dgrtool.com/aci-libc
+    - blablacar.github.io/dgr/aci-libc
   app:
     exec: [ /grafana/bin/grafana-server ]
     workingDirectory: /grafana/bin
