@@ -4,10 +4,6 @@
     "name": "dgrtool.com/aci-tester",
     "labels": [
         {
-            "name": "version",
-            "value": "1"
-        },
-        {
             "name": "arch",
             "value": "amd64"
         },

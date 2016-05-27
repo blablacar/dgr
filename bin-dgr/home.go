@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -11,9 +12,16 @@ import (
 
 var Home HomeStruct
 
+type Sign struct {
+	Domains  []string `yaml:"domains"`
+	Keyring  string   `yaml:"keyring"`
+	Disabled bool     `yaml:"disabled"`
+}
+
 type Config struct {
-	Path string
-	Push struct {
+	Path  string
+	Signs *[]Sign `yaml:"sign,omitempty"`
+	Push  struct {
 		Type     string `yaml:"type,omitempty"`
 		Url      string `yaml:"url,omitempty"`
 		Username string `yaml:"username,omitempty"`
@@ -27,6 +35,25 @@ type HomeStruct struct {
 	path   string
 	Config Config
 	Rkt    *common.RktClient
+}
+
+func (cfg *Config) GetSignKeyring(domain string) (*Sign, error) {
+	var keyring *Sign
+	for _, sign := range *cfg.Signs {
+		if len(sign.Domains) == 0 {
+			keyring = &sign
+		} else {
+			for _, signDomain := range sign.Domains {
+				if signDomain == domain {
+					return &sign, nil
+				}
+			}
+		}
+	}
+	if keyring == nil {
+		return nil, errs.WithF(data.WithField("domain", domain), "Cannot found keyring for this domain on dgr configuration")
+	}
+	return keyring, nil
 }
 
 func NewHome(path string) HomeStruct {
@@ -51,6 +78,9 @@ func NewHome(path string) HomeStruct {
 	}
 	if Args.StoreOnly {
 		config.Rkt.StoreOnly = true
+	}
+	if config.Signs == nil {
+		config.Signs = &[]Sign{{Disabled: true}}
 	}
 
 	rkt, err := common.NewRktClient(config.Rkt)

@@ -169,7 +169,7 @@ func (aci *Aci) prepareStage1aci() (string, error) {
 	}
 
 	logs.WithF(aci.fields.WithField("path", aci.target+pathStage1+pathImageAci)).Info("Importing builder's stage1")
-	hash, err := Home.Rkt.Fetch(aci.target + pathStage1 + pathImageAci)
+	hash, err := Home.Rkt.FetchInsecure(aci.target + pathStage1 + pathImageAci)
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "fetch of builder's stage1 aci failed")
 	}
@@ -195,7 +195,7 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 	}
 
 	logs.WithF(aci.fields.WithField("path", aci.target+pathBuilder+pathImageAci)).Info("Importing build to rkt")
-	hash, err := Home.Rkt.Fetch(aci.target + pathBuilder + pathImageAci)
+	hash, err := Home.Rkt.FetchInsecure(aci.target + pathBuilder + pathImageAci)
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "fetch of builder aci failed")
 	}
@@ -205,6 +205,24 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 func (aci *Aci) EnsureBuilt() error {
 	if _, err := os.Stat(aci.target + pathImageAci); os.IsNotExist(err) {
 		if err := aci.CleanAndBuild(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (aci *Aci) EnsureSign() error {
+	if _, err := os.Stat(aci.target + pathImageAciAsc); os.IsNotExist(err) {
+		if err := aci.Sign(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (aci *Aci) EnsureZipSign() error {
+	if _, err := os.Stat(aci.target + pathImageGzAciAsc); os.IsNotExist(err) {
+		if err := aci.ZipSign(); err != nil {
 			return err
 		}
 	}

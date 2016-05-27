@@ -23,7 +23,9 @@ func (aci *Aci) Push() error {
 		}
 	}
 
-	logs.WithF(aci.fields).Info("Gzipping aci before upload")
+	if err := aci.EnsureZipSign(); err != nil {
+		return err
+	}
 
 	im, err := common.ExtractManifestFromAci(aci.target + pathImageAci)
 	if err != nil {
@@ -34,11 +36,11 @@ func (aci *Aci) Push() error {
 		return errs.WithEF(err, aci.fields.WithField("file", pathImageAci), "Failed to get version from aci manifest")
 	}
 
-	if err := aci.zipAci(); err != nil {
-		return errs.WithEF(err, aci.fields, "Failed to zip aci")
-	}
+	return aci.upload(common.NewACFullName(string(im.Name) + ":" + val))
+}
 
-	if Home.Config.Push.Type == "maven" {
+func (aci *Aci) upload(name *common.ACFullname) error {
+	if Home.Config.Push.Type == "maven" && name.DomainName() == "aci.blbl.cr" { // TODO this definitely need to be removed
 		logs.WithF(aci.fields).Info("Uploading aci")
 		if err := common.ExecCmd("curl", "-f", "-i",
 			"-F", "r=releases",
@@ -46,8 +48,8 @@ func (aci *Aci) Push() error {
 			"-F", "e=aci",
 			"-F", "g=com.blablacar.aci.linux.amd64",
 			"-F", "p=aci",
-			"-F", "v="+val,
-			"-F", "a="+strings.Split(string(im.Name), "/")[1],
+			"-F", "v="+name.Version(),
+			"-F", "a="+strings.Split(string(name.Name()), "/")[1],
 			"-F", "file=@"+aci.target+pathImageGzAci,
 			"-u", Home.Config.Push.Username+":"+Home.Config.Push.Password,
 			Home.Config.Push.Url+"/service/local/artifact/maven/content"); err != nil {
@@ -68,12 +70,11 @@ func (aci *Aci) Push() error {
 			return errs.WithEF(err, aci.fields, "Failed to get rkt configuration")
 		}
 
-		err = Uploader{
-			Acipath:  aci.target + pathImageGzAci,
-			Ascpath:  aci.target + pathImageGzAci,
-			Uri:      aci.manifest.NameAndVersion.String(),
-			Insecure: true,
-			Debug:    false,
+		upload := Uploader{
+			Acipath: aci.target + pathImageGzAci,
+			Ascpath: aci.target + pathImageGzAciAsc,
+			Uri:     aci.manifest.NameAndVersion.String(),
+			Debug:   false,
 			SetHTTPHeaders: func(r *http.Request) {
 				if r.URL == nil {
 					return
@@ -89,7 +90,8 @@ func (aci *Aci) Push() error {
 					r.Header[k] = append(r.Header[k], v...)
 				}
 			},
-		}.Upload()
+		}
+		err = upload.Upload()
 		if err != nil {
 			return errs.WithEF(err, aci.fields, "Failed to upload aci")
 		}

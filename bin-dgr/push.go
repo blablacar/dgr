@@ -12,10 +12,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/appc/acpush/Godeps/_workspace/src/github.com/appc/spec/aci"
-	"github.com/appc/acpush/Godeps/_workspace/src/github.com/appc/spec/discovery"
-	"github.com/appc/acpush/Godeps/_workspace/src/github.com/appc/spec/schema"
-	"github.com/appc/acpush/Godeps/_workspace/src/github.com/coreos/ioprogress"
+	"github.com/appc/spec/aci"
+	appcdiscovery "github.com/appc/spec/discovery"
+	"github.com/appc/spec/schema"
+	"github.com/blablacar/dgr/bin-dgr/discovery"
+	"github.com/coreos/ioprogress"
+	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/errs"
 )
 
 const (
@@ -46,11 +49,10 @@ func stderr(format string, a ...interface{}) {
 
 // Uploader holds information about an upload to be performed.
 type Uploader struct {
-	Acipath  string
-	Ascpath  string
-	Uri      string
-	Insecure bool
-	Debug    bool
+	Acipath string
+	Ascpath string
+	Uri     string
+	Debug   bool
 
 	// SetHTTPHeaders is called on every request before being sent.
 	// This is exposed so that the user of acpush can set any headers
@@ -63,23 +65,26 @@ type Uploader struct {
 func (u Uploader) Upload() error {
 	acifile, err := os.Open(u.Acipath)
 	if err != nil {
-		return err
+		return errs.WithEF(err, data.WithField("file", u.Acipath), "Failed to open aci file")
 	}
 	defer acifile.Close()
 
-	ascfile, err := os.Open(u.Ascpath)
-	if err != nil {
-		return err
+	var ascfile *os.File
+	if _, err := os.Stat(u.Ascpath); err == nil {
+		ascfile, err = os.Open(u.Ascpath)
+		if err != nil {
+			return errs.WithEF(err, data.WithField("file", u.Ascpath), "Failed to open asc file")
+		}
+		defer ascfile.Close()
 	}
-	defer ascfile.Close()
 
 	manifest, err := aci.ManifestFromImage(acifile)
 	if err != nil {
-		return err
+		return errs.WithEF(err, data.WithField("file", u.Ascpath), "Failed to extract manifest from aci")
 	}
 	app, err := discovery.NewAppFromString(u.Uri)
 	if err != nil {
-		return err
+		return errs.WithEF(err, data.WithField("uri", u.Uri), "Failed to prepare app")
 	}
 
 	if _, ok := app.Labels[archLabelName]; !ok {
@@ -106,22 +111,22 @@ func (u Uploader) Upload() error {
 	// case aci.ManifestFromImage changed the cursor into the file.
 	_, err = acifile.Seek(0, 0)
 	if err != nil {
-		return err
+		return errs.WithE(err, "Failed to seek to beginning of file")
 	}
 
 	manblob, err := manifest.MarshalJSON()
 	if err != nil {
-		return err
+		return errs.WithE(err, "Failed to marshall manifest")
 	}
 
 	initurl, err := u.getInitiationURL(app)
 	if err != nil {
-		return err
+		return errs.WithEF(err, data.WithField("uri", u.Uri), "Failed to initate url")
 	}
 
 	initDeets, err := u.initiateUpload(initurl)
 	if err != nil {
-		return err
+		return errs.WithE(err, "Failed to initiate upload")
 	}
 
 	type partToUpload struct {
@@ -131,11 +136,14 @@ func (u Uploader) Upload() error {
 		draw  bool
 	}
 
-	for _, part := range []partToUpload{
+	parts := []partToUpload{
 		{"manifest", initDeets.ManifestURL, bytes.NewReader(manblob), false},
-		{"signature", initDeets.SignatureURL, ascfile, true},
-		{"ACI", initDeets.ACIURL, acifile, true},
-	} {
+		{"ACI", initDeets.ACIURL, acifile, true}}
+	if ascfile != nil {
+		parts = append(parts, partToUpload{"signature", initDeets.SignatureURL, ascfile, true})
+	}
+
+	for _, part := range parts {
 		err = u.uploadPart(part.url, part.r, part.draw, part.label)
 		if err != nil {
 			reason := fmt.Errorf("error uploading %s: %v", part.label, err)
@@ -149,7 +157,7 @@ func (u Uploader) Upload() error {
 
 	err = u.reportSuccess(initDeets.CompletedURL)
 	if err != nil {
-		return err
+		return errs.WithE(err, "Remote server report upload failure")
 	}
 
 	return nil
@@ -159,7 +167,8 @@ func (u Uploader) getInitiationURL(app *discovery.App) (string, error) {
 	if u.Debug {
 		stderr("searching for push endpoint via meta discovery")
 	}
-	eps, attempts, err := discovery.DiscoverEndpoints(*app, u.Insecure)
+	eps, attempts, err := discovery.DiscoverEndpoints(*app,
+		Home.Config.Rkt.InsecureOptions.ToDiscoveryInsecureOption()&(appcdiscovery.InsecureTLS|appcdiscovery.InsecureHTTP) != 0)
 	if u.Debug {
 		for _, a := range attempts {
 			stderr("meta tag 'ac-push-discovery' not found on %s: %v", a.Prefix, a.Error)
@@ -185,13 +194,13 @@ func (u Uploader) initiateUpload(initurl string) (*initiateDetails, error) {
 	}
 	resp, err := u.performRequest("POST", initurl, nil, false, "")
 	if err != nil {
-		return nil, err
+		return nil, errs.WithE(err, "Failed To perform push request")
 	}
 	defer resp.Close()
 
 	respblob, err := ioutil.ReadAll(resp)
 	if err != nil {
-		return nil, err
+		return nil, errs.WithE(err, "Failed To read response")
 	}
 
 	deets := &initiateDetails{}
@@ -202,6 +211,10 @@ func (u Uploader) initiateUpload(initurl string) (*initiateDetails, error) {
 		stderr(" - manifest endpoint: %s", deets.ManifestURL)
 		stderr(" - signature endpoint: %s", deets.SignatureURL)
 		stderr(" - aci endpoint: %s", deets.ACIURL)
+	}
+
+	if err != nil {
+		return nil, errs.WithE(err, "Failed to unmarshal response from upload")
 	}
 
 	return deets, err
@@ -271,7 +284,7 @@ func (u Uploader) performRequest(reqType string, url string, body io.Reader, dra
 		return nil, err
 	}
 	transport := http.DefaultTransport
-	if u.Insecure {
+	if Home.Config.Rkt.InsecureOptions.ToDiscoveryInsecureOption()&appcdiscovery.InsecureTLS != 0 {
 		transport = &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}

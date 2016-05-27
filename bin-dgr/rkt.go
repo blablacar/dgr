@@ -10,15 +10,13 @@ import (
 	"time"
 )
 
-var aciBuilder = common.NewACFullName("dgrtool.com/aci-builder:1")
-var aciTester = common.NewACFullName("dgrtool.com/aci-tester:1")
-
-//var internalAcis = []*spec.ACFullname{ACI_BATS, ACI_BUILDER}
+var aciBuilder = common.NewACFullName("dgrtool.com/aci-builder")
+var aciTester = common.NewACFullName("dgrtool.com/aci-tester")
 
 func ImportInternalBuilderIfNeeded(manifest *common.AciManifest) {
 	if manifest.Builder.Image.String() == "" {
 		manifest.Builder.Image = *aciBuilder
-		importInternalAci("aci-builder.aci") // TODO
+		importInternalAci("aci-builder.aci")
 	}
 }
 
@@ -26,7 +24,7 @@ func ImportInternalTesterIfNeeded(manifest *common.AciManifest) {
 	ImportInternalBuilderIfNeeded(manifest)
 	if manifest.Tester.Builder.Image.String() == "" {
 		manifest.Tester.Builder.Image = *aciTester
-		importInternalAci("aci-tester.aci") // TODO
+		importInternalAci("aci-tester.aci")
 	}
 }
 
@@ -41,7 +39,7 @@ func importInternalAci(filename string) {
 		logs.WithE(err).WithField("aci", filepath).Fatal("Failed to write tmp aci to /tmp/tmp.aci")
 	}
 	defer os.Remove(tmpFile)
-	if _, err := Home.Rkt.Fetch(tmpFile); err != nil { // TODO does not support concurrency
+	if _, err := Home.Rkt.FetchInsecure(tmpFile); err != nil {
 		logs.WithE(err).Fatal("Failed to import internal image to rkt")
 	}
 }
