@@ -9,26 +9,6 @@
 	],
 	"Deps": [
 		{
-			"ImportPath": "github.com/appc/acpush/Godeps/_workspace/src/github.com/appc/spec/aci",
-			"Rev": "14848fa3eedb4cfbfc3a9b66190cffe535348391"
-		},
-		{
-			"ImportPath": "github.com/appc/acpush/Godeps/_workspace/src/github.com/appc/spec/discovery",
-			"Rev": "14848fa3eedb4cfbfc3a9b66190cffe535348391"
-		},
-		{
-			"ImportPath": "github.com/appc/acpush/Godeps/_workspace/src/github.com/appc/spec/pkg/device",
-			"Rev": "14848fa3eedb4cfbfc3a9b66190cffe535348391"
-		},
-		{
-			"ImportPath": "github.com/appc/acpush/Godeps/_workspace/src/github.com/appc/spec/pkg/tarheader",
-			"Rev": "14848fa3eedb4cfbfc3a9b66190cffe535348391"
-		},
-		{
-			"ImportPath": "github.com/appc/acpush/Godeps/_workspace/src/github.com/appc/spec/schema",
-			"Rev": "14848fa3eedb4cfbfc3a9b66190cffe535348391"
-		},
-		{
 			"ImportPath": "github.com/appc/acpush/Godeps/_workspace/src/github.com/appc/spec/schema/types",
 			"Rev": "14848fa3eedb4cfbfc3a9b66190cffe535348391"
 		},
@@ -37,15 +17,7 @@
 			"Rev": "14848fa3eedb4cfbfc3a9b66190cffe535348391"
 		},
 		{
-			"ImportPath": "github.com/appc/acpush/Godeps/_workspace/src/github.com/coreos/ioprogress",
-			"Rev": "14848fa3eedb4cfbfc3a9b66190cffe535348391"
-		},
-		{
 			"ImportPath": "github.com/appc/acpush/Godeps/_workspace/src/github.com/spf13/pflag",
-			"Rev": "14848fa3eedb4cfbfc3a9b66190cffe535348391"
-		},
-		{
-			"ImportPath": "github.com/appc/acpush/Godeps/_workspace/src/golang.org/x/crypto/ssh/terminal",
 			"Rev": "14848fa3eedb4cfbfc3a9b66190cffe535348391"
 		},
 		{
@@ -102,6 +74,10 @@
 		{
 			"ImportPath": "github.com/coreos/go-semver/semver",
 			"Rev": "d043ae190b3202550d026daf009359bb5d761672"
+		},
+		{
+			"ImportPath": "github.com/coreos/ioprogress",
+			"Rev": "4637e494fd9b23c5565ee193e89f91fdc1639bc0"
 		},
 		{
 			"ImportPath": "github.com/coreos/rkt/common",
@@ -255,6 +231,10 @@
 		{
 			"ImportPath": "go4.org/errorutil",
 			"Rev": "03efcb870d84809319ea509714dd6d19a1498483"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/ssh/terminal",
+			"Rev": "5bcd134fee4dd1475da17714aac19c0aa0142e2f"
 		},
 		{
 			"ImportPath": "golang.org/x/net/html",
