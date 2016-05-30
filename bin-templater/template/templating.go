@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"github.com/leekchan/gtf"
+	"gopkg.in/yaml.v2"
 	"io"
 	"os"
 	"path"
@@ -12,7 +13,6 @@ import (
 	"strings"
 	txttmpl "text/template"
 	"time"
-	"gopkg.in/yaml.v2"
 )
 
 type Templating struct {
@@ -127,7 +127,6 @@ func toYaml(data interface{}) (string, error) {
 	res, err := yaml.Marshal(data)
 	return string(res), err
 }
-
 
 func IsType(data interface{}, t string) bool {
 	dataType := reflect.TypeOf(data)
