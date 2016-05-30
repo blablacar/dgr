@@ -104,7 +104,7 @@ func (t *TemplateDir) processSingleDir(src string, dst string, attributes map[st
 			if err := t.processSingleDir(srcObj, dstObj, attributes); err != nil {
 				return err
 			}
-		} else if strings.HasSuffix(obj.Name(), ".tmpl") || strings.Contains(obj.Name(), ".tmpl.") {
+		} else if strings.HasSuffix(obj.Name(), ".tmpl") || (strings.Contains(obj.Name(), ".tmpl.") && !strings.HasSuffix(obj.Name(), ".tmpl.cfg")) {
 			if strings.HasSuffix(obj.Name(), ".tmpl") {
 				dstObj = dstObj[:len(dstObj)-5]
 			} else {
