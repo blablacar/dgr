@@ -19,7 +19,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/appc/acpush/Godeps/_workspace/src/github.com/appc/spec/schema/types"
+	"github.com/appc/spec/schema/types"
 )
 
 type App struct {

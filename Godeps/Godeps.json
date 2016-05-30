@@ -9,34 +9,6 @@
 	],
 	"Deps": [
 		{
-			"ImportPath": "github.com/appc/acpush/Godeps/_workspace/src/github.com/appc/spec/schema/types",
-			"Rev": "14848fa3eedb4cfbfc3a9b66190cffe535348391"
-		},
-		{
-			"ImportPath": "github.com/appc/acpush/Godeps/_workspace/src/github.com/coreos/go-semver/semver",
-			"Rev": "14848fa3eedb4cfbfc3a9b66190cffe535348391"
-		},
-		{
-			"ImportPath": "github.com/appc/acpush/Godeps/_workspace/src/github.com/spf13/pflag",
-			"Rev": "14848fa3eedb4cfbfc3a9b66190cffe535348391"
-		},
-		{
-			"ImportPath": "github.com/appc/acpush/Godeps/_workspace/src/golang.org/x/net/html",
-			"Rev": "14848fa3eedb4cfbfc3a9b66190cffe535348391"
-		},
-		{
-			"ImportPath": "github.com/appc/acpush/Godeps/_workspace/src/golang.org/x/net/html/atom",
-			"Rev": "14848fa3eedb4cfbfc3a9b66190cffe535348391"
-		},
-		{
-			"ImportPath": "github.com/appc/acpush/Godeps/_workspace/src/k8s.io/kubernetes/pkg/api/resource",
-			"Rev": "14848fa3eedb4cfbfc3a9b66190cffe535348391"
-		},
-		{
-			"ImportPath": "github.com/appc/acpush/Godeps/_workspace/src/speter.net/go/exp/math/dec/inf",
-			"Rev": "14848fa3eedb4cfbfc3a9b66190cffe535348391"
-		},
-		{
 			"ImportPath": "github.com/appc/spec/aci",
 			"Comment": "v0.8.1",
 			"Rev": "b889d03467ae08bb6c13241762a64305b69bcf82"

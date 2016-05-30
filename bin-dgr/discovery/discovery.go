@@ -21,8 +21,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/appc/acpush/Godeps/_workspace/src/golang.org/x/net/html"
-	"github.com/appc/acpush/Godeps/_workspace/src/golang.org/x/net/html/atom"
+	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 type acMeta struct {
