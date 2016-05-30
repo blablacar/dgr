@@ -1,8 +1,8 @@
-name: dgrtool.com/pod-cassandra
+name: blablacar.github.io/dgr/pod-cassandra
 pod:
   apps:
     - dependencies:
-        - dgrtool.com/aci-debian-cassandra
+        - blablacar.github.io/dgr/aci-debian-cassandra
 
     - dependencies:
-        - dgrtool.com/aci-debian-prometheus-jmx-exporter
+        - blablacar.github.io/dgr/aci-debian-prometheus-jmx-exporter

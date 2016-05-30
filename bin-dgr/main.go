@@ -94,7 +94,7 @@ func Execute() {
 	rootCmd.PersistentFlags().BoolVar(&Args.NoStore, "no-store", false, "Tell rkt to not use store")
 	rootCmd.PersistentFlags().BoolVarP(&Args.SerialBuild, "serial", "S", false, "Run build in serial (disable parallel builds)")
 
-	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, graphCmd, tryCmd /*signCmd,*/, aciVersion)
+	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, graphCmd, tryCmd, signCmd, aciVersion)
 
 	readEnvironment()
 	rootCmd.Execute()

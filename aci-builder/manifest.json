@@ -1,12 +1,8 @@
 {
     "acKind": "ImageManifest",
     "acVersion": "0.7.4",
-    "name": "dgrtool.com/aci-builder",
+    "name": "blablacar.github.io/dgr/aci-builder",
     "labels": [
-        {
-            "name": "version",
-            "value": "1"
-        },
         {
             "name": "arch",
             "value": "amd64"
@@ -30,15 +26,15 @@
             "value": "/dgr/builder/stage1/gc"
         },
         {
-            "name": "dgrtool.com/dgr/stage1/build",
+            "name": "blablacar.github.io/dgr/stage1/build",
             "value": "/dgr/command/build"
         },
         {
-            "name": "dgrtool.com/dgr/stage1/init",
+            "name": "blablacar.github.io/dgr/stage1/init",
             "value": "/dgr/command/init"
         },
         {
-            "name": "dgrtool.com/dgr/stage1/try",
+            "name": "blablacar.github.io/dgr/stage1/try",
             "value": "/dgr/command/try"
         }
     ]

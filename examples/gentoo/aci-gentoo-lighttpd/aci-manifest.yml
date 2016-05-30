@@ -1,9 +1,9 @@
-name: dgrtool.com/aci-gentoo-lighttpd
+name: blablacar.github.io/dgr/aci-gentoo-lighttpd
 builder:
   dependencies:
-    - dgrtool.com/aci-gentoo-stage4
+    - blablacar.github.io/dgr/aci-gentoo-stage4
 aci:
   dependencies:
-    - dgrtool.com/aci-base
+    - blablacar.github.io/dgr/aci-base
   app:
     exec: [ /usr/sbin/lighttpd, -D, -f, /etc/lighttpd.conf ]

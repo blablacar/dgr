@@ -1,4 +1,4 @@
-name: dgrtool.com/aci-alpine-base
+name: blablacar.github.io/dgr/aci-alpine-base
 aci:
   dependencies:
-    - dgrtool.com/aci-base
+    - blablacar.github.io/dgr/aci-base

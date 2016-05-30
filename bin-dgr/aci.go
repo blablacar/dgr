@@ -17,6 +17,7 @@ import (
 const pathGraphPng = "/graph.png"
 const pathGraphDot = "/graph.dot"
 const pathImageAci = "/image.aci"
+const pathImageAciAsc = "/image.aci.asc"
 const pathImageGzAci = "/image.gz.aci"
 const pathImageGzAciAsc = "/image.gz.aci.asc"
 const pathTarget = "/target"
@@ -28,6 +29,7 @@ const pathBuilder = "/builder"
 const pathBuilderUuid = "/builder.uuid"
 const pathTesterUuid = "/tester.uuid"
 
+const suffixAsc = ".asc"
 const prefixTest = "test/"
 const prefixBuilderStage1 = "builder-stage1/"
 
@@ -128,6 +130,8 @@ func (aci *Aci) zipAci() error {
 	if _, err := os.Stat(aci.target + pathImageGzAci); err == nil {
 		return nil
 	}
+
+	logs.WithF(aci.fields).Info("Gzipping aci")
 	if stdout, stderr, err := common.ExecCmdGetStdoutAndStderr("gzip", "-k", aci.target+pathImageAci); err != nil {
 		return errs.WithEF(err, aci.fields.WithField("path", aci.target+pathImageAci).WithField("stdout", stdout).WithField("stderr", stderr), "Failed to zip aci")
 	}

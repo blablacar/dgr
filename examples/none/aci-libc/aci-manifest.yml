@@ -1,4 +1,4 @@
-name: dgrtool.com/aci-libc
+name: blablacar.github.io/dgr/aci-libc
 aci:
   dependencies:
-    - dgrtool.com/aci-base
+    - blablacar.github.io/dgr/aci-base

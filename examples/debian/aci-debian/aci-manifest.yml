@@ -1,4 +1,4 @@
-name: dgrtool.com/aci-debian:8
+name: blablacar.github.io/dgr/aci-debian:8
 aci:
   dependencies:
-    - dgrtool.com/aci-base
+    - blablacar.github.io/dgr/aci-base

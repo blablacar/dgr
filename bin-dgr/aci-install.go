@@ -7,7 +7,7 @@ import (
 func (aci *Aci) Install() ([]string, error) {
 	hashs := []string{}
 
-	if err := aci.EnsureBuilt(); err != nil {
+	if err := aci.EnsureSign(); err != nil {
 		return hashs, err
 	}
 	if aci.args.Test {

@@ -3,6 +3,7 @@ package common
 import (
 	"bufio"
 	"fmt"
+	"github.com/appc/spec/discovery"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
@@ -11,16 +12,40 @@ import (
 
 const rktSupportedVersion Version = "1.4.0"
 
+type InsecuOptions []string
+
+func (i InsecuOptions) ToDiscoveryInsecureOption() discovery.InsecureOption {
+	val := discovery.InsecureNone
+	for _, option := range i {
+		switch strings.ToLower(option) {
+		case "tls":
+			val |= discovery.InsecureTLS
+		case "http":
+			val |= discovery.InsecureHTTP
+		}
+	}
+	return val
+}
+
+func (i InsecuOptions) HasImage() bool {
+	for _, option := range i {
+		if strings.ToLower(option) == "image" {
+			return true
+		}
+	}
+	return false
+}
+
 type RktConfig struct {
-	Path               string   `yaml:"path"`
-	InsecureOptions    []string `yaml:"insecureOptions"`
-	dir                string   `yaml:"dir"`
-	LocalConfig        string   `yaml:"localConfig"`
-	SystemConfig       string   `yaml:"systemConfig"`
-	UserConfig         string   `yaml:"userConfig"`
-	TrustKeysFromHttps bool     `yaml:"trustKeysFromHttps"`
-	NoStore            bool     `yaml:"noStore"`
-	StoreOnly          bool     `yaml:"storeOnly"`
+	Path               string        `yaml:"path"`
+	InsecureOptions    InsecuOptions `yaml:"insecureOptions"`
+	dir                string        `yaml:"dir"`
+	LocalConfig        string        `yaml:"localConfig"`
+	SystemConfig       string        `yaml:"systemConfig"`
+	UserConfig         string        `yaml:"userConfig"`
+	TrustKeysFromHttps bool          `yaml:"trustKeysFromHttps"`
+	NoStore            bool          `yaml:"noStore"`
+	StoreOnly          bool          `yaml:"storeOnly"`
 }
 
 type RktClient struct {
@@ -37,7 +62,7 @@ func NewRktClient(config RktConfig) (*RktClient, error) {
 	rkt := &RktClient{
 		fields:     data.WithField("config", config),
 		config:     config,
-		globalArgs: config.prepareGlobalArgs(),
+		globalArgs: config.prepareGlobalArgs(config.InsecureOptions),
 	}
 
 	v, err := rkt.Version()
@@ -52,7 +77,7 @@ func NewRktClient(config RktConfig) (*RktClient, error) {
 	return rkt, nil
 }
 
-func (rktCfg *RktConfig) prepareGlobalArgs() []string {
+func (rktCfg *RktConfig) prepareGlobalArgs(insecureOptions []string) []string {
 	args := []string{}
 
 	cmd := "rkt"
@@ -79,12 +104,12 @@ func (rktCfg *RktConfig) prepareGlobalArgs() []string {
 	if rktCfg.dir != "" {
 		args = append(args, "--rkt.dir="+rktCfg.dir)
 	}
-	args = append(args, "--insecure-options="+strings.Join(rktCfg.InsecureOptions, ","))
+	args = append(args, "--insecure-options="+strings.Join(insecureOptions, ","))
 	return args
 }
 
-func (rkt *RktClient) argsStore(cmd []string, cmdArgs ...string) []string {
-	args := rkt.globalArgs[1:]
+func (rkt *RktClient) argsStore(cmd []string, globalArgs []string, cmdArgs ...string) []string {
+	args := globalArgs[1:]
 	args = append(args, cmd...)
 	if rkt.config.NoStore {
 		args = append(args, "--no-store")
@@ -125,7 +150,19 @@ func (rkt *RktClient) Version() (Version, error) {
 }
 
 func (rkt *RktClient) Fetch(image string) (string, error) {
-	hash, err := ExecCmdGetOutput(rkt.globalArgs[0], rkt.argsStore([]string{"fetch"}, "--full", image)...)
+	hash, err := ExecCmdGetOutput(rkt.globalArgs[0], rkt.argsStore([]string{"fetch"}, rkt.globalArgs, "--full", image)...)
+	if err != nil {
+		return "", errs.WithEF(err, rkt.fields.WithField("image", image), "Failed to fetch image")
+	}
+	return hash, err
+}
+
+func (rkt *RktClient) FetchInsecure(image string) (string, error) {
+	globalArgs := rkt.globalArgs
+	if !rkt.config.InsecureOptions.HasImage() {
+		globalArgs = rkt.config.prepareGlobalArgs(append(rkt.config.InsecureOptions, "image"))
+	}
+	hash, err := ExecCmdGetOutput(rkt.globalArgs[0], rkt.argsStore([]string{"fetch"}, globalArgs, "--full", image)...)
 	if err != nil {
 		return "", errs.WithEF(err, rkt.fields.WithField("image", image), "Failed to fetch image")
 	}
