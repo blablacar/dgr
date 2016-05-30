@@ -12,7 +12,7 @@ import (
 	"strings"
 	txttmpl "text/template"
 	"time"
-	"k8s.io/kubernetes/Godeps/_workspace/src/gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 type Templating struct {
