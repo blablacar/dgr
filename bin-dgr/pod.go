@@ -7,6 +7,7 @@ import (
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sync"
 )
@@ -78,6 +79,35 @@ func readPodManifest(manifestPath string) (*common.PodManifest, error) {
 	}
 	//TODO check that there is no app name conflict
 	return manifest, nil
+}
+
+func (p *Pod) findAciDirectory(e common.RuntimeApp) (string, error) {
+	path := p.path + "/" + e.Name
+	if dir, err := os.Stat(path); err != nil || !dir.IsDir() {
+		path = p.target + "/" + e.Name
+		if err := os.MkdirAll(path, 0777); err != nil {
+			return "", errs.WithEF(err, p.fields.WithField("path", path), "Cannot created pod's aci directory")
+		}
+	}
+	return path, nil
+}
+
+func (p *Pod) toPodAci(e common.RuntimeApp) (*Aci, error) {
+	tmpl, err := p.toAciManifestTemplate(e)
+	if err != nil {
+		return nil, err
+	}
+	dir, err := p.findAciDirectory(e)
+	if err != nil {
+		return nil, err
+	}
+
+	aci, err := NewAciWithManifest(dir, p.args, tmpl, p.checkWg)
+	if err != nil {
+		return nil, errs.WithEF(err, p.fields.WithField("aci-dir", dir), "Failed to prepare aci")
+	}
+	aci.podName = &p.manifest.Name
+	return aci, err
 }
 
 func (p *Pod) toAciManifestTemplate(e common.RuntimeApp) (string, error) {

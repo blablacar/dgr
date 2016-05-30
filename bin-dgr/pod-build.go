@@ -188,23 +188,10 @@ func (p *Pod) buildAci(e common.RuntimeApp) (*Aci, error) {
 		return nil, err
 	}
 
-	path := p.path + "/" + e.Name
-	if dir, err := os.Stat(path); err != nil || !dir.IsDir() {
-		path = p.target + "/" + e.Name
-		if err := os.Mkdir(path, 0777); err != nil {
-			return nil, errs.WithEF(err, p.fields.WithField("path", path), "Cannot created pod's aci directory")
-		}
-	}
-
-	tmpl, err := p.toAciManifestTemplate(e)
+	aci, err := p.toPodAci(e)
 	if err != nil {
 		return nil, err
 	}
-	aci, err := NewAciWithManifest(path, p.args, tmpl, p.checkWg)
-	if err != nil {
-		return nil, errs.WithEF(err, p.fields.WithField("aci", path), "Failed to prepare aci")
-	}
-	aci.podName = &p.manifest.Name
 	if err := aci.CleanAndBuild(); err != nil {
 		return nil, errs.WithEF(err, p.fields.WithField("name", e.Name), "build of  pod's aci failed")
 	}
