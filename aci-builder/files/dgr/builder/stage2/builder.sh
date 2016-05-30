@@ -77,7 +77,7 @@ if [ -d ${ACI_HOME}/runlevels/inherit-build-late ]; then
 fi
 
 # build runlevel
-if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]; then
+if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ] || [ -d ${ROOTFS}/dgr/runlevels/inherit-build-early ]; then
     if [ -d ${ACI_HOME}/runlevels/build ]; then
         cp -Rf ${ACI_HOME}/runlevels/build /dgr/builder/runlevels
     fi
@@ -117,7 +117,7 @@ if [ "$(ls -A ${ACI_HOME}/templates 2> /dev/null)"  ]; then
 fi
 
 # build-late runlevel
-if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ]; then
+if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ] || [ -d ${ROOTFS}/dgr/runlevels/inherit-build-late ]; then
     if [ -d ${ACI_HOME}/runlevels/build-late ]; then
         cp -Rf ${ACI_HOME}/runlevels/build-late /dgr/builder/runlevels
     fi
