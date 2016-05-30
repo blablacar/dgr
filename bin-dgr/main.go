@@ -24,16 +24,16 @@ var Args = BuildArgs{}
 var workPath string
 
 type BuildArgs struct {
-	NoStore      bool
-	StoreOnly    bool
-	Force        bool
-	Test         bool
-	NoTestFail   bool
-	KeepBuilder  bool
-	CatchOnError bool
-	CatchOnStep  bool
-	SerialBuild  bool
-	SetEnv       envMap
+	NoStore       bool
+	StoreOnly     bool
+	Force         bool
+	Test          bool
+	NoTestFail    bool
+	KeepBuilder   bool
+	CatchOnError  bool
+	CatchOnStep   bool
+	ParallelBuild bool
+	SetEnv        envMap
 }
 
 func main() {
@@ -92,7 +92,7 @@ func Execute() {
 	rootCmd.PersistentFlags().Var(&Args.SetEnv, "set-env", "Env passed to builder scripts")
 	rootCmd.PersistentFlags().BoolVar(&Args.StoreOnly, "store-only", false, "Tell rkt to use the store only")
 	rootCmd.PersistentFlags().BoolVar(&Args.NoStore, "no-store", false, "Tell rkt to not use store")
-	rootCmd.PersistentFlags().BoolVarP(&Args.SerialBuild, "serial", "S", false, "Run build in serial (disable parallel builds)")
+	rootCmd.PersistentFlags().BoolVarP(&Args.ParallelBuild, "parallel", "P", false, "Run build in parallel for pod")
 
 	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, graphCmd, tryCmd, signCmd, aciVersion)
 

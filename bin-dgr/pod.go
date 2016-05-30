@@ -23,8 +23,8 @@ type Pod struct {
 }
 
 func NewPod(path string, args BuildArgs, checkWg *sync.WaitGroup) (*Pod, error) {
-	if (args.CatchOnError || args.CatchOnStep) && !args.SerialBuild {
-		args.SerialBuild = true
+	if (args.CatchOnError || args.CatchOnStep) && args.ParallelBuild {
+		args.ParallelBuild = false
 	}
 
 	fullPath, err := filepath.Abs(path)

@@ -57,7 +57,7 @@ func (p *Pod) processAcis() ([]schema.RuntimeApp, error) {
 			errors[i] = err
 		}
 
-		if p.args.SerialBuild {
+		if !p.args.ParallelBuild {
 			f(i, e)
 		} else {
 			go f(i, e)

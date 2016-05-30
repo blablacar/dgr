@@ -101,7 +101,7 @@ func (aci *Aci) cleanupRun(builderHash string, stage1Hash string) {
 
 func (aci *Aci) CleanAndBuild() error {
 	aci.checkWg.Add(2)
-	if aci.args.SerialBuild {
+	if !aci.args.ParallelBuild {
 		aci.checkCompatibilityVersions()
 		aci.checkLatestVersions()
 	} else {
