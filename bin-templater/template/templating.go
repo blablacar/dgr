@@ -183,6 +183,14 @@ func IsString(data interface{}) bool {
 	return false
 }
 
+func IsNil(data interface{}) bool {
+	dataType := reflect.TypeOf(data)
+	if dataType == nil {
+		return true
+	}
+	return false
+}
+
 func IsMapFirst(data interface{}, element interface{}) bool {
 	switch reflect.TypeOf(data).Kind() {
 	case reflect.Map:
@@ -285,6 +293,7 @@ func init() {
 	TemplateFunctions["isKind"] = IsKind
 	TemplateFunctions["isString"] = IsString
 	TemplateFunctions["isMapFirst"] = IsMapFirst
+	TemplateFunctions["isNil"] = IsNil
 	TemplateFunctions["isMapLast"] = IsMapLast
 	TemplateFunctions["howDeep"] = HowDeep
 	TemplateFunctions["add"] = add
