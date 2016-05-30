@@ -34,12 +34,7 @@ func NewPod(path string, args BuildArgs, checkWg *sync.WaitGroup) (*Pod, error) 
 
 	manifest, err := readPodManifest(fullPath + pathPodManifestYml)
 	if err != nil {
-		manifest2, err2 := readPodManifest(fullPath + "/cnt-pod-manifest.yml")
-		if err2 != nil {
-			return nil, errs.WithEF(err, data.WithField("path", fullPath+pathPodManifestYml).WithField("err2", err2), "Failed to read pod manifest")
-		}
-		logs.WithField("old", "cnt-pod-manifest.yml").WithField("new", "pod-manifest.yml").Warn("You are using the old aci configuration file")
-		manifest = manifest2
+		return nil, errs.WithEF(err, data.WithField("path", fullPath+pathPodManifestYml), "Failed to read pod manifest")
 	}
 	fields := data.WithField("pod", manifest.Name.String())
 
