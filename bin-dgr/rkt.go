@@ -7,16 +7,28 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"sync"
 	"time"
 )
 
 var aciBuilder = common.NewACFullName("blablacar.github.io/dgr/aci-builder")
 var aciTester = common.NewACFullName("blablacar.github.io/dgr/aci-tester")
+var importMutex = sync.Mutex{}
+var builderImported = false
+var testerImported = false
 
 func ImportInternalBuilderIfNeeded(manifest *common.AciManifest) {
 	if manifest.Builder.Image.String() == "" {
 		manifest.Builder.Image = *aciBuilder
+
+		importMutex.Lock()
+		defer importMutex.Unlock()
+		if builderImported {
+			return
+		}
+
 		importInternalAci("aci-builder.aci")
+		builderImported = true
 	}
 }
 
@@ -24,7 +36,15 @@ func ImportInternalTesterIfNeeded(manifest *common.AciManifest) {
 	ImportInternalBuilderIfNeeded(manifest)
 	if manifest.Tester.Builder.Image.String() == "" {
 		manifest.Tester.Builder.Image = *aciTester
+
+		importMutex.Lock()
+		defer importMutex.Unlock()
+		if testerImported {
+			return
+		}
+
 		importInternalAci("aci-tester.aci")
+		testerImported = true
 	}
 }
 
