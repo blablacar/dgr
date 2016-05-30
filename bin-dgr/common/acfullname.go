@@ -97,7 +97,7 @@ func (n ACFullname) ShortNameId() string {
 
 /* yopla */
 func (n ACFullname) ShortName() string {
-	return strings.Split(n.Name(), "/")[1]
+	return strings.SplitN(n.Name(), "/", 2)[1]
 }
 
 /* example.com */
