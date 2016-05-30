@@ -97,3 +97,7 @@ func (p *Pod) toAciManifestTemplate(e common.RuntimeApp) (string, error) {
 	}
 	return string(content), nil
 }
+
+func (p *Pod) giveBackUserRightsToTarget() {
+	giveBackUserRights(p.target)
+}

@@ -17,6 +17,7 @@ import (
 const pathPodManifestJson = "/pod-manifest.json"
 
 func (p *Pod) CleanAndBuild() error {
+	defer p.giveBackUserRightsToTarget()
 	p.Clean()
 	logs.WithF(p.fields).Info("Building")
 
