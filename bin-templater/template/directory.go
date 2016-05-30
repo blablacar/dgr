@@ -12,19 +12,21 @@ import (
 )
 
 type TemplateDir struct {
-	fields   data.Fields
-	src      string
-	dst      string
-	Partials *txttmpl.Template
+	stopOnError bool
+	fields      data.Fields
+	src         string
+	dst         string
+	Partials    *txttmpl.Template
 }
 
-func NewTemplateDir(path string, targetRoot string) (*TemplateDir, error) {
+func NewTemplateDir(path string, targetRoot string, stopOnError bool) (*TemplateDir, error) {
 	fields := data.WithField("dir", path)
 	logs.WithF(fields).Info("Reading template dir")
 	tmplDir := &TemplateDir{
-		fields: fields,
-		src:    path,
-		dst:    targetRoot,
+		fields:      fields,
+		src:         path,
+		dst:         targetRoot,
+		stopOnError: stopOnError,
 	}
 	return tmplDir, tmplDir.LoadPartial()
 }
@@ -112,10 +114,15 @@ func (t *TemplateDir) processSingleDir(src string, dst string, attributes map[st
 			if err != nil {
 				return err
 			}
-			if err := template.runTemplate(dstObj, attributes); err != nil {
-				return err
+			if err2 := template.runTemplate(dstObj, attributes, t.stopOnError); err2 != nil {
+				if t.stopOnError {
+					return err
+				} else {
+					err = err2
+					logs.WithEF(err, t.fields).Error("Templating failed")
+				}
 			}
 		}
 	}
-	return nil
+	return err
 }

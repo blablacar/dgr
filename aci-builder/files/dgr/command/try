@@ -9,4 +9,4 @@ ACI_TARGET="/dgr/aci-target"
 rm -Rf ${ACI_TARGET}/try
 mkdir -p ${ACI_TARGET}/try
 
-/dgr/bin/templater -o TEMPLATER_OVERRIDE -L trace -t ${ACI_TARGET}/try ${ACI_HOME}
+/dgr/bin/templater -c -o TEMPLATER_OVERRIDE -L trace -t ${ACI_TARGET}/try ${ACI_HOME}

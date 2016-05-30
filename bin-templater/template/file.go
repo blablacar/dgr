@@ -65,7 +65,7 @@ func (t *TemplateFile) loadTemplateConfig(src string) error {
 	return nil
 }
 
-func (f *TemplateFile) runTemplate(dst string, attributes map[string]interface{}) error {
+func (f *TemplateFile) runTemplate(dst string, attributes map[string]interface{}, failOnNoValue bool) error {
 	if logs.IsTraceEnabled() {
 		logs.WithF(f.fields).WithField("attributes", attributes).Trace("templating with attributes")
 	}
@@ -77,7 +77,9 @@ func (f *TemplateFile) runTemplate(dst string, attributes map[string]interface{}
 	if err != nil {
 		return errs.WithEF(err, fields, "Cannot open destination file")
 	}
-	defer func() { out.Close() }()
+	defer func() {
+		out.Close()
+	}()
 
 	buff := bytes.Buffer{}
 	writer := bufio.NewWriter(&buff)
@@ -101,7 +103,12 @@ func (f *TemplateFile) runTemplate(dst string, attributes map[string]interface{}
 	for i := 1; scanner.Scan(); i++ {
 		text := scanner.Text()
 		if bytes.Contains([]byte(text), []byte("<no value>")) {
-			return errs.WithF(fields.WithField("line", i).WithField("text", text), "Templating result have <no value>")
+			err = errs.WithF(fields.WithField("line", i).WithField("text", text), "Templating result have <no value>")
+			if failOnNoValue {
+				return err
+			} else {
+				logs.WithE(err).Error("Templating result have <no value>")
+			}
 		}
 	}
 
@@ -128,5 +135,5 @@ func (f *TemplateFile) runTemplate(dst string, attributes map[string]interface{}
 			return errs.WithEF(err, fields.WithField("file", dst), "Check command failed after templating")
 		}
 	}
-	return nil
+	return err
 }
