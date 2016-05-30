@@ -12,6 +12,7 @@ import (
 	"strings"
 	txttmpl "text/template"
 	"time"
+	"k8s.io/kubernetes/Godeps/_workspace/src/gopkg.in/yaml.v2"
 )
 
 type Templating struct {
@@ -116,6 +117,17 @@ func UnmarshalJsonArray(data string) ([]interface{}, error) {
 	err := json.Unmarshal([]byte(data), &ret)
 	return ret, err
 }
+
+func toJson(data interface{}) (string, error) {
+	res, err := json.MarshalIndent(data, "", "  ")
+	return string(res), err
+}
+
+func toYaml(data interface{}) (string, error) {
+	res, err := yaml.Marshal(data)
+	return string(res), err
+}
+
 
 func IsType(data interface{}, t string) bool {
 	dataType := reflect.TypeOf(data)
@@ -281,6 +293,8 @@ func init() {
 	TemplateFunctions["div"] = div
 	TemplateFunctions["sub"] = sub
 	TemplateFunctions["mod"] = mod
+	TemplateFunctions["toJson"] = toJson
+	TemplateFunctions["toYaml"] = toYaml
 
 	TemplateFunctions["IsMapFirst"] = IsMapFirst
 	TemplateFunctions["IsMapLast"] = IsMapLast
