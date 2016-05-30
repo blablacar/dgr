@@ -281,4 +281,8 @@ func init() {
 	TemplateFunctions["div"] = div
 	TemplateFunctions["sub"] = sub
 	TemplateFunctions["mod"] = mod
+
+	TemplateFunctions["IsMapFirst"] = IsMapFirst
+	TemplateFunctions["IsMapLast"] = IsMapLast
+	TemplateFunctions["HowDeep"] = HowDeep
 }
