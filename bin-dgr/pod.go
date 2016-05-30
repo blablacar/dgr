@@ -73,7 +73,7 @@ func readPodManifest(manifestPath string) (*common.PodManifest, error) {
 
 	for i, app := range manifest.Pod.Apps {
 		if app.Name == "" {
-			manifest.Pod.Apps[i].Name = app.Dependencies[0].ShortName()
+			manifest.Pod.Apps[i].Name = app.Dependencies[0].TinyName()
 		}
 	}
 	//TODO check that there is no app name conflict

@@ -70,7 +70,7 @@ func Execute() {
 
 			level, err := logs.ParseLevel(logLevel)
 			if err != nil {
-				fmt.Printf("Unknown log level : %s", logLevel)
+				fmt.Printf("Unknown log level : %s\n", logLevel)
 				os.Exit(1)
 			}
 			logs.SetLevel(level)

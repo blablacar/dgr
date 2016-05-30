@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
@@ -17,7 +18,7 @@ func (p *Pod) Graph() error {
 	buffer.WriteString("  {\n")
 	buffer.WriteString("  ")
 	buffer.WriteString("\"")
-	buffer.WriteString(p.manifest.Name.ShortNameId())
+	buffer.WriteString(p.manifest.Name.TinyNameId())
 	buffer.WriteString("\"")
 	buffer.WriteString(" [style=filled, fillcolor=yellow, shape=box]\n")
 	buffer.WriteString("  }\n")
@@ -26,11 +27,11 @@ func (p *Pod) Graph() error {
 		for _, d := range e.Dependencies {
 			buffer.WriteString("  ")
 			buffer.WriteString("\"")
-			buffer.WriteString(d.ShortNameId())
+			buffer.WriteString(d.TinyNameId())
 			buffer.WriteString("\"")
 			buffer.WriteString(" -> ")
 			buffer.WriteString("\"")
-			buffer.WriteString(p.manifest.Name.ShortNameId())
+			buffer.WriteString(p.manifest.Name.TinyNameId())
 			buffer.WriteString("\"")
 			buffer.WriteString("\n")
 		}
@@ -41,6 +42,13 @@ func (p *Pod) Graph() error {
 	if err := ioutil.WriteFile(p.target+pathGraphDot, buffer.Bytes(), 0644); err != nil {
 		return errs.WithEF(err, p.fields.WithField("file", p.target+pathGraphDot), "Failed to write file")
 	}
+
+	if _, _, err := common.ExecCmdGetStdoutAndStderr("dot", "-V"); err == nil {
+		if std, stderr, err := common.ExecCmdGetStdoutAndStderr("dot", "-Tpng", p.target+pathGraphDot, "-o", p.target+pathGraphPng); err != nil {
+			return errs.WithEF(err, p.fields.WithField("stdout", std).WithField("stderr", stderr), "Failed to create graph image")
+		}
+	}
+
 	return nil
 
 }

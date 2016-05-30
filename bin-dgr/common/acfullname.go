@@ -63,7 +63,7 @@ func (n ACFullname) String() string {
 	return string(n)
 }
 
-/* example.com/yopla:1 */
+/* example.com/dgr/yopla:1 */
 func NewACFullName(s string) *ACFullname {
 	n := ACFullname(s)
 	return &n
@@ -91,13 +91,20 @@ func (n ACFullname) Version() string {
 }
 
 /* yopla:1 */
-func (n ACFullname) ShortNameId() string {
-	return strings.Split(string(n), "/")[1]
+func (n ACFullname) TinyNameId() string {
+	split := strings.Split(string(n), "/")
+	return split[len(split)-1]
+}
+
+/* dgr/yopla */
+func (n ACFullname) ShortName() string {
+	return strings.SplitN(n.Name(), "/", 2)[1]
 }
 
 /* yopla */
-func (n ACFullname) ShortName() string {
-	return strings.SplitN(n.Name(), "/", 2)[1]
+func (n ACFullname) TinyName() string {
+	split := strings.Split(n.Name(), "/")
+	return split[len(split)-1]
 }
 
 /* example.com */
@@ -105,7 +112,7 @@ func (n ACFullname) DomainName() string {
 	return strings.Split(n.Name(), "/")[0]
 }
 
-/* example.com/yopla */
+/* example.com/dgr/yopla */
 func (n ACFullname) Name() string {
 	return strings.Split(string(n), ":")[0]
 }
