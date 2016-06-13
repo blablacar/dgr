@@ -3,6 +3,9 @@ set -e
 . /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
+package_name=${ACI_NAME#aci-centos-*}
+[ x${package_name} == x"aci-centos" ] && exit 0
+[ ! -d /dgr/builder/runlevels/build ] && [ ! -d /dgr/builder/runlevels/build-late ] && exit 0
 
 #========================
 # Prevent issue with lib64
