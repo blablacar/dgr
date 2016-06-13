@@ -5,21 +5,21 @@ isLevelEnabled "debug" && set -x
 
 package_name=${ACI_NAME#aci-centos-*}
 [ x${package_name} == x"aci-centos" ] && exit 0
-[ ! -d /dgr/builder/runlevels/build ] && [ ! -d /dgr/builder/runlevels/build-late ] && exit 0
+
 
 #========================
 # Prevent issue with lib64
 #========================
-mkdir -p ${ROOTFS}/var/lib ${ROOTFS}/usr
-mkdir -p ${ROOTFS}/usr/lib64
-ln -s ${ROOTFS}/usr/lib64 /lib64
+mkdir -p ${ROOTFS:-"/"}/var/lib ${ROOTFS:-"/"}/usr
+mkdir -p ${ROOTFS:-"/"}/usr/lib64
+ln -s ${ROOTFS:-"/"}/usr/lib64 /lib64
 
 
 #========================
 # Yum Update.
 # With a clean rpm.
 #========================
-cp -a /var/lib/rpm.bkp ${ROOTFS}/var/lib/rpm
+cp -a /var/lib/rpm.bkp ${ROOTFSi:-"/"}/var/lib/rpm
 yum update
-yum --installroot=$ROOTFS update
-rpm --root=$ROOTFS --rebuilddb
+yum --installroot=${ROOTFS:-"/"} update
+rpm --root=${ROOTFS:-"/"} --rebuilddb
