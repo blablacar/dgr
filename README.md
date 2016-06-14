@@ -440,20 +440,20 @@ rkt:
 
 Init an aci that belong to aci.example.com
 ```bash
-# sudo dgr -W /tmp/aci-dummy init
+$ sudo dgr -W /tmp/aci-dummy init
 ...
 ```
 
 Build and push the aci to your repository
 ```bash
-# sudo dgr -W /tmp/aci-dummy clean push
+$ sudo dgr -W /tmp/aci-dummy clean push
 ```
 
 ### Run the aci
 
 Run the aci fetching from repository
 ```bash
-# sudo rkt run --insecure-options http,image --no-store aci.example.com/aci-dummy:1
+$ sudo rkt run --insecure-options http,image --no-store aci.example.com/aci-dummy:1
 ...
 ```
 
