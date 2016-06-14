@@ -382,8 +382,83 @@ $ rkt run --set-env=LOG_LEVEL=debug example.com/my-app
 
 **trace** loglevel, will tell the templater to display the result
 
+# Push an aci and run from repository
 
-## Building a POD
+dgr is compatible with the appc push spec.
+Here is a example of how to test the push on local, without **tls** and **signature** 
+
+First you need an appc push spec compatible server. [acserver](http://github.com/appc/acserver) is an official minimal implementation, but require aci signature.
+Here is a fork version where you can push non signed aci [github.com/blablacar/acserver](http://github.com/blablacar/acserver)
+
+### Start the server
+
+Run the server :
+```bash
+# mkdir /tmp/acserver
+# cd /tmp/acserver
+# wget https://github.com/blablacar/acserver/releases/download/0.1/acserver.tar.gz
+# tar xvzf acserver.tar.gz
+# rm acserver.tar.gz
+# sudo ./acserver -port 80 /tmp/acis admin password
+2016/06/14 10:27:21 Listening on :80
+```
+
+Tell your system that aci.example.com is localhost :
+
+/etc/hosts
+```
+...
+127.0.0.1 aci.example.com
+```
+
+### Build and push the aci
+
+Tell dgr using rkt conf, how to access the server with authentication :
+
+/etc/rkt/auth.d/aci.example.com.json
+```json
+{
+	"rktKind": "auth",
+	"rktVersion": "v1",
+	"domains": ["aci.example.com"],
+	"type": "basic",
+	"credentials": {
+		"user": "admin",
+		"password": "password"
+	}
+}
+```
+
+tell dgr that you do not support **tls** (and **image** signature) :
+
+~/.config/dgr/config.yml
+```
+...
+rkt:
+  insecureOptions: [http, image]
+```
+
+Init an aci that belong to aci.example.com
+```bash
+# sudo dgr -W /tmp/aci-dummy init
+...
+```
+
+Build and push the aci to your repository
+```bash
+# sudo dgr -W /tmp/aci-dummy clean push
+```
+
+### Run the aci
+
+Run the aci fetching from repository
+```bash
+# sudo rkt run --insecure-options http,image --no-store aci.example.com/aci-dummy:1
+...
+```
+
+
+# Building a POD
 
 A pod is a group of aci that will build and run together as a single unit.
 
@@ -400,7 +475,7 @@ TODO
 ```
 
 
-## Ok, but concretely how should I use it?
+# Ok, but concretely how should I use it?
 
 *have a look at the examples/ directory where you can find aci for various distrib*
 
@@ -425,7 +500,7 @@ As far as I know only `pacman`, that uses a file tree structure for install pack
 If you are using a debian or similar. I recommand to limit the dependencies to only 2 layers. The base aci with debian minimal fs and one with the application you want.
 
 
-## Comparison with alternatives
+# Comparison with alternatives
 
 ### dgr vs Dockerfile
 A Dockerfile is purely configuration, describing the steps to build the container. It does not provide a common way of building containers across a team.
@@ -436,13 +511,13 @@ It does not handle configuration, nor at build time nor at runtime and does not 
 acbuild is a command line tools to build ACIs. It is more flexible than Dockerfiles as it can be wrapped by other tools such as Makefiles but like Dockerfiles it doesn't provide a standard way of configuring the images.
 
 
-## Requirement
+# Requirement
 - [rkt](https://github.com/coreos/rkt) in your `$PATH` or configured in dgr global conf
 - being root is required to call rkt
 - linux >= 3.18 with overlay filesystem
 
 
-## I want to extend dgr
+# I want to extend dgr
 If you think your idea can be integrated directly in the core of dgr, please create an issue or a pull request.
 
 If you want want to extend the way the **builder** is working (attributes, templates, files, ...), you can create a new **stage1 builder** and replace the internal one with : 
