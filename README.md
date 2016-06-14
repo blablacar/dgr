@@ -394,12 +394,12 @@ Here is a fork version where you can push non signed aci [github.com/blablacar/a
 
 Run the server :
 ```bash
-# mkdir /tmp/acserver
-# cd /tmp/acserver
-# wget https://github.com/blablacar/acserver/releases/download/0.1/acserver.tar.gz
-# tar xvzf acserver.tar.gz
-# rm acserver.tar.gz
-# sudo ./acserver -port 80 /tmp/acis admin password
+$ mkdir /tmp/acserver
+$ cd /tmp/acserver
+$ wget https://github.com/blablacar/acserver/releases/download/0.1/acserver.tar.gz
+$ tar xvzf acserver.tar.gz
+$ rm acserver.tar.gz
+$ sudo ./acserver -port 80 /tmp/acis admin password
 2016/06/14 10:27:21 Listening on :80
 ```
 
