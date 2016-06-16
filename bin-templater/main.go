@@ -86,7 +86,7 @@ func Run(overrideEnvVarName string, target string, templaterDir string, continue
 		logs.WithField("dir", templaterDir+pathTemplates).Debug("Template dir is empty. Nothing to template")
 		return
 	}
-	tmpl, err := template.NewTemplateDir(templaterDir+pathTemplates, target, !continueOnError)
+	tmpl, err := template.NewTemplateDir(templaterDir+pathTemplates, target, continueOnError)
 	if err != nil {
 		logs.WithE(err).WithField("dir", templaterDir+pathTemplates).Fatal("Failed to load template dir")
 	}

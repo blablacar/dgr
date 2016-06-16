@@ -32,7 +32,7 @@ func NewAttributesMerger(path string) (*AttributesMerger, error) {
 
 	res := []string{}
 	for _, file := range in.Files {
-		res = append(res, in.Directory+file)
+		res = append(res, in.Directory + file)
 	}
 	return &AttributesMerger{dir: res}, nil
 }
@@ -66,7 +66,7 @@ func (in *inputs) listFiles() error {
 				return err
 			}
 			for _, f_l2 := range list_l2 {
-				in.Files = append(in.Files, f_l1.Name()+"/"+f_l2.Name())
+				in.Files = append(in.Files, f_l1.Name() + "/" + f_l2.Name())
 			}
 		} else {
 			in.Files = append(in.Files, f_l1.Name())
@@ -127,13 +127,16 @@ func ProcessOverride(omap map[string]interface{}) map[string]interface{} {
 	_, oko := omap["override"]
 	if oko == true {
 		omap = mergemap.Merge(omap["default"].(map[string]interface{}), omap["override"].(map[string]interface{}))
+	} else if omap["default"] == nil {
+		omap = make(map[string]interface{})
 	} else {
 		omap = omap["default"].(map[string]interface{})
 	}
 	return omap
 }
 
-func Merge(envName string, files []string) []byte { // inputDir string,
+func Merge(envName string, files []string) []byte {
+	// inputDir string,
 	// "out map" to store merged yamls
 	omap := MergeAttributesFiles(files)
 

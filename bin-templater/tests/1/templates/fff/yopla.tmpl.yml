@@ -1,0 +1,26 @@
+#!/bin/bash
+
+echo "[wait-proxy] Wait for proxy to start"
+
+function proxy_started {
+    (/dgr/bin/busybox netstat -lataupen | grep ':XXX') > /dev/null 2>&1
+    return $?
+}
+
+max_sleep=60
+sleep_interval=5
+total_sleep=0
+
+while true ; do
+    echo "[wait-proxy] Waiting..."
+    proxy_started && break
+
+    sleep $sleep_interval
+
+    if [ $total_sleep -ge $max_sleep ]; then
+        echo "[wait-proxy] Max sleep has been reached"
+        break
+    fi
+
+    total_sleep=$(($total_sleep + $sleep_interval))
+done
