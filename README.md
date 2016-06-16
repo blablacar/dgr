@@ -66,7 +66,7 @@ $ dgr build --help
 
 ## Configuration file
 
-*Global configuration is optional to start as long as you have rkt in $PATH*
+*Global configuration is optional to start as soon as you have rkt in $PATH*
 
 dgr global configuration is a yaml file located at `~/.config/dgr/config.yml`. Home is the home of starting user (the caller user if running with sudo).
 
