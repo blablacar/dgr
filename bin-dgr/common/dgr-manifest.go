@@ -51,7 +51,6 @@ type BuildDefinition struct {
 
 type AciManifest struct {
 	NameAndVersion ACFullname      `json:"name,omitempty" yaml:"name,omitempty"`
-	From           interface{}     `json:"from,omitempty" yaml:"from,omitempty"`
 	Builder        BuildDefinition `json:"builder,omitempty" yaml:"builder,omitempty"`
 	Aci            AciDefinition   `json:"aci,omitempty" yaml:"aci,omitempty"`
 	Tester         TestManifest    `json:"tester,omitempty" yaml:"tester,omitempty"`
@@ -60,23 +59,6 @@ type AciManifest struct {
 type TestManifest struct {
 	Builder BuildDefinition `json:"builder,omitempty" yaml:"builder,omitempty"`
 	Aci     AciDefinition   `json:"aci,omitempty" yaml:"aci,omitempty"`
-}
-
-func (m *AciManifest) GetFroms() ([]ACFullname, error) {
-	var froms []ACFullname
-	switch v := m.From.(type) {
-	case string:
-		froms = []ACFullname{*NewACFullName(m.From.(string))}
-	case []interface{}:
-		for _, from := range m.From.([]interface{}) {
-			froms = append(froms, *NewACFullName(from.(string)))
-		}
-	case nil:
-		return froms, nil
-	default:
-		return nil, errs.WithF(data.WithField("type", v), "Invalid from type format")
-	}
-	return froms, nil
 }
 
 type AciDefinition struct {

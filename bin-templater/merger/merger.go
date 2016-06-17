@@ -32,7 +32,7 @@ func NewAttributesMerger(path string) (*AttributesMerger, error) {
 
 	res := []string{}
 	for _, file := range in.Files {
-		res = append(res, in.Directory + file)
+		res = append(res, in.Directory+file)
 	}
 	return &AttributesMerger{dir: res}, nil
 }
@@ -66,7 +66,7 @@ func (in *inputs) listFiles() error {
 				return err
 			}
 			for _, f_l2 := range list_l2 {
-				in.Files = append(in.Files, f_l1.Name() + "/" + f_l2.Name())
+				in.Files = append(in.Files, f_l1.Name()+"/"+f_l2.Name())
 			}
 		} else {
 			in.Files = append(in.Files, f_l1.Name())

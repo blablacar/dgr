@@ -123,13 +123,6 @@ func (b *Builder) writeManifest() error {
 		return errs.WithF(b.fields, "Cannot find dgr version")
 	}
 
-	froms, err := aciManifest.GetFroms()
-	if len(froms) != 0 {
-		if froms[0].String() != "" {
-			aciManifest.Aci.Dependencies = append(froms, aciManifest.Aci.Dependencies...)
-		}
-	}
-
 	if aciManifest.NameAndVersion.Version() == "" {
 		aciManifest.NameAndVersion = *common.NewACFullName(aciManifest.NameAndVersion.Name() + ":" + common.GenerateVersion(b.aciTargetPath))
 	}

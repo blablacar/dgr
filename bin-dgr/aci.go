@@ -82,19 +82,6 @@ func NewAciWithManifest(path string, args BuildArgs, manifestTmpl string, checkW
 		checkWg:         checkWg,
 	}
 
-	froms, err := manifest.GetFroms()
-	if err != nil {
-		logs.WithEF(err, aci.fields).Fatal("Invalid from data")
-	}
-	if len(froms) != 0 {
-		if froms[0].String() == "" {
-			logs.WithF(aci.fields).Warn("From is deprecated and empty, remove it")
-		} else {
-			logs.WithF(aci.fields).Warn("From is deprecated and processed as dependency. move from to dependencies")
-			aci.manifest.Aci.Dependencies = append(froms, aci.manifest.Aci.Dependencies...)
-		}
-	}
-
 	return aci, nil
 }
 

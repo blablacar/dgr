@@ -23,9 +23,9 @@ func NewTemplateDir(path string, targetRoot string, continueOnError bool) (*Temp
 	fields := data.WithField("dir", path).WithField("continueOnError", continueOnError)
 	logs.WithF(fields).Info("Reading template dir")
 	tmplDir := &TemplateDir{
-		fields:      fields,
-		src:         path,
-		dst:         targetRoot,
+		fields:          fields,
+		src:             path,
+		dst:             targetRoot,
 		continueOnError: continueOnError,
 	}
 	return tmplDir, tmplDir.LoadPartial()
@@ -44,7 +44,7 @@ func (t *TemplateDir) LoadPartial() error {
 	}
 	for _, obj := range objects {
 		if !obj.IsDir() && strings.HasSuffix(obj.Name(), ".partial") {
-			partials = append(partials, t.src + "/" + obj.Name())
+			partials = append(partials, t.src+"/"+obj.Name())
 		}
 	}
 
@@ -106,7 +106,7 @@ func (t *TemplateDir) processSingleDir(src string, dst string, attributes map[st
 			}
 		} else if strings.HasSuffix(obj.Name(), ".tmpl") || (strings.Contains(obj.Name(), ".tmpl.") && (!strings.HasSuffix(obj.Name(), ".cfg"))) {
 			if strings.HasSuffix(obj.Name(), ".tmpl") {
-				dstObj = dstObj[:len(dstObj) - 5]
+				dstObj = dstObj[:len(dstObj)-5]
 			} else {
 				dstObj = dst + "/" + strings.Replace(obj.Name(), ".tmpl.", ".", 1)
 			}
