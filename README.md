@@ -78,11 +78,6 @@ Example of configuration:
 
 ```yml
 targetWorkDir: /tmp/target      # if you want to use another directory for all builds
-push:
-  type: maven
-  url: https://localhost/nexus
-  username: admin
-  password: admin
 rkt:                            # arguments to rkt. See rkt --help
   path:
   insecureOptions: [image]
