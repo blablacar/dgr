@@ -186,6 +186,8 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 	if err := ioutil.WriteFile(aci.target+pathBuilder+common.PathRootfs+"/.keep", []byte(""), 0644); err != nil {
 		return "", errs.WithEF(err, aci.fields.WithField("file", aci.target+pathBuilder+common.PathRootfs+"/.keep"), "Failed to write keep file")
 	}
+	all := json.RawMessage(`{"set":["all"]}`)
+	aci.manifest.Aci.App.Isolators = []types.Isolator{{Name: "os/linux/capabilities-retain-set", ValueRaw: &all}}
 
 	if err := common.WriteAciManifest(aci.manifest, aci.target+pathBuilder+common.PathManifest, common.PrefixBuilder+aci.manifest.NameAndVersion.Name(), dgrVersion); err != nil {
 		return "", err
