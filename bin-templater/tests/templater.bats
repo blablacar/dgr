@@ -20,3 +20,10 @@ setup() {
   echo -e "$output"
   [ "$status" -eq 1 ]
 }
+
+@test "should template non string" {
+  run ../../dist/templater -t ./target 3/
+  echo -e "$output"
+  [ "$status" -eq 0 ]
+}
+

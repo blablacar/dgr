@@ -1,0 +1,13 @@
+default:
+  pod:
+    ip: 1.1.1.1
+  zk:
+    hosts:
+      - {host: localhost, port: 2181}
+      - {host: localhost, port: 2182}
+  nerve:
+    services:
+      - host: "{{.pod.ip}}"
+        port: 80
+        reporters:
+         - {type: zookeeper, hosts: "{{toYaml .zk.hosts}}", path: /dummy}

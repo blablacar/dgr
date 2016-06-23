@@ -187,6 +187,14 @@ func processAttributesTemplating(in interface{}, attributes interface{}) (_ inte
 		if err != nil {
 			return nil, err
 		}
+		if templated != in.(string) {
+			var rr interface{}
+			err := yaml.Unmarshal([]byte(templated), &rr)
+			if err != nil {
+				return nil, err
+			}
+			return rr, nil
+		}
 		return templated, nil
 	default:
 		return in, nil
