@@ -21,7 +21,7 @@ type TemplateDir struct {
 
 func NewTemplateDir(path string, targetRoot string, continueOnError bool) (*TemplateDir, error) {
 	fields := data.WithField("dir", path).WithField("continueOnError", continueOnError)
-	logs.WithF(fields).Info("Reading template dir")
+	logs.WithF(fields).Debug("Reading template dir")
 	tmplDir := &TemplateDir{
 		fields:          fields,
 		src:             path,
