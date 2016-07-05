@@ -181,8 +181,9 @@ builder:
     - example.com/base:1
 
 tester:
-  dependencies:
-    - example.com/base:1
+  aci:
+    dependencies:
+      - example.com/base:1
     
 aci:
   dependencies:
