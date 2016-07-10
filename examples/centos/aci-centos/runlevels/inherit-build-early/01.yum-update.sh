@@ -19,7 +19,7 @@ ln -s ${ROOTFS:-"/"}/usr/lib64 /lib64
 # Yum Update.
 # With a clean rpm.
 #========================
-cp -a /var/lib/rpm.bkp ${ROOTFSi:-"/"}/var/lib/rpm
+cp -a /var/lib/rpm.bkp ${ROOTFS:-"/"}/var/lib/rpm
 yum update
 yum --installroot=${ROOTFS:-"/"} update
 rpm --root=${ROOTFS:-"/"} --rebuilddb
