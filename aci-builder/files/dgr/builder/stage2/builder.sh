@@ -23,12 +23,13 @@ fi
 if [ ! "$(ls -A /usr/bin/ 2> /dev/null)" ]; then
     isLevelEnabled "debug" && echo_purple "Nothing as builder dependency, mapping / to /dgr"
     cp /etc/resolv.conf /dgr/etc/resolv.conf
-    rm -Rf /usr /etc /lib64 /lib /bin
-    ln -s /usr/bin /bin
-    ln -s /dgr/usr /usr
-    ln -s /dgr/etc /etc
-    ln -s /dgr/lib64 /lib64
-    ln -s /dgr/lib /lib
+    cd /dgr/etc &&  find . -maxdepth 1 ! -name . ! -name resolv.conf -exec ln -s /dgr/etc/{} /etc/{} \; || true
+    cd /dgr/usr &&  find . -maxdepth 1 ! -name . -exec ln -s /dgr/usr/{} /usr/{} \; || true
+    cd /dgr/usr/bin &&  find . -maxdepth 1 ! -name . -exec ln -s /dgr/usr/bin/{} /usr/bin/{} \; || true
+    ln -s /dgr/etc /etc || true
+    ln -s /dgr/lib64 /lib64 || true
+    ln -s /dgr/lib /lib || true
+    cd /
 fi
 
 echo "ce9d63a98a8b4438882fd795e294cd50" > /etc/machine-id
