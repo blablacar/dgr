@@ -105,12 +105,7 @@ func MergeAttributesFilesForMap(omap map[string]interface{}, files []string) map
 		omap = mergemap.Merge(newMap, json)
 	}
 	data := ProcessOverride(newMap)
-
-	data2, err := processAttributesTemplating(data, data)
-	if err != nil {
-		panic(err)
-	}
-	return data2.(map[string]interface{})
+	return data
 }
 
 func MergeAttributesFiles(files []string) map[string]interface{} {
@@ -159,12 +154,12 @@ func Merge(envName string, files []string) []byte {
 	return out
 }
 
-func processAttributesTemplating(in interface{}, attributes interface{}) (_ interface{}, err error) {
+func ProcessAttributesTemplating(in interface{}, attributes interface{}) (_ interface{}, err error) {
 	switch in.(type) {
 	case map[string]interface{}:
 		o := make(map[string]interface{})
 		for k, v := range in.(map[string]interface{}) {
-			v, err = processAttributesTemplating(v, attributes)
+			v, err = ProcessAttributesTemplating(v, attributes)
 			if err != nil {
 				return nil, err
 			}
@@ -176,7 +171,7 @@ func processAttributesTemplating(in interface{}, attributes interface{}) (_ inte
 		len1 := len(in1)
 		o := make([]interface{}, len1)
 		for i := 0; i < len1; i++ {
-			o[i], err = processAttributesTemplating(in1[i], attributes)
+			o[i], err = ProcessAttributesTemplating(in1[i], attributes)
 			if err != nil {
 				return nil, err
 			}

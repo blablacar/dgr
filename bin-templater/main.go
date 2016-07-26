@@ -79,6 +79,11 @@ func Run(overrideEnvVarName string, target string, templaterDir string, continue
 	}
 	attributes := attrMerger.Merge()
 	attributes = overrideWithJsonIfNeeded(overrideEnvVarName, attributes)
+	tt, err := merger.ProcessAttributesTemplating(attributes, attributes)
+	attributes = tt.(map[string]interface{})
+	if err != nil {
+		logs.WithField("dir", templaterDir+pathTemplates).Fatal("Failed to template attributes")
+	}
 	logs.WithField("content", attributes).Debug("Final attributes resolution")
 
 	info, _ := os.Stat(templaterDir + pathTemplates)
