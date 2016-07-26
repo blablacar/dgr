@@ -76,11 +76,15 @@ if [ -d ${ACI_HOME}/runlevels/inherit-build-late ]; then
     cp -Rf ${ACI_HOME}/runlevels/inherit-build-late/. ${ROOTFS}/dgr/runlevels/inherit-build-late
 fi
 
+if [ -d ${ACI_HOME}/runlevels/build ]; then
+    cp -Rf ${ACI_HOME}/runlevels/build /dgr/builder/runlevels
+fi
+if [ -d ${ACI_HOME}/runlevels/build-late ]; then
+    cp -Rf ${ACI_HOME}/runlevels/build-late /dgr/builder/runlevels
+fi
+
 # build runlevel
 if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ] || [ -d ${ROOTFS}/dgr/runlevels/inherit-build-early ]; then
-    if [ -d ${ACI_HOME}/runlevels/build ]; then
-        cp -Rf ${ACI_HOME}/runlevels/build /dgr/builder/runlevels
-    fi
 
     LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn \
         --register=no -q --directory=${ROOTFS} --capability=all \
@@ -118,9 +122,6 @@ fi
 
 # build-late runlevel
 if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ] || [ -d ${ROOTFS}/dgr/runlevels/inherit-build-late ]; then
-    if [ -d ${ACI_HOME}/runlevels/build-late ]; then
-        cp -Rf ${ACI_HOME}/runlevels/build-late /dgr/builder/runlevels
-    fi
     LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn \
         --register=no -q --directory=${ROOTFS} --capability=all \
         --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build-late.sh || onError "Build-late"
