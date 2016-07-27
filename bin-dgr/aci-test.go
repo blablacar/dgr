@@ -138,11 +138,19 @@ func (aci *Aci) buildTestAci() (string, error) {
 		Builder: aci.manifest.Tester.Builder,
 		Aci: common.AciDefinition{
 			App: common.DgrApp{
-				Exec:             aci.manifest.Aci.App.Exec,
-				MountPoints:      []types.MountPoint{{Path: pathTestsResult, Name: *resultMountName}},
-				WorkingDirectory: aci.manifest.Aci.App.WorkingDirectory,
+				Exec:              aci.manifest.Aci.App.Exec,
+				MountPoints:       []types.MountPoint{{Path: pathTestsResult, Name: *resultMountName}},
+				WorkingDirectory:  aci.manifest.Aci.App.WorkingDirectory,
+				User:              aci.manifest.Aci.App.User,
+				Group:             aci.manifest.Aci.App.Group,
+				SupplementaryGIDs: aci.manifest.Aci.App.SupplementaryGIDs,
+				Environment:       aci.manifest.Aci.App.Environment,
+				Ports:             aci.manifest.Aci.App.Ports,
+				Isolators:         aci.manifest.Aci.App.Isolators,
 			},
-			Dependencies: append(aci.manifest.Tester.Aci.Dependencies, *common.NewACFullName(name[len(prefixTest):])),
+			Dependencies:  append(aci.manifest.Tester.Aci.Dependencies, *common.NewACFullName(name[len(prefixTest):])),
+			Annotations:   aci.manifest.Aci.Annotations,
+			PathWhitelist: aci.manifest.Aci.PathWhitelist,
 		},
 		NameAndVersion: *fullname,
 	}
