@@ -126,11 +126,11 @@ func (f *ErlogWriterAppender) Fire(event *LogEvent) {
 }
 
 func (f *ErlogWriterAppender) logError(b *bytes.Buffer, event *LogEvent, errors error) {
-	if event.Err == nil {
+	if errors == nil {
 		return
 	}
 
-	for err := event.Err; err != nil; {
+	for err := errors; err != nil; {
 		if e, ok := err.(*errs.EntryError); ok {
 			path, line := findFileAndName(e.Stack)
 			paths := strings.SplitN(path, "/", pathSkip + 1)
