@@ -13,6 +13,8 @@ import (
 	"time"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/data"
+	"os"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 var pathSkip int = 0
@@ -33,11 +35,11 @@ var lvlColorTrace = ansi.ColorCode("blue")
 var lvlColorPanic = ansi.ColorCode(":red+h")
 
 type ErlogWriterAppender struct {
-	Out   io.Writer
-	Level logs.Level
-	mu    sync.Mutex
+	Out      io.Writer
+	Level    logs.Level
+	mu       sync.Mutex
+	useColor bool
 }
-
 
 func init() {
 	_, file, _, _ := runtime.Caller(0)
@@ -48,11 +50,13 @@ func init() {
 			break
 		}
 	}
+
 }
 
 func NewErlogWriterAppender(writer io.Writer) (f *ErlogWriterAppender) {
 	return &ErlogWriterAppender{
 		Out: writer,
+		useColor: terminal.IsTerminal(int(os.Stdout.Fd())),
 	}
 }
 
@@ -66,39 +70,62 @@ func (f *ErlogWriterAppender) SetLevel(level logs.Level) {
 
 func (f *ErlogWriterAppender) Fire(event *LogEvent) {
 	keys := f.prepareKeys(event.Fields)
-	time := time.Now().Format("15:04:05") // TODO prepare format ?
+	var now string
+	if f.useColor {
+		now = time.Now().Format("15:04:05") // TODO prepare format ?
+	} else {
+		now = time.Now().Format("2006-01-02 15:04:05") // TODO prepare format ?
+	}
 	level := f.textLevel(event.Level)
 
-	//	isColored := isTerminal && (runtime.GOOS != "windows")
 	paths := strings.SplitN(event.File, "/", pathSkip + 1)
 
+	packagePath := event.File
+	if len(paths) > pathSkip {
+		packagePath = paths[pathSkip]
+	}
+
 	b := &bytes.Buffer{}
-	fmt.Fprintf(b, "%s %s%-5s%s %s%30s:%-3d%s %s%-44s%s",
-		f.timeColor(event.Level)(time),
-		f.levelColor(event.Level),
-		level,
-		reset,
-		f.fileColor(event.Level),
-		f.reduceFilePath(paths[pathSkip], 30),
-		event.Line,
-		reset,
-		f.textColor(event.Level),
-		event.Message,
-		reset)
-	for _, k := range keys {
-		v := event.Entry.Fields[k]
-		fmt.Fprintf(b, " %s%s%s=%+v", lvlColorInfo, k, reset, v)
+	if f.useColor {
+		fmt.Fprintf(b, "%s %s%-5s%s %s%30s:%-3d%s %s%-44s%s",
+			f.timeColor(event.Level)(now),
+			f.levelColor(event.Level),
+			level,
+			reset,
+			f.fileColor(event.Level),
+			f.reduceFilePath(packagePath, 30),
+			event.Line,
+			reset,
+			f.textColor(event.Level),
+			event.Message,
+			reset)
+		for _, k := range keys {
+			v := event.Entry.Fields[k]
+			fmt.Fprintf(b, " %s%s%s=%+v", lvlColorInfo, k, reset, v)
+		}
+	} else {
+		fmt.Fprintf(b, "%s %-5s %30s:%-3d %-44s",
+			now,
+			level,
+			f.reduceFilePath(packagePath, 30),
+			event.Line,
+			event.Message,
+		)
+		for _, k := range keys {
+			v := event.Entry.Fields[k]
+			fmt.Fprintf(b, " %s=%+v", k, v)
+		}
 	}
 	b.WriteByte('\n')
 
-	f.logError(b, event)
+	f.logError(b, event, event.Err)
 
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.Out.Write(b.Bytes())
 }
 
-func (f *ErlogWriterAppender) logError(b *bytes.Buffer, event *LogEvent) {
+func (f *ErlogWriterAppender) logError(b *bytes.Buffer, event *LogEvent, errors error) {
 	if event.Err == nil {
 		return
 	}
@@ -107,29 +134,72 @@ func (f *ErlogWriterAppender) logError(b *bytes.Buffer, event *LogEvent) {
 		if e, ok := err.(*errs.EntryError); ok {
 			path, line := findFileAndName(e.Stack)
 			paths := strings.SplitN(path, "/", pathSkip + 1)
-			fmt.Fprintf(b, "               %s%30s:%-3d%s %s%-44s%s",
-				f.fileColor(event.Level),
-				f.reduceFilePath(paths[pathSkip], 30),
-				line,
-				reset,
-				f.textColor(event.Level),
-				e.Message,
-				reset)
 
-			keys := f.prepareKeys(e.Fields)
-			for _, k := range keys {
-				v := e.Fields[k]
-				fmt.Fprintf(b, " %s%s%s=%+v", lvlColorInfo, k, reset, v)
+			packagePath := event.File
+			if len(paths) > pathSkip {
+				packagePath = paths[pathSkip]
 			}
+
+			if f.useColor {
+				fmt.Fprintf(b, "               %s%30s:%-3d%s %s%-44s%s",
+					f.fileColor(event.Level),
+					f.reduceFilePath(packagePath, 30),
+					line,
+					reset,
+					f.textColor(event.Level),
+					e.Message,
+					reset)
+
+				keys := f.prepareKeys(e.Fields)
+				for _, k := range keys {
+					v := e.Fields[k]
+					fmt.Fprintf(b, " %s%s%s=%+v", lvlColorInfo, k, reset, v)
+				}
+			} else {
+				fmt.Fprintf(b, "                          %30s:%-3d %-44s",
+					f.reduceFilePath(packagePath, 30),
+					line,
+					e.Message,
+					)
+
+				keys := f.prepareKeys(e.Fields)
+				for _, k := range keys {
+					v := e.Fields[k]
+					fmt.Fprintf(b, " %s=%+v", k, v)
+				}
+			}
+
 			b.WriteByte('\n')
 
-			err = e.Err
+			if len(e.Errs) > 1 {
+				for i, ee := range e.Errs {
+					if i == 0 {
+						b.WriteString("Caused By\n")
+					} else {
+						b.WriteString("And\n")
+					}
+					f.logError(b, event, ee)
+					b.WriteString("\n")
+				}
+				err = nil
+			} else if len(e.Errs) == 1 {
+				err = e.Errs[0]
+			} else {
+				err = nil
+			}
 		} else {
-			fmt.Fprintf(b, "                                                  %s%s%s\n",
-				f.textColor(event.Level),
-				err.Error(),
-				reset)
-			err = nil
+			if f.useColor {
+				fmt.Fprintf(b, "                                                  %s%s%s\n",
+					f.textColor(event.Level),
+					err.Error(),
+					reset)
+				err = nil
+			} else {
+				fmt.Fprintf(b, "                                                             %s\n",
+					err.Error(),
+					)
+				err = nil
+			}
 		}
 	}
 }
@@ -141,28 +211,12 @@ func findFileAndName(ptrs []uintptr) (string, int) {
 		if !strings.Contains(frame.Package, "n0rad/go-erlog") {
 			break
 		}
-		if strings.Contains(frame.Package, "n0rad/go-erlog/examples") { // TODO what to do with that ?
+		if strings.Contains(frame.Package, "n0rad/go-erlog/examples") {
+			// TODO what to do with that ?
 			break
 		}
 	}
 	return frame.File, frame.LineNumber
-}
-
-func toLog(err error, level logs.Level) {
-	if e, ok := err.(*errs.EntryError); ok {
-		logs.LogEntry(&logs.Entry{
-			Message: e.Message,
-			Fields:  e.Fields,
-			Level:   level})
-		if e.Err != nil { // TODO this sux
-			toLog(e.Err, level)
-		}
-	} else {
-		logs.LogEntry(&logs.Entry{
-			Message: err.Error(),
-			Level:   level,
-		})
-	}
 }
 
 func (f *ErlogWriterAppender) reduceFilePath(path string, max int) string {
@@ -253,41 +307,4 @@ func (f *ErlogWriterAppender) levelColor(level logs.Level) string {
 	default:
 		return lvlColorInfo
 	}
-}
-
-func needsQuoting(text string) bool {
-	for _, ch := range text {
-		if !((ch >= 'a' && ch <= 'z') ||
-		(ch >= 'A' && ch <= 'Z') ||
-		(ch >= '0' && ch <= '9') ||
-		ch == '-' || ch == '.') {
-			return false
-		}
-	}
-	return true
-}
-
-func (f *ErlogWriterAppender) appendKeyValue(b *bytes.Buffer, key string, value interface{}) {
-	b.WriteString(key)
-	b.WriteByte('=')
-
-	switch value := value.(type) {
-	case string:
-		if needsQuoting(value) {
-			b.WriteString(value)
-		} else {
-			fmt.Fprintf(b, "%q", value)
-		}
-	case error:
-		errmsg := value.Error()
-		if needsQuoting(errmsg) {
-			b.WriteString(errmsg)
-		} else {
-			fmt.Fprintf(b, "%q", value)
-		}
-	default:
-		fmt.Fprint(b, value)
-	}
-
-	b.WriteByte(' ')
 }

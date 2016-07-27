@@ -69,12 +69,11 @@ func (p *Pod) processAcis() ([]schema.RuntimeApp, error) {
 	failed := 0
 	for _, err := range errors {
 		if err != nil {
-			logs.WithE(err).Error("Aci process failed")
 			failed++
 		}
 	}
-	if failed > 0 { // TODO support multiple err on logger
-		return apps, errs.With("Aci process failed")
+	if failed > 0 {
+		return apps, errs.With("Acis process failed").WithErrs(errors...)
 	}
 	return apps, nil
 }

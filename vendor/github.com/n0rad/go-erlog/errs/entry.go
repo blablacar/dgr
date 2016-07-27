@@ -12,7 +12,7 @@ var MaxStackDepth = 50
 type EntryError struct {
 	Fields  data.Fields
 	Message string
-	Err     error
+	Errs    []error
 	Stack   []uintptr
 	frames  []StackFrame
 }
@@ -32,14 +32,14 @@ func WithF(fields data.Fields, msg string) *EntryError {
 
 func WithE(err error, msg string) *EntryError {
 	return fill(&EntryError{
-		Err:     err,
+		Errs:     []error{err},
 		Message: msg,
 	})
 }
 
 func WithEF(err error, fields data.Fields, msg string) *EntryError {
 	return fill(&EntryError{
-		Err:     err,
+		Errs:     []error{err},
 		Fields:  fields,
 		Message: msg,
 	})
@@ -80,7 +80,12 @@ func (e *EntryError) WithFields(data data.Fields) *EntryError {
 }
 
 func (e *EntryError) WithErr(err error) *EntryError {
-	e.Err = err
+	e.Errs = append(e.Errs, err)
+	return e
+}
+
+func (e *EntryError) WithErrs(err ...error) *EntryError {
+	e.Errs = append(e.Errs, err...)
 	return e
 }
 
@@ -110,12 +115,21 @@ func (e *EntryError) Error() string {
 		}
 	}
 	buffer.WriteString("\n")
-	if e.Err != nil {
+	if e.Errs != nil {
 		buffer.WriteString("Caused by : ")
-		buffer.WriteString(e.Err.Error())
-		buffer.WriteString("\n")
+		for i, err := range e.Errs {
+			if i > 0 {
+				buffer.WriteString("AND\n")
+			}
+			buffer.WriteString(err.Error())
+			buffer.WriteString("\n")
+		}
 	}
 	return buffer.String()
+}
+
+func (e *EntryError) String() string {
+	return e.Error()
 }
 
 //
