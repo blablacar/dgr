@@ -28,6 +28,7 @@ const pathStage1 = "/stage1"
 const pathBuilder = "/builder"
 const pathBuilderUuid = "/builder.uuid"
 const pathTesterUuid = "/tester.uuid"
+const pathVersion = "/version"
 
 const suffixAsc = ".asc"
 const prefixTest = "test/"

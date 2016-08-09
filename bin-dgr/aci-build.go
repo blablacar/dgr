@@ -72,10 +72,24 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 		return errs.WithEF(err, aci.fields, "Builder container return with failed status")
 	}
 
-	if content, err := common.ExtractManifestContentFromAci(aci.target + pathImageAci); err != nil {
+	content, err := common.ExtractManifestContentFromAci(aci.target + pathImageAci)
+	if err != nil {
 		logs.WithEF(err, aci.fields).Warn("Failed to write manifest.json")
-	} else if err := ioutil.WriteFile(aci.target+pathManifestJson, content, 0644); err != nil {
+	}
+
+	if err := ioutil.WriteFile(aci.target+pathManifestJson, content, 0644); err != nil {
 		logs.WithEF(err, aci.fields).Warn("Failed to write manifest.json")
+	}
+
+	im := &schema.ImageManifest{}
+	if err = im.UnmarshalJSON(content); err != nil {
+		return errs.WithEF(err, aci.fields.WithField("content", string(content)), "Cannot unmarshall json content")
+	}
+
+	fullname := common.ExtractNameVersionFromManifest(im)
+	logs.WithField("fullname", *fullname).Info("Finished building aci")
+	if err := ioutil.WriteFile(aci.target+pathVersion, []byte(*fullname), 0644); err != nil {
+		return errs.WithEF(err, aci.fields, "Failed to write version file in target")
 	}
 
 	return nil

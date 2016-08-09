@@ -31,12 +31,8 @@ func (aci *Aci) Push() error {
 	if err != nil {
 		return errs.WithEF(err, aci.fields.WithField("file", pathImageAci), "Failed to extract manifest from aci file")
 	}
-	val, ok := im.Labels.Get("version")
-	if !ok {
-		return errs.WithEF(err, aci.fields.WithField("file", pathImageAci), "Failed to get version from aci manifest")
-	}
 
-	return aci.upload(common.NewACFullName(string(im.Name) + ":" + val))
+	return aci.upload(common.ExtractNameVersionFromManifest(im))
 }
 
 func (aci *Aci) upload(name *common.ACFullname) error {

@@ -5,11 +5,9 @@ isLevelEnabled "debug" && set -x
 
 export ACI_HOME="/dgr/aci-home"
 
-sh
-
 # copy aci dependencies attributes to builder
 mkdir -p /dgr/attributes
-if [ -d /opt/stage2/${ACI_NAME}/rootfs/dgr/attributes ]; then
+if [ "$(ls -A /opt/stage2/${ACI_NAME}/rootfs/dgr/attributes 2> /dev/null)" ]; then
   cp -R /opt/stage2/${ACI_NAME}/rootfs/dgr/attributes/* /dgr/attributes
 fi
 

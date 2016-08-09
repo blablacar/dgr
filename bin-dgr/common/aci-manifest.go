@@ -55,12 +55,18 @@ func ExtractManifestFromAci(aciPath string) (*schema.ImageManifest, error) {
 		return nil, errs.WithEF(err, fields, "Cannot extract aci manifest content from file")
 	}
 	im := &schema.ImageManifest{}
-
-	err = im.UnmarshalJSON(content)
-	if err != nil {
+	if err = im.UnmarshalJSON(content); err != nil {
 		return nil, errs.WithEF(err, fields.WithField("content", string(content)), "Cannot unmarshall json content")
 	}
 	return im, nil
+}
+
+func ExtractNameVersionFromManifest(im *schema.ImageManifest) *ACFullname {
+	name := string(im.Name)
+	if val, ok := im.Labels.Get("version"); ok {
+		name += ":" + val
+	}
+	return NewACFullName(name)
 }
 
 func WriteAciManifest(m *AciManifest, targetFile string, projectName string, dgrVersion string) error {
