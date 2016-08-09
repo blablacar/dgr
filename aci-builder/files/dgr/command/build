@@ -12,9 +12,10 @@ if [ "$(ls -A /opt/stage2/${ACI_NAME}/rootfs/dgr/attributes 2> /dev/null)" ]; th
 fi
 
 # copy aci attributes to builder
-mkdir -p /dgr/attributes/${ACI_NAME}
-find ${ACI_HOME}/attributes \( -name "*.yml" -o -name "*.yaml" \) -exec cp {} /dgr/attributes/${ACI_NAME} \;
-
+if [ -d ${ACI_HOME}/attributes ]; then
+    mkdir -p /dgr/attributes/${ACI_NAME}
+    find ${ACI_HOME}/attributes \( -name "*.yml" -o -name "*.yaml" \) -exec cp {} /dgr/attributes/${ACI_NAME} \;
+fi
 
 isLevelEnabled "debug" && echo_purple "Running builder's prestart"
 /dgr/bin/prestart
