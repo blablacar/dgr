@@ -135,11 +135,8 @@ func (p *Pod) processAci(e common.RuntimeApp) (*schema.RuntimeApp, error) {
 
 func (p *Pod) fillRuntimeAppFromDependencies(e *common.RuntimeApp) error {
 	fields := p.fields.WithField("aci", e.Name)
-	if len(e.Dependencies) > 1 && len(e.App.Exec) == 0 {
-		return errs.WithF(fields, "There is more than 1 dependency, manifest aci must be set explicitly")
-	}
 
-	if len(e.Dependencies) == 1 {
+	if len(e.Dependencies) >= 1 {
 		Home.Rkt.Fetch(e.Dependencies[0].String())
 		manifestStr, err := Home.Rkt.CatManifest(e.Dependencies[0].String())
 		if err != nil {
