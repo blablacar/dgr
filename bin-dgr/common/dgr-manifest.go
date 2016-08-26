@@ -10,6 +10,7 @@ import (
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
+	"strings"
 )
 
 type PodManifest struct {
@@ -126,6 +127,10 @@ func ProcessManifestTemplate(manifestContent string, data2 interface{}, checkNoV
 	err = yaml.Unmarshal(templated, &manifest)
 	if err != nil {
 		return nil, errs.WithEF(err, fields, "Cannot unmarshall manifest")
+	}
+
+	if strings.Contains(manifest.NameAndVersion.Version(), "<no value>") {
+		manifest.NameAndVersion = ACFullname(manifest.NameAndVersion.Name())
 	}
 
 	return &manifest, nil
