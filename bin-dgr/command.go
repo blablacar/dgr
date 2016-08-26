@@ -1,11 +1,15 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/n0rad/go-erlog/logs"
 	"github.com/spf13/cobra"
+	"html/template"
 	"os"
+	"strings"
 	"sync"
 )
 
@@ -63,6 +67,43 @@ var aciVersion = &cobra.Command{
 		}
 		val, _ := im.Labels.Get("version")
 		fmt.Println(val)
+	},
+}
+
+var configCmd = &cobra.Command{
+	Use:   "config",
+	Short: "display config elements",
+	Run: func(cmd *cobra.Command, args []string) {
+		templateStr := "{{.}}"
+		if len(args) > 1 {
+			for i := 0; i < len(args); i++ {
+				if len(args[i]) > 0 {
+					args[i] = strings.ToUpper(args[i][0:1]) + args[i][1:]
+				}
+			}
+			res := strings.Join(args, ".")
+			templateStr = "{{." + res + "}}"
+		} else if len(args) == 1 {
+			args := strings.Split(args[0], ".")
+			for i := 0; i < len(args); i++ {
+				if len(args[i]) > 0 {
+					args[i] = strings.ToUpper(args[i][0:1]) + args[i][1:]
+				}
+			}
+			res := strings.Join(args, ".")
+			templateStr = "{{." + res + "}}"
+		}
+		tmpl, err := template.New("").Parse(templateStr)
+		if err != nil {
+			logs.WithE(err).Fatal("Failed to parse config template")
+		}
+		b := bytes.Buffer{}
+		w := bufio.NewWriter(&b)
+		if err := tmpl.Execute(w, Home.Config); err != nil {
+			logs.WithE(err).Fatal("Failed to process config templating")
+		}
+		w.Flush()
+		fmt.Println(b.String())
 	},
 }
 
