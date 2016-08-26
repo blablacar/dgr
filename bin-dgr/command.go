@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/n0rad/go-erlog/logs"
 	"github.com/spf13/cobra"
@@ -61,7 +62,7 @@ var aciVersion = &cobra.Command{
 			logs.WithE(err).Fatal("Failed to get manifest from file")
 		}
 		val, _ := im.Labels.Get("version")
-		println(val)
+		fmt.Println(val)
 	},
 }
 
