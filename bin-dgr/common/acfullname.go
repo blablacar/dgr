@@ -38,7 +38,7 @@ func (n ACFullname) LatestVersion() (string, error) {
 		return "", errors.Annotate(err, "Latest discovery fail")
 	}
 
-	r, _ := regexp.Compile(`^(\d+\.)?(\d+\.)?(\*|\d+)(\-[\dA-Za-z]+){0,1}$`) // TODO this is nexus specific
+	r, _ := regexp.Compile(`^\d+(.\d+){0,2}(-[\.\-\dA-Za-z]+){0,1}$`) // TODO this is nexus specific
 
 	if len(endpoints) == 0 {
 		return "", errs.WithF(data.WithField("aci", string(n)), "Discovery does not give an endpoint to check latest version")
