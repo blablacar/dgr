@@ -80,12 +80,18 @@ func (e *EntryError) WithFields(data data.Fields) *EntryError {
 }
 
 func (e *EntryError) WithErr(err error) *EntryError {
-	e.Errs = append(e.Errs, err)
+	if err != nil {
+		e.Errs = append(e.Errs, err)
+	}
 	return e
 }
 
-func (e *EntryError) WithErrs(err ...error) *EntryError {
-	e.Errs = append(e.Errs, err...)
+func (e *EntryError) WithErrs(errs ...error) *EntryError {
+	for _, err := range errs {
+		if err != nil {
+			e.Errs = append(e.Errs, err)
+		}
+	}
 	return e
 }
 
@@ -118,8 +124,11 @@ func (e *EntryError) Error() string {
 	if e.Errs != nil {
 		buffer.WriteString("Caused by : ")
 		for i, err := range e.Errs {
+			if err == nil {
+				continue
+			}
 			if i > 0 {
-				buffer.WriteString("AND\n")
+				buffer.WriteString("And\n")
 			}
 			buffer.WriteString(err.Error())
 			buffer.WriteString("\n")

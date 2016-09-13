@@ -3,6 +3,7 @@ package logs
 import (
 	"fmt"
 	"strings"
+	"encoding/json"
 )
 
 type Level uint8
@@ -23,6 +24,20 @@ const (
 	// log data content
 	TRACE
 )
+
+func (r *Level) UnmarshalJSON(b []byte) error {
+	var str string
+	if err := json.Unmarshal(b, &str); err != nil {
+		return err
+	}
+
+	lvl, err := ParseLevel(str)
+	if err != nil {
+		return err
+	}
+	*r = lvl
+	return nil
+}
 
 func (level Level) String() string {
 	switch level {
@@ -45,8 +60,8 @@ func (level Level) String() string {
 }
 
 func ParseLevel(lvl string) (Level, error) {
-	lvl = strings.ToUpper(lvl)
-	switch lvl {
+	lvl2 := strings.ToUpper(lvl)
+	switch lvl2 {
 	case "PANIC":
 		return PANIC, nil
 	case "FATAL":
@@ -63,7 +78,7 @@ func ParseLevel(lvl string) (Level, error) {
 		return TRACE, nil
 	}
 	var l Level
-	return l, fmt.Errorf("Not a valid level : %s", lvl) // not using errs to prevent cycle dep
+	return l, fmt.Errorf("Not a valid log level: %s", lvl) // not using errs to prevent cycle dep
 }
 
 func (l Level) IsEnableFor(level Level) bool {

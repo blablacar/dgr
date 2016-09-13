@@ -44,8 +44,6 @@ func (aci *Aci) prepareRktRunArguments(command common.BuilderCommand, builderHas
 
 func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 	defer aci.giveBackUserRightsToTarget()
-	aci.Clean()
-
 	logs.WithF(aci.fields).Info("Building")
 
 	if err := os.MkdirAll(aci.target, 0777); err != nil {
@@ -113,7 +111,17 @@ func (aci *Aci) cleanupRun(builderHash string, stage1Hash string) {
 	}
 }
 
+func (aci *Aci) Build() error {
+	aci.checkDependencies()
+	return aci.RunBuilderCommand(common.CommandBuild)
+}
+
 func (aci *Aci) CleanAndBuild() error {
+	aci.Clean()
+	return aci.Build()
+}
+
+func (aci *Aci) checkDependencies() {
 	aci.checkWg.Add(2)
 	if !aci.args.ParallelBuild {
 		aci.checkCompatibilityVersions()
@@ -122,7 +130,6 @@ func (aci *Aci) CleanAndBuild() error {
 		go aci.checkCompatibilityVersions()
 		go aci.checkLatestVersions()
 	}
-	return aci.RunBuilderCommand(common.CommandBuild)
 }
 
 func (aci *Aci) prepareStage1aci() (string, error) {

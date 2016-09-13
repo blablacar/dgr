@@ -5,6 +5,12 @@ isLevelEnabled "debug" && set -x
 
 export ACI_HOME="/dgr/aci-home"
 
+# copy pod attributes from builder to aci (copy from lower to upper overlay)
+if [ "$(ls -A /opt/stage2/${ACI_NAME}/rootfs/dgr/pod/attributes 2> /dev/null)" ]; then
+  mkdir -p /opt/stage2/${ACI_NAME}/rootfs/dgr/attributes
+  cp -R /opt/stage2/${ACI_NAME}/rootfs/dgr/pod/attributes /opt/stage2/${ACI_NAME}/rootfs/dgr/attributes/pod
+fi
+
 # copy aci dependencies attributes to builder
 mkdir -p /dgr/attributes
 if [ "$(ls -A /opt/stage2/${ACI_NAME}/rootfs/dgr/attributes 2> /dev/null)" ]; then

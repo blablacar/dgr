@@ -16,9 +16,8 @@ import (
 
 const pathPodManifestJson = "/pod-manifest.json"
 
-func (p *Pod) CleanAndBuild() error {
+func (p *Pod) Build() error {
 	defer p.giveBackUserRightsToTarget()
-	p.Clean()
 	logs.WithF(p.fields).Info("Building")
 
 	os.RemoveAll(p.target)
@@ -34,6 +33,11 @@ func (p *Pod) CleanAndBuild() error {
 		return err
 	}
 	return nil
+}
+
+func (p *Pod) CleanAndBuild() error {
+	p.Clean()
+	return p.Build()
 }
 
 func (p *Pod) preparePodVersion() {
@@ -197,7 +201,21 @@ func (p *Pod) buildAci(e common.RuntimeApp) (*Aci, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := aci.CleanAndBuild(); err != nil {
+
+	aci.Clean()
+
+	// TODO attributes should be builder dependent only
+	if empty, err := common.IsDirEmpty(p.path + "/attributes"); !empty && err == nil {
+		path := aci.target + pathBuilder + common.PathRootfs + "/dgr/pod/attributes"
+		if err := os.MkdirAll(path, 0777); err != nil {
+			return nil, errs.WithEF(err, aci.fields.WithField("path", path), "Failed to create pod attributes directory in builder")
+		}
+		if err := common.CopyDir(p.path+"/attributes", path); err != nil {
+			return nil, errs.WithEF(err, aci.fields, "Failed to copy pod attributes to aci builder")
+		}
+	}
+
+	if err := aci.Build(); err != nil {
 		return nil, errs.WithEF(err, p.fields.WithField("name", e.Name), "build of  pod's aci failed")
 	}
 	return aci, nil

@@ -14,6 +14,7 @@ import (
 )
 
 type DgrCommand interface {
+	Build() error
 	CleanAndBuild() error
 	CleanAndTry() error
 	Clean()

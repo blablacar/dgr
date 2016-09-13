@@ -4,17 +4,17 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/mgutz/ansi"
+	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
+	"golang.org/x/crypto/ssh/terminal"
 	"io"
+	"os"
 	"runtime"
 	"sort"
 	"strings"
 	"sync"
 	"time"
-	"github.com/n0rad/go-erlog/errs"
-	"github.com/n0rad/go-erlog/data"
-	"os"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 var pathSkip int = 0
@@ -46,6 +46,10 @@ func init() {
 	paths := strings.Split(file, "/")
 	for i := 0; i < len(paths); i++ {
 		if paths[i] == "github.com" {
+			if paths[i-1] == "vendor" {
+				pathSkip = i - 2
+				break
+			}
 			pathSkip = i + 2
 			break
 		}
@@ -55,7 +59,7 @@ func init() {
 
 func NewErlogWriterAppender(writer io.Writer) (f *ErlogWriterAppender) {
 	return &ErlogWriterAppender{
-		Out: writer,
+		Out:      writer,
 		useColor: terminal.IsTerminal(int(os.Stdout.Fd())),
 	}
 }
@@ -78,7 +82,7 @@ func (f *ErlogWriterAppender) Fire(event *LogEvent) {
 	}
 	level := f.textLevel(event.Level)
 
-	paths := strings.SplitN(event.File, "/", pathSkip + 1)
+	paths := strings.SplitN(event.File, "/", pathSkip+1)
 
 	packagePath := event.File
 	if len(paths) > pathSkip {
@@ -132,8 +136,12 @@ func (f *ErlogWriterAppender) logError(b *bytes.Buffer, event *LogEvent, errors 
 
 	for err := errors; err != nil; {
 		if e, ok := err.(*errs.EntryError); ok {
+			if e == nil {
+				err = nil
+				continue
+			}
 			path, line := findFileAndName(e.Stack)
-			paths := strings.SplitN(path, "/", pathSkip + 1)
+			paths := strings.SplitN(path, "/", pathSkip+1)
 
 			packagePath := event.File
 			if len(paths) > pathSkip {
@@ -160,7 +168,7 @@ func (f *ErlogWriterAppender) logError(b *bytes.Buffer, event *LogEvent, errors 
 					f.reduceFilePath(packagePath, 30),
 					line,
 					e.Message,
-					)
+				)
 
 				keys := f.prepareKeys(e.Fields)
 				for _, k := range keys {
@@ -197,7 +205,7 @@ func (f *ErlogWriterAppender) logError(b *bytes.Buffer, event *LogEvent, errors 
 			} else {
 				fmt.Fprintf(b, "                                                             %s\n",
 					err.Error(),
-					)
+				)
 				err = nil
 			}
 		}
@@ -229,13 +237,13 @@ func (f *ErlogWriterAppender) reduceFilePath(path string, max int) string {
 	reducedSize := len(path)
 	var buffer bytes.Buffer
 	for i, e := range split {
-		if reducedSize > max && i + 1 < splitlen {
+		if len(e) > 0 && reducedSize > max && i+1 < splitlen {
 			buffer.WriteByte(e[0])
 			reducedSize -= len(e) - 1
 		} else {
 			buffer.WriteString(e)
 		}
-		if i + 1 < splitlen {
+		if i+1 < splitlen {
 			buffer.WriteByte('/')
 		}
 	}
