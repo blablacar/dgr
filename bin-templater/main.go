@@ -107,7 +107,7 @@ func overrideWithJsonIfNeeded(overrideEnvVarName string, attributes map[string]i
 		if envjson := os.Getenv(overrideEnvVarName); envjson != "" {
 			if len(envjson) > 8 && envjson[0:7] == "base64," {
 				logs.WithField("EnvVar", overrideEnvVarName).Debug("Environment variable is base64 encoded")
-				b64EnvJson := envjson[7:len(envjson)]
+				b64EnvJson := envjson[7:]
 				envjsonBase64Decoded, err := base64.StdEncoding.DecodeString(b64EnvJson)
 				if err != nil {
 					logs.WithE(err).WithField("base64", b64EnvJson).Fatal("Failed to base64 decode")
