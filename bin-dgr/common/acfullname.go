@@ -98,6 +98,10 @@ func (n ACFullname) TinyNameId() string {
 
 /* dgr/yopla */
 func (n ACFullname) ShortName() string {
+	name := n.Name()
+	if !strings.Contains(name, "/") {
+		return name
+	}
 	return strings.SplitN(n.Name(), "/", 2)[1]
 }
 
