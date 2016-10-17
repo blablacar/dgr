@@ -201,6 +201,8 @@ aci:
 
 The **name**, well, is the name of the ACI you are building.
 
+#### Builder
+
 **builder** node is configuration of the filesystem you will use to build your ACI.
 By default, this filesystem only contain a busybox. When you set builder dependencies to handle specific build mechanism. (like archlinux or gentoo in the examples)
 
@@ -228,6 +230,7 @@ cp /code/target/project.jar ${ROOTFS}/
 mvn -f /code clean
 ```
 
+#### ACI
 
 Under the **aci** key, you can add every key that is defined in the [APPC spec](https://github.com/appc/spec/blob/master/spec/aci.md) such as:
 
