@@ -143,6 +143,10 @@ func (b *Builder) tarAci() error {
 	upperNamedRootfs := upperPath + "/" + manifestApp(b.pod).Name.String()
 	upperRootfs := upperPath + common.PathRootfs
 
+	if err := os.RemoveAll(upperNamedRootfs + PATH_TMP); err != nil {
+		logs.WithEF(err, b.fields.WithField("path", upperNamedRootfs+PATH_TMP)).Warn("Failed to clean tmp directory")
+	}
+
 	if err := os.Rename(upperNamedRootfs, upperRootfs); err != nil { // TODO this is dirty and can probably be renamed during tar
 		return errs.WithEF(err, b.fields.WithField("path", upperNamedRootfs), "Failed to rename rootfs")
 	}
