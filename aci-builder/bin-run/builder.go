@@ -311,6 +311,10 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 		if from[0] != '/' {
 			from = b.aciHomePath + "/" + from
 		}
+
+		if _, err := os.Stat(from); err != nil {
+			os.MkdirAll(from, 0755)
+		}
 		args = append(args, "--bind="+from+":"+mount.To)
 	}
 
