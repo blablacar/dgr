@@ -27,3 +27,16 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
+@test "should understand base64 override" {
+  export TEMPLATER_OVERRIDE_BASE64=base64,eyJ5b2xvIjoidGVzdCIsInRlc3QiOiJ5b2xvIn0=
+  run ../../dist/templater  -o "TEMPLATER_OVERRIDE_BASE64" -t ./target 4/
+  echo -e "$output"
+  [ "$status" -eq 0 ]
+}
+
+@test "should understand Json override" {
+  export TEMPLATER_OVERRIDE='{"yolo":"test","test":"yolo"}'
+  run ../../dist/templater  -o "TEMPLATER_OVERRIDE" -t ./target 4/
+  echo -e "$output"
+  [ "$status" -eq 0 ]
+}

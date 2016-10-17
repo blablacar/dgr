@@ -7,11 +7,13 @@ BASEDIR=${0%/*}
 dgr_PATH=/dgr
 
 execute_files ${dgr_PATH}/runlevels/prestart-early
+OVERRIDE_VAR=TEMPLATER_OVERRIDE
+[ ! -z  ${TEMPLATER_OVERRIDE_BASE64} ] && OVERRIDE_VAR=TEMPLATER_OVERRIDE_BASE64
 
 if [ -z ${LOG_LEVEL} ]; then
-	${BASEDIR}/templater -o TEMPLATER_OVERRIDE -t / /dgr
+	${BASEDIR}/templater -o ${OVERRIDE_VAR} -t / /dgr
 else
-	${BASEDIR}/templater -o TEMPLATER_OVERRIDE -L "${LOG_LEVEL}" -t / /dgr
+	${BASEDIR}/templater -o ${OVERRIDE_VAR} -L "${LOG_LEVEL}" -t / /dgr
 fi
 
 execute_files ${dgr_PATH}/runlevels/prestart-late
