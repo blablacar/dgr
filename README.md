@@ -201,7 +201,33 @@ aci:
 
 The **name**, well, is the name of the ACI you are building.
 
-**builder** node 
+**builder** node is configuration of the filesystem you will use to build your ACI.
+By default, this filesystem only contain a busybox. When you set builder dependencies to handle specific build mechanism. (like archlinux or gentoo in the examples)
+
+```yaml
+builder:
+  dependencies:
+    - example.com/aci-maven
+    - example.com/aci-java
+  mountPoints:
+    - {from: ../, to: /code}
+    - {from: ~/.m2, to: /root/.m2} 
+```
+
+There is also a `mountPoints` node to mount directories to the builder. This is usefull to have some external cache between builds (like `.m2` maven directory) and also to trigger code build inside the builder, and release as an aci.
+
+Here is an example of a builder script that can be used to do so.
+```bash
+#!/dgr/bin/busybox sh
+set -e
+source /dgr/bin/functions.sh
+isLevelEnabled "debug" && set -x
+
+mvn -f /code clean verify
+cp /code/target/project.jar ${ROOTFS}/
+mvn -f /code clean
+```
+
 
 Under the **aci** key, you can add every key that is defined in the [APPC spec](https://github.com/appc/spec/blob/master/spec/aci.md) such as:
 
