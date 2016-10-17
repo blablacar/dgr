@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/blablacar/dgr/bin-templater/merger"
@@ -104,6 +105,15 @@ func Run(overrideEnvVarName string, target string, templaterDir string, continue
 func overrideWithJsonIfNeeded(overrideEnvVarName string, attributes map[string]interface{}) map[string]interface{} {
 	if overrideEnvVarName != "" {
 		if envjson := os.Getenv(overrideEnvVarName); envjson != "" {
+			if len(envjson) > 8 && envjson[0:7] == "base64," {
+				logs.WithField("EnvVar", overrideEnvVarName).Debug("Environment variable is base64 encoded")
+				b64EnvJson := envjson[7:len(envjson)]
+				envjsonBase64Decoded, err := base64.StdEncoding.DecodeString(b64EnvJson)
+				if err != nil {
+					logs.WithE(err).WithField("base64", b64EnvJson).Fatal("Failed to base64 decode")
+				}
+				envjson = string(envjsonBase64Decoded)
+			}
 			logs.WithField("content", envjson).Debug("Override var content")
 			var envattr map[string]interface{}
 			err := json.Unmarshal([]byte(envjson), &envattr)
