@@ -60,6 +60,17 @@ func (in *inputs) listFiles() error {
 		return err
 	}
 	for _, f_l1 := range list_l1 {
+		if f_l1.Mode() & os.ModeSymlink == os.ModeSymlink {
+			followed_file,err := os.Readlink(in.Directory +"/"+f_l1.Name())
+			if err != nil {
+				return err
+			}
+			f_l1,err = os.Lstat(in.Directory + "/" + followed_file)
+			if err != nil {
+				return err
+			}
+			logs.WithField("followed_link",f_l1.Name()).Trace("Followed Link")
+		}
 		if f_l1.IsDir() {
 			list_l2, err := ioutil.ReadDir(in.Directory + "/" + f_l1.Name())
 			if err != nil {

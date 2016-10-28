@@ -40,3 +40,9 @@ setup() {
   echo -e "$output"
   [ "$status" -eq 0 ]
 }
+
+@test "should template with a symlink as attributes" {
+  run ../../dist/templater -t ./target 5/
+  echo -e "$output"
+  [ "$status" -eq 0 ]
+}
