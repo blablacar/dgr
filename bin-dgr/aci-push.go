@@ -69,7 +69,7 @@ func (aci *Aci) upload(name *common.ACFullname) error {
 		upload := Uploader{
 			Acipath: aci.target + pathImageGzAci,
 			Ascpath: aci.target + pathImageGzAciAsc,
-			Uri:     aci.manifest.NameAndVersion.String(),
+			Uri:     name.String(),
 			Debug:   false,
 			SetHTTPHeaders: func(r *http.Request) {
 				if r.URL == nil {
