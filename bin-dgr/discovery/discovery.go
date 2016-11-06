@@ -21,6 +21,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/appc/spec/discovery"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )
@@ -125,13 +126,13 @@ func createTemplateVars(app App) []string {
 	return tplVars
 }
 
-func doDiscover(pre string, app App, insecure bool) (*Endpoints, error) {
+func doDiscover(pre string, app App, insecure discovery.InsecureOption) (*Endpoints, error) {
 	app = *app.Copy()
 	if app.Labels["version"] == "" {
 		app.Labels["version"] = defaultVersion
 	}
 
-	_, body, err := httpsOrHTTP(pre, insecure)
+	_, body, err := httpsOrHTTP(pre, nil, insecure)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +177,7 @@ func doDiscover(pre string, app App, insecure bool) (*Endpoints, error) {
 // DiscoverWalk will make HTTPS requests to find discovery meta tags and
 // optionally will use HTTP if insecure is set. Based on the response of the
 // discoverFn it will continue to recurse up the tree.
-func DiscoverWalk(app App, insecure bool, discoverFn DiscoverWalkFunc) (err error) {
+func DiscoverWalk(app App, insecure discovery.InsecureOption, discoverFn DiscoverWalkFunc) (err error) {
 	var (
 		eps *Endpoints
 	)
@@ -222,7 +223,7 @@ func walker(out *Endpoints, attempts *[]FailedAttempt, testFn DiscoverWalkFunc) 
 // DiscoverEndpoints will make HTTPS requests to find the ac-discovery meta
 // tags and optionally will use HTTP if insecure is set. It will not give up
 // until it has exhausted the path or found an image discovery.
-func DiscoverEndpoints(app App, insecure bool) (out *Endpoints, attempts []FailedAttempt, err error) {
+func DiscoverEndpoints(app App, insecure discovery.InsecureOption) (out *Endpoints, attempts []FailedAttempt, err error) {
 	out = &Endpoints{}
 	testFn := func(pre string, eps *Endpoints, err error) error {
 		if len(out.ACIEndpoints) != 0 || len(out.Keys) != 0 || len(out.ACIPushEndpoints) != 0 {
@@ -242,7 +243,7 @@ func DiscoverEndpoints(app App, insecure bool) (out *Endpoints, attempts []Faile
 // DiscoverPublicKey will make HTTPS requests to find the ac-public-keys meta
 // tags and optionally will use HTTP if insecure is set. It will not give up
 // until it has exhausted the path or found an public key.
-func DiscoverPublicKeys(app App, insecure bool) (out *Endpoints, attempts []FailedAttempt, err error) {
+func DiscoverPublicKeys(app App, insecure discovery.InsecureOption) (out *Endpoints, attempts []FailedAttempt, err error) {
 	out = &Endpoints{}
 	testFn := func(pre string, eps *Endpoints, err error) error {
 		if len(out.Keys) != 0 {

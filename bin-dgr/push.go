@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -167,8 +166,7 @@ func (u Uploader) getInitiationURL(app *discovery.App) (string, error) {
 	if u.Debug {
 		stderr("searching for push endpoint via meta discovery")
 	}
-	eps, attempts, err := discovery.DiscoverEndpoints(*app,
-		Home.Config.Rkt.InsecureOptions.ToDiscoveryInsecureOption()&(appcdiscovery.InsecureTLS|appcdiscovery.InsecureHTTP) != 0)
+	eps, attempts, err := discovery.DiscoverEndpoints(*app, Home.Config.Rkt.InsecureOptions.ToDiscoveryInsecureOption())
 	if u.Debug {
 		for _, a := range attempts {
 			stderr("meta tag 'ac-push-discovery' not found on %s: %v", a.Prefix, a.Error)
@@ -283,17 +281,12 @@ func (u Uploader) performRequest(reqType string, url string, body io.Reader, dra
 	if err != nil {
 		return nil, err
 	}
-	transport := http.DefaultTransport
+	client := appcdiscovery.Client
 	if Home.Config.Rkt.InsecureOptions.ToDiscoveryInsecureOption()&appcdiscovery.InsecureTLS != 0 {
-		transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
+		client = appcdiscovery.ClientInsecureTLS
 	}
 
 	u.SetHTTPHeaders(req)
-
-	client := &http.Client{Transport: transport}
-
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		if len(via) >= 10 {
 			return fmt.Errorf("too many redirects")
