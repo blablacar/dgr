@@ -65,7 +65,10 @@ func (in *inputs) listFiles() error {
 			if err != nil {
 				return err
 			}
-			f_l1, err = os.Lstat(in.Directory + "/" + followed_file)
+			if followed_file[0] != '/' {
+				followed_file = in.Directory + "/" + followed_file
+			}
+			f_l1, err = os.Lstat(followed_file)
 			if err != nil {
 				return err
 			}
