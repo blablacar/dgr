@@ -4,9 +4,11 @@ import (
 	"github.com/appc/spec/schema"
 	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/jhoonb/archivex"
+	gzip "github.com/klauspost/pgzip"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -115,17 +117,30 @@ func (aci *Aci) tarAci(path string) error {
 }
 
 func (aci *Aci) zipAci() error {
-	if _, err := os.Stat(aci.target + pathImageGzAci); err == nil {
+	source := aci.target + pathImageAci
+	target := aci.target + pathImageGzAci
+	if _, err := os.Stat(target); err == nil {
 		return nil
 	}
 
 	logs.WithF(aci.fields).Info("Gzipping aci")
-	if stdout, stderr, err := common.ExecCmdGetStdoutAndStderr("gzip", "-k", aci.target+pathImageAci); err != nil {
-		return errs.WithEF(err, aci.fields.WithField("path", aci.target+pathImageAci).WithField("stdout", stdout).WithField("stderr", stderr), "Failed to zip aci")
+	reader, err := os.Open(source)
+	if err != nil {
+		return errs.WithEF(err, aci.fields.WithField("path", source), "Failed to open unziped aci")
 	}
-	if err := common.ExecCmd("mv", aci.target+pathImageAci+".gz", aci.target+pathImageGzAci); err != nil {
-		return errs.WithEF(err, aci.fields.WithField("from", aci.target+pathImageAci+".gz").
-			WithField("to", aci.target+pathImageGzAci), "Failed to rename zip aci")
+	filename := filepath.Base(source)
+	writer, err := os.Create(target)
+	if err != nil {
+		return errs.WithEF(err, aci.fields.WithField("path", target), "Failed to create file descriptor for image zip")
+	}
+	defer writer.Close()
+	archiver := gzip.NewWriter(writer)
+	archiver.SetConcurrency(100000, 10)
+	archiver.Name = filename
+	defer archiver.Close()
+	_, err = io.Copy(archiver, reader)
+	if err != nil {
+		return errs.WithEF(err, aci.fields.WithField("path", target), "Failed to zip aci")
 	}
 	return nil
 }
