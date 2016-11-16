@@ -3,6 +3,7 @@ package template
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/leekchan/gtf"
 	"gopkg.in/yaml.v2"
@@ -79,6 +80,18 @@ func (t *Templating) AddFunctions(fs map[string]interface{}) {
 }
 
 ///////////////////////////////////
+
+func pairs(values ...interface{}) (map[interface{}]interface{}, error) {
+	if len(values)%2 != 0 {
+		return nil, errors.New("Missing value on key/value Pairs call")
+	}
+	pairs := make(map[interface{}]interface{})
+	for i := 0; i < len(values); i += 2 {
+		key := values[i]
+		pairs[key] = values[i+1]
+	}
+	return pairs, nil
+}
 
 func ifOrDef(eif interface{}, yes interface{}, no interface{}) interface{} {
 	if eif != nil {
@@ -326,6 +339,7 @@ func init() {
 	TemplateFunctions["repeat"] = strings.Repeat
 	TemplateFunctions["hasPrefix"] = strings.HasPrefix
 	TemplateFunctions["hasSuffix"] = strings.HasSuffix
+	TemplateFunctions["pairs"] = pairs
 	TemplateFunctions["orDef"] = orDef
 	TemplateFunctions["orDefs"] = orDefs
 	TemplateFunctions["ifOrDef"] = ifOrDef
