@@ -38,7 +38,7 @@ func (aci *Aci) Push() error {
 func (aci *Aci) upload(name *common.ACFullname) error {
 	if Home.Config.Push.Type == "maven" && name.DomainName() == "aci.blbl.cr" { // TODO this definitely need to be removed
 		logs.WithF(aci.fields).Info("Uploading aci")
-		if err := common.ExecCmd("curl", "-f", "-i",
+		if err := common.ExecCmd("curl", "-f", "-i", "-L",
 			"-F", "r=releases",
 			"-F", "hasPom=false",
 			"-F", "e=aci",
