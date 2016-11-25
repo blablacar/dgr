@@ -46,3 +46,10 @@ setup() {
   echo -e "$output"
   [ "$status" -eq 0 ]
 }
+
+@test "should permit to push dynamic pairs to partials" {
+  run ../../dist/templater -t ./target 6/
+  echo -e "$output"
+  [ "$status" -eq 0 ]
+  cat ./target/etc/resolv.conf | grep "nameserver 8.8.8.8"
+}

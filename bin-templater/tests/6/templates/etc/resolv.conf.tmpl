@@ -1,0 +1,4 @@
+{{ template "dns_list" pairs "servers" .dns.nameservers "dns_directive" .conf.dns_directive }}
+{{ if .dns.search -}}
+search {{ range .dns.search }} {{.}} {{end}}
+{{end}}
