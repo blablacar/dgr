@@ -1,6 +1,5 @@
-#!/bin/sh
-set -e
-set -x
+#!/bin/bash
+set -euxo pipefail
 start=$( date +%s )
 : ${dir:="$( dirname $0 )"}
 
@@ -14,9 +13,7 @@ if ! command -v upx >/dev/null; then
 fi
 if ! command -v go-bindata >/dev/null; then
   go get github.com/jteeuwen/go-bindata
-  set -o pipefail
   (cd "$(find ../../../.. -name 'go-bindata' -type d | head -n 1)" && make)
-  set +o pipefail
 fi
 
 # clean
@@ -40,9 +37,7 @@ go-bindata -nomemcopy -pkg dist -o ${dir}/dist/bindata.go ${dir}/dist/bindata/..
 
 echo -e "\033[0;32mBuilding dgr\033[0m\n"
 
-if [ -z ${VERSION} ]; then
-    VERSION=0
-fi
+: ${VERSION:=0}
 
 # build
 GOOS=linux GOARCH=amd64 godep go build --ldflags "-s -w -X main.buildDate=`date -u '+%Y-%m-%d_%H:%M'` \
