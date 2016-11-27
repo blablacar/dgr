@@ -13,7 +13,9 @@ if ! command -v upx >/dev/null; then
 fi
 if ! command -v go-bindata >/dev/null; then
   go get github.com/jteeuwen/go-bindata
-  (cd "$(find ../../../.. -name 'go-bindata' -type d | head -n 1)" && make)
+  (cd "$(find ../../../.. -name 'go-bindata' -type d | head -n 1)" \
+  && sed -i -e '/^check/s: vet::' testdata/Makefile \
+  && make)
 fi
 
 # clean
