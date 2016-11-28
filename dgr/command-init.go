@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/blablacar/dgr/bin-dgr/common"
+	"github.com/blablacar/dgr/dgr/common"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/logs"
 	"github.com/spf13/cobra"

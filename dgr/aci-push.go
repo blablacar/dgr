@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/blablacar/dgr/bin-dgr/common"
+	"github.com/blablacar/dgr/dgr/common"
 	"github.com/coreos/rkt/rkt/config"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"

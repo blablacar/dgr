@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/blablacar/dgr/bin-dgr/common"
+	"github.com/blablacar/dgr/dgr/common"
 )
 
 func (aci *Aci) Init() error {

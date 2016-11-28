@@ -5,6 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"strconv"
+	"text/template"
+
 	tpl "github.com/blablacar/dgr/bin-templater/template"
 	"github.com/ghodss/yaml"
 	"github.com/leekchan/gtf"
@@ -12,10 +17,6 @@ import (
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"github.com/peterbourgon/mergemap"
-	"io/ioutil"
-	"os"
-	"strconv"
-	"text/template"
 )
 
 type AttributesMerger struct {

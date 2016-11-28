@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/appc/spec/schema/types"
-	"github.com/blablacar/dgr/bin-dgr/common"
+	"github.com/blablacar/dgr/dgr/common"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"gopkg.in/yaml.v2"

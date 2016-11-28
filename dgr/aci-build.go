@@ -8,7 +8,7 @@ import (
 
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
-	"github.com/blablacar/dgr/bin-dgr/common"
+	"github.com/blablacar/dgr/dgr/common"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 )
@@ -19,7 +19,7 @@ func (aci *Aci) prepareRktRunArguments(command common.BuilderCommand, builderHas
 	if logs.IsDebugEnabled() {
 		args = append(args, "--debug")
 	}
-	args = append(args, "--set-env="+common.EnvDgrVersion+"="+dgrVersion)
+	args = append(args, "--set-env="+common.EnvDgrVersion+"="+BuildVersion)
 	args = append(args, "--set-env="+common.EnvLogLevel+"="+logs.GetLevel().String())
 	args = append(args, "--set-env="+common.EnvAciPath+"="+aci.path)
 	args = append(args, "--set-env="+common.EnvAciTarget+"="+aci.target)
@@ -210,7 +210,7 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 	}
 	aci.manifest.Aci.App.Isolators = []common.Isolator{{Name: "os/linux/capabilities-retain-set", Value: common.LinuxCapabilitiesSetValue{Set: []types.LinuxCapability{"all"}}}}
 
-	if err := common.WriteAciManifest(aci.manifest, aci.target+pathBuilder+common.PathManifest, common.PrefixBuilder+aci.manifest.NameAndVersion.Name(), dgrVersion); err != nil {
+	if err := common.WriteAciManifest(aci.manifest, aci.target+pathBuilder+common.PathManifest, common.PrefixBuilder+aci.manifest.NameAndVersion.Name(), BuildVersion); err != nil {
 		return "", err
 	}
 	if err := aci.tarAci(aci.target + pathBuilder); err != nil {

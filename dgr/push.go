@@ -14,7 +14,7 @@ import (
 	"github.com/appc/spec/aci"
 	appcdiscovery "github.com/appc/spec/discovery"
 	"github.com/appc/spec/schema"
-	"github.com/blablacar/dgr/bin-dgr/discovery"
+	"github.com/blablacar/dgr/dgr/discovery"
 	"github.com/coreos/ioprogress"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"

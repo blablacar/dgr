@@ -1,4 +1,4 @@
-#!/bin/bats
+#!/bin/bats -x
 
 @test "should fail with no name" {
   run $DGR_PATH -W without_name build

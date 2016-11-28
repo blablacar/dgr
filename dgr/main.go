@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/blablacar/dgr/bin-dgr/common"
+	"github.com/blablacar/dgr/dgr/common"
 	"github.com/n0rad/go-erlog"
 	"github.com/n0rad/go-erlog/logs"
 	_ "github.com/n0rad/go-erlog/register"
@@ -17,9 +17,9 @@ import (
 
 const dgrEnvPrefix = "DGR_ENV_"
 
-var commitHash string
-var dgrVersion string
-var buildDate string
+var BuildCommit string
+var BuildVersion string
+var BuildTime string
 
 var Args = BuildArgs{}
 var workPath string
@@ -133,12 +133,12 @@ func SupportsOverlay() bool {
 
 func displayVersionAndExit() {
 	fmt.Print("dgr\n\n")
-	fmt.Printf("version    : %s\n", dgrVersion)
-	if buildDate != "" {
-		fmt.Printf("build date : %s\n", buildDate)
+	fmt.Printf("version    : %s\n", BuildVersion)
+	if BuildTime != "" {
+		fmt.Printf("build date : %s\n", BuildTime)
 	}
-	if commitHash != "" {
-		fmt.Printf("CommitHash : %s\n", commitHash)
+	if BuildCommit != "" {
+		fmt.Printf("CommitHash : %s\n", BuildCommit)
 	}
 	os.Exit(0)
 }

@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/appc/spec/schema/types"
-	"github.com/blablacar/dgr/bin-dgr/common"
+	"github.com/blablacar/dgr/dgr/common"
 	rktcommon "github.com/coreos/rkt/common"
 	"github.com/n0rad/go-erlog/logs"
 )

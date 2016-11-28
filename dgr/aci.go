@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/appc/spec/schema"
-	"github.com/blablacar/dgr/bin-dgr/common"
+	"github.com/blablacar/dgr/dgr/common"
 	"github.com/jhoonb/archivex"
 	gzip "github.com/klauspost/pgzip"
 	"github.com/n0rad/go-erlog/data"

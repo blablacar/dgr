@@ -3,14 +3,15 @@ package template
 import (
 	"bufio"
 	"bytes"
-	"github.com/n0rad/go-erlog/data"
-	"github.com/n0rad/go-erlog/errs"
-	"github.com/n0rad/go-erlog/logs"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	txttmpl "text/template"
+
+	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/errs"
+	"github.com/n0rad/go-erlog/logs"
+	"gopkg.in/yaml.v2"
 )
 
 type TemplateFile struct {

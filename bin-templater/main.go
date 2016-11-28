@@ -4,13 +4,14 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"os"
+
 	"github.com/blablacar/dgr/bin-templater/merger"
 	"github.com/blablacar/dgr/bin-templater/template"
 	"github.com/n0rad/go-erlog"
 	"github.com/n0rad/go-erlog/logs"
 	_ "github.com/n0rad/go-erlog/register"
 	"github.com/peterbourgon/mergemap"
-	"os"
 )
 
 const pathAttributes = "/attributes"

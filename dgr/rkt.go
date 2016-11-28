@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/blablacar/dgr/bin-dgr/common"
+	"github.com/blablacar/dgr/dgr/common"
 	"github.com/blablacar/dgr/dist"
 	"github.com/n0rad/go-erlog/logs"
 )
@@ -50,14 +50,13 @@ func ImportInternalTesterIfNeeded(manifest *common.AciManifest) {
 }
 
 func importInternalAci(filename string) {
-	filepath := "dist/bindata/" + filename
-	content, err := dist.Asset(filepath)
+	content, err := dist.Asset(filename)
 	if err != nil {
-		logs.WithE(err).WithField("aci", filepath).Fatal("Cannot found internal aci")
+		logs.WithE(err).WithField("aci", filename).Fatal("Cannot found internal aci")
 	}
 	tmpFile := "/tmp/" + RandStringBytesMaskImpr(20) + ".aci"
 	if err := ioutil.WriteFile(tmpFile, content, 0644); err != nil {
-		logs.WithE(err).WithField("aci", filepath).Fatal("Failed to write tmp aci to /tmp/tmp.aci")
+		logs.WithE(err).WithField("aci", filename).Fatal("Failed to write tmp aci to /tmp/tmp.aci")
 	}
 	defer os.Remove(tmpFile)
 	if _, err := Home.Rkt.FetchInsecure(tmpFile); err != nil {

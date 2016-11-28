@@ -1,8 +1,9 @@
 package template
 
 import (
-	. "github.com/onsi/gomega"
 	"testing"
+
+	. "github.com/onsi/gomega"
 )
 
 func TestIsValidType(t *testing.T) {

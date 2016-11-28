@@ -12,8 +12,8 @@ import (
 
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
-	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/blablacar/dgr/bin-templater/merger"
+	"github.com/blablacar/dgr/dgr/common"
 	rktcommon "github.com/coreos/rkt/common"
 	"github.com/coreos/rkt/pkg/sys"
 	stage1commontypes "github.com/coreos/rkt/stage1/common/types"
