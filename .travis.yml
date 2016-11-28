@@ -15,5 +15,5 @@ install:
   - sudo apt-get install -qq bats
 
 script:
-  - ./gomake
+  - ./gomake clean build test quality install
   - sudo PATH=${GOPATH}/bin:$PATH ./examples/build.sh
