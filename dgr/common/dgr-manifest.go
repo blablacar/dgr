@@ -45,22 +45,27 @@ type MountInfo struct {
 	To   string `json:"to"`
 }
 
-type BuildDefinition struct {
+type BuilderDefinition struct {
 	Image        ACFullname   `json:"image,omitempty" yaml:"image,omitempty"`
 	Dependencies []ACFullname `json:"dependencies,omitempty" yaml:"dependencies,omitempty"`
 	MountPoints  []MountInfo  `json:"mountPoints,omitempty" yaml:"mountPoints,omitempty"`
 }
 
+type BuildDefinition struct {
+	MountPoints []MountInfo `json:"mountPoints,omitempty" yaml:"mountPoints,omitempty"`
+}
+
 type AciManifest struct {
-	NameAndVersion ACFullname      `json:"name,omitempty" yaml:"name,omitempty"`
-	Builder        BuildDefinition `json:"builder,omitempty" yaml:"builder,omitempty"`
-	Aci            AciDefinition   `json:"aci,omitempty" yaml:"aci,omitempty"`
-	Tester         TestManifest    `json:"tester,omitempty" yaml:"tester,omitempty"`
+	NameAndVersion ACFullname        `json:"name,omitempty" yaml:"name,omitempty"`
+	Builder        BuilderDefinition `json:"builder,omitempty" yaml:"builder,omitempty"`
+	Build          BuildDefinition   `json:"build,omitempty" yaml:"build,omitempty"`
+	Aci            AciDefinition     `json:"aci,omitempty" yaml:"aci,omitempty"`
+	Tester         TestManifest      `json:"tester,omitempty" yaml:"tester,omitempty"`
 }
 
 type TestManifest struct {
-	Builder BuildDefinition `json:"builder,omitempty" yaml:"builder,omitempty"`
-	Aci     AciDefinition   `json:"aci,omitempty" yaml:"aci,omitempty"`
+	Builder BuilderDefinition `json:"builder,omitempty" yaml:"builder,omitempty"`
+	Aci     AciDefinition     `json:"aci,omitempty" yaml:"aci,omitempty"`
 }
 
 type AciDefinition struct {

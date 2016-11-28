@@ -287,6 +287,25 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 		args = append(args, "--bind="+from+":"+mount.To)
 	}
 
+	for _, mount := range aciManifest.Build.MountPoints {
+		if strings.HasPrefix(mount.From, "~/") {
+			user, err := user.Current()
+			if err != nil {
+				return args, env, errs.WithEF(err, b.fields, "Cannot found current user")
+			}
+			mount.From = user.HomeDir + mount.From[1:]
+		}
+		from := mount.From
+		if from[0] != '/' {
+			from = b.aciHomePath + "/" + from
+		}
+
+		if _, err := os.Stat(from); err != nil {
+			os.MkdirAll(from, 0755)
+		}
+		args = append(args, "--bind="+from+":"+PATH_OPT+PATH_STAGE2+"/"+manifestApp(b.pod).Name.String()+common.PathRootfs+"/"+mount.To)
+	}
+
 	args = append(args, commandPath)
 
 	return args, env, nil
