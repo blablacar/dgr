@@ -37,6 +37,10 @@ echo "ce9d63a98a8b4438882fd795e294cd50" > /etc/machine-id
 mkdir -p /dgr/builder/runlevels
 mkdir -p /dgr/builder/attributes
 
+# Ensure stage2 tmp is there, with right permissions
+mkdir -p ${ROOTFS}/tmp
+chmod 1777 ${ROOTFS}/tmp
+
 # allow adding attributes and runlevels in prestart without being root
 mkdir -p ${ROOTFS}/dgr/runlevels
 mkdir -p ${ROOTFS}/dgr/attributes
