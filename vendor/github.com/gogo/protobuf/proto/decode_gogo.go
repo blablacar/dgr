@@ -1,7 +1,5 @@
-// Protocol Buffers for Go with Gadgets
-//
-// Copyright (c) 2013, The GoGo Authors. All rights reserved.
-// http://github.com/gogo/protobuf
+// Copyright (c) 2013, Vastech SA (PTY) LTD. All rights reserved.
+// http://github.com/gogo/protobuf/gogoproto
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -117,8 +115,14 @@ func setCustomType(base structPointer, f field, value interface{}) {
 		oldHeader.Len = v.Len()
 		oldHeader.Cap = v.Cap()
 	default:
+		l := 1
 		size := reflect.TypeOf(value).Elem().Size()
-		structPointer_Copy(toStructPointer(reflect.ValueOf(value)), structPointer_Add(base, f), int(size))
+		if kind == reflect.Array {
+			l = reflect.TypeOf(value).Elem().Len()
+			size = reflect.TypeOf(value).Size()
+		}
+		total := int(size) * l
+		structPointer_Copy(toStructPointer(reflect.ValueOf(value)), structPointer_Add(base, f), total)
 	}
 }
 

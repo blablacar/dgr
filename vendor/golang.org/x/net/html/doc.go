@@ -90,8 +90,8 @@ example, to process each anchor node in depth-first order:
 	f(doc)
 
 The relevant specifications include:
-https://html.spec.whatwg.org/multipage/syntax.html and
-https://html.spec.whatwg.org/multipage/syntax.html#tokenization
+http://www.whatwg.org/specs/web-apps/current-work/multipage/syntax.html and
+http://www.whatwg.org/specs/web-apps/current-work/multipage/tokenization.html
 */
 package html
 

@@ -1,0 +1,39 @@
+package: github.com/blablacar/dgr
+import:
+- package: github.com/appc/spec
+  version: ^0.8.9
+  subpackages:
+  - aci
+  - discovery
+  - schema
+  - schema/types
+- package: github.com/coreos/ioprogress
+- package: github.com/coreos/rkt
+  version: ^1.20.0
+  subpackages:
+  - common
+  - pkg/sys
+  - rkt/config
+  - stage1/common/types
+- package: github.com/ghodss/yaml
+- package: github.com/jhoonb/archivex
+- package: github.com/juju/errors
+- package: github.com/klauspost/pgzip
+  version: ^1.0.1
+- package: github.com/leekchan/gtf
+- package: github.com/n0rad/go-erlog
+  subpackages:
+  - data
+  - errs
+  - logs
+  - register
+- package: github.com/peterbourgon/mergemap
+- package: github.com/spf13/cobra
+- package: golang.org/x/net
+  subpackages:
+  - html
+  - html/atom
+- package: gopkg.in/yaml.v2
+testImport:
+- package: github.com/onsi/gomega
+  version: ^1.0.0

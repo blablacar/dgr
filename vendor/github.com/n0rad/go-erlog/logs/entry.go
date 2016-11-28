@@ -49,6 +49,7 @@ func WithE(err error) *Entry {
 	return WithError(err)
 }
 
+
 ///////////////////////////////////
 
 func (e *Entry) WithFields(data data.Fields) *Entry {

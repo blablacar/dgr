@@ -34,7 +34,7 @@ func (n ACFullname) LatestVersion() (string, error) {
 		app.Labels["arch"] = "amd64"
 	}
 
-	endpoints, _, err := discovery.DiscoverACIEndpoints(*app, nil, discovery.InsecureTLS|discovery.InsecureHTTP) //TODO support security
+	endpoints, _, err := discovery.DiscoverACIEndpoints(*app, nil, discovery.InsecureTLS|discovery.InsecureHTTP, 0) //TODO support security
 	if err != nil {
 		return "", errors.Annotate(err, "Latest discovery fail")
 	}

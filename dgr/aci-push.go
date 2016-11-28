@@ -82,7 +82,7 @@ func (aci *Aci) upload(name *common.ACFullname) error {
 						Warn("No auth credential found in rkt configuration for this domain")
 					return
 				}
-				header := headerer.Header()
+				header := headerer.GetHeader()
 				for k, v := range header {
 					r.Header[k] = append(r.Header[k], v...)
 				}

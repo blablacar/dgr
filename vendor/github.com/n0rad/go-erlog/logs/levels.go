@@ -1,9 +1,9 @@
 package logs
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
+	"encoding/json"
 )
 
 type Level uint8
