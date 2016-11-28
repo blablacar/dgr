@@ -16,7 +16,7 @@ mkdir -p ${rootfs}/dgr ${rootfs}/usr/bin
 GOOS=linux GOARCH=amd64 go build --ldflags '-s -w -extldflags "-static"' -o ${rootfs}/dgr/builder/stage1/run ${dir}/bin-run
 upx ${rootfs}/dgr/builder/stage1/run
 
-sudo tar xf ${dir}/rootfs.tar.xz -C ${rootfs}/dgr/
+sudo tar -C ${rootfs}/dgr/ -xf ${dir}/rootfs.tar.xz
 sudo cp -R ${dir}/files/. ${rootfs}
 sudo chown root: ${rootfs}
 cp ${dir}/manifest.json ${target}/manifest
@@ -35,7 +35,8 @@ sudo rm -Rf ${rootfs}/dgr/usr/sbin/
 sudo bash -c "cd ${rootfs}/dgr/usr && ln -s bin sbin && cd -"
 
 cd ${target}
-sudo tar cpfz ../bindata/aci-builder.aci rootfs manifest
+sudo tar --sort=name --numeric-owner -cpzf ../bindata/aci-builder.aci manifest rootfs \
+|| sudo tar -cpzf ../bindata/aci-builder.aci manifest rootfs
 sudo chown ${USER}: ../bindata/aci-builder.aci
 sudo rm -Rf rootfs/
 cd -
