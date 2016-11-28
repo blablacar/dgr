@@ -16,6 +16,32 @@ mkdir -p ${rootfs}/dgr ${rootfs}/usr/bin
 GOOS=linux GOARCH=amd64 go build --ldflags '-s -w -extldflags "-static"' -o ${rootfs}/dgr/builder/stage1/run ${dir}/bin-run
 upx ${rootfs}/dgr/builder/stage1/run
 
+if ! [[ -x ${dir}/files/dgr/usr/bin/tar ]]; then
+  # 'core2' is very old, but without setting an option some GCC versions
+  # will pick built-in defaults – which could be as "recent" as 'silvermont',
+  # thus excluding CPUs without SSE4 (like some pre-2007 AMDs still in the wild).
+  : ${CPU_SETTING:="-march=core2 -mtune=intel"}
+  if [[ "$(uname -m)" != "x86_64" ]]; then
+    CPU_SETTING=""
+  fi
+
+  WORKDIR="$(mktemp -d -t aci-builder-tar.XXXXXX)"
+  pushd .
+  cd ${WORKDIR}
+  curl -fLROsS http://ftp.gnu.org/gnu/tar/tar-1.29.tar.xz
+  tar --strip-components=1 -xaf tar-1.29.tar.xz
+
+  ./configure --prefix=/usr --libexecdir=/libexec --disable-rpath \
+    CFLAGS="-Os ${CPU_SETTING} -ffunction-sections -fdata-sections -fstack-protector-strong -fpie -fpic" \
+    LDFLAGS="-Wl,-O1 -Wl,-z,relro -Wl,-znow -Wl,--as-needed -Wl,--strip-all -Wl,--gc-sections" >/dev/null
+  make -j$(nproc) >/dev/null
+
+  popd
+  mkdir -p ${dir}/files/dgr/usr/bin
+  mv ${WORKDIR}/src/tar ${dir}/files/dgr/usr/bin/
+  rm -r ${WORKDIR}
+fi
+
 sudo tar -C ${rootfs}/dgr/ -xf ${dir}/rootfs.tar.xz
 sudo cp -R ${dir}/files/. ${rootfs}
 sudo chown root: ${rootfs}
