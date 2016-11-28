@@ -1,9 +1,0 @@
-*.aci           binary diff=aci
-*.tar           binary diff=tar
-*.tar.xz        binary diff=tar
-
-*.bash          text eol=lf core.whitespace whitespace=tab-in-indent,trailing-space,tabwidth=2
-*.sh            text eol=lf core.whitespace whitespace=tab-in-indent,trailing-space,tabwidth=2
-
-*.yml           text eol=lf core.whitespace whitespace=tab-in-indent,trailing-space,tabwidth=2
-.git*           text eol=auto core.whitespace whitespace=trailing-space
