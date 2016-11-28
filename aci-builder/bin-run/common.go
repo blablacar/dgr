@@ -9,7 +9,3 @@ const PATH_UPPER = "/upper"
 const PATH_STAGE2 = "/stage2"
 const PATH_ATTRIBUTES = "/attributes"
 const PATH_TMP = "/tmp"
-
-// TODO remove with build-setup
-const PATH_RUNLEVELS = "/runlevels"
-const PATH_BUILD_SETUP = "/build-setup"

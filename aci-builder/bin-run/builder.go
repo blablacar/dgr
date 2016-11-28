@@ -8,7 +8,6 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
@@ -72,10 +71,6 @@ func (b *Builder) Build() error {
 
 	if err := sys.CloseOnExec(lfd, true); err != nil {
 		return errs.WithEF(err, b.fields, "can't set FD_CLOEXEC on rkt lock")
-	}
-
-	if err := b.runBuildSetup(); err != nil {
-		return err
 	}
 
 	if err := b.runBuild(); err != nil {
@@ -170,33 +165,6 @@ func (b *Builder) tarAci() error {
 		return errs.WithEF(err, b.fields, "Failed to tar aci")
 	}
 	logs.WithField("path", dir).Debug("chdir")
-	return nil
-}
-
-func (b *Builder) runBuildSetup() error { //TODO REMOVE
-	if empty, err := common.IsDirEmpty(b.aciHomePath + PATH_RUNLEVELS + PATH_BUILD_SETUP); empty || err != nil {
-		return nil
-	}
-
-	logs.WithF(b.fields).Info("Running build setup")
-
-	for _, e := range manifestApp(b.pod).App.Environment {
-		logs.WithField("name", e.Name).WithField("value", e.Value).Debug("Adding environment var")
-		os.Setenv(e.Name, e.Value)
-	}
-
-	logs.WithF(b.fields).Warn("Build setup is deprecated and will be removed. it create unreproductible builds and run as root directly on the host. Please use builder dependencies and builder runlevels instead")
-	time.Sleep(5 * time.Second)
-
-	os.Setenv("BASEDIR", b.aciHomePath)
-	os.Setenv("TARGET", b.stage2Rootfs+"/..")
-	os.Setenv("ROOTFS", b.stage2Rootfs+"/../rootfs")
-	os.Setenv(common.EnvLogLevel, logs.GetLevel().String())
-
-	if err := common.ExecCmd(b.stage1Rootfs + PATH_DGR + PATH_BUILDER + "/stage2/build-setup.sh"); err != nil {
-		return errs.WithEF(err, b.fields, "Build setup failed")
-	}
-
 	return nil
 }
 
