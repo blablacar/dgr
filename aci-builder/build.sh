@@ -20,7 +20,7 @@ sudo tar -C ${rootfs}/dgr/ -xf ${dir}/rootfs.tar.xz
 sudo cp -R ${dir}/files/. ${rootfs}
 sudo chown root: ${rootfs}
 cp ${dir}/manifest.json ${target}/manifest
-sudo cp ${dist}/templater ${rootfs}/dgr/usr/bin/
+sudo cp --no-preserve=ownership ${dist}/templater ${rootfs}/dgr/usr/bin/
 
 # some cleanup
 sudo rm -Rf ${rootfs}/dgr/etc/udev
