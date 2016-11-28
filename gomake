@@ -12,6 +12,7 @@ set -e
  : ${upx:=}
  : ${build_packages:=}
  : ${build_ldflags:="-s -w -X main.BuildTime=`date -u '+%Y-%m-%d_%H:%M:%S_UTC'` -X main.BuildVersion=\${version} -X main.BuildCommit=`git rev-parse --short HEAD`"}
+ : ${errcheck:=1}
 
 read -d '' helper <<EOF || true
 Usage: gomake [-v version][-t token] command...
@@ -141,11 +142,13 @@ quality() {
     echo_green "Fix"
     go tool fix ${go_files}
 
-    echo_green "Err check"
-    [ -f ${GOPATH}/bin/errcheck ] || go get -u github.com/kisielk/errcheck
-    res=$(errcheck ./... | grep -v 'vendor/' | grep -v 'Close(' | grep -v '_test.go')
-    err_count "${res}"
-    echo_red "${res}"
+    if [ ${errcheck} == 1 ]; then
+        echo_green "Err check"
+        [ -f ${GOPATH}/bin/errcheck ] || go get -u github.com/kisielk/errcheck
+        res=$(errcheck ./... | grep -v 'vendor/' | grep -v 'Close(' | grep -v '_test.go')
+        err_count "${res}"
+        echo_red "${res}"
+    fi
 
     echo_green "Lint"
     [ -f ${GOPATH}/bin/golint ] || go get -u github.com/golang/lint/golint
