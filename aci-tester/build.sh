@@ -31,5 +31,6 @@ curl --fail --silent --show-error --location --remote-time --compressed --create
 chmod +x ${rootfs}/dgr/usr/bin/*
 
 cd ${target}
-tar cpfz ../bindata/aci-tester.aci rootfs manifest
+tar --sort=name --numeric-owner -cpzf ../bindata/aci-tester.aci manifest rootfs \
+|| tar -cpzf ../bindata/aci-tester.aci manifest rootfs
 cd -
