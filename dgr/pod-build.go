@@ -115,11 +115,6 @@ func (p *Pod) processAci(e common.RuntimeApp) (*schema.RuntimeApp, error) {
 		e.App.Group = "0"
 	}
 
-	isolators, err := common.ToAppcIsolators(e.App.Isolators)
-	if err != nil {
-		return nil, errs.WithEF(err, p.fields, "Failed to prepare isolators")
-	}
-
 	return &schema.RuntimeApp{
 		Name:  *name,
 		Image: ttmp,
@@ -132,7 +127,7 @@ func (p *Pod) processAci(e common.RuntimeApp) (*schema.RuntimeApp, error) {
 			Environment:       e.App.Environment,
 			MountPoints:       e.App.MountPoints,
 			Ports:             e.App.Ports,
-			Isolators:         isolators,
+			Isolators:         e.App.Isolators,
 		},
 		Mounts:      e.Mounts,
 		Annotations: e.Annotations}, nil
@@ -168,11 +163,7 @@ func (p *Pod) fillRuntimeAppFromDependencies(e *common.RuntimeApp) error {
 			e.App.SupplementaryGIDs = manifest.App.SupplementaryGIDs
 		}
 		if len(e.App.Isolators) == 0 {
-			res, err := common.FromAppcIsolators(manifest.App.Isolators)
-			if err != nil {
-				return errs.WithEF(err, fields, "Failed to replicate isolators from aci to pod")
-			}
-			e.App.Isolators = res
+			e.App.Isolators = manifest.App.Isolators
 		}
 		if len(e.App.Ports) == 0 {
 			e.App.Ports = manifest.App.Ports
