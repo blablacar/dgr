@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/n0rad/go-erlog/logs"
 	"os"
+
+	"github.com/n0rad/go-erlog/logs"
 )
 
 func (aci *Aci) Clean() {

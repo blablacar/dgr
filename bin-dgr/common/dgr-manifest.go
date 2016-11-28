@@ -3,6 +3,8 @@ package common
 import (
 	"bufio"
 	"bytes"
+	"strings"
+
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/dgr/bin-templater/template"
@@ -10,7 +12,6 @@ import (
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
-	"strings"
 )
 
 type PodManifest struct {

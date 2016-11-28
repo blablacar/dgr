@@ -2,14 +2,15 @@ package main
 
 import (
 	"encoding/json"
+	"io/ioutil"
+	"os"
+	"strconv"
+
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
-	"io/ioutil"
-	"os"
-	"strconv"
 )
 
 func (aci *Aci) prepareRktRunArguments(command common.BuilderCommand, builderHash string, stage1Hash string) []string {

@@ -16,10 +16,11 @@ package discovery
 
 import (
 	"fmt"
-	"github.com/appc/spec/discovery"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/appc/spec/discovery"
 )
 
 func httpsOrHTTP(name string, hostHeaders map[string]http.Header, insecure discovery.InsecureOption) (urlStr string, body io.ReadCloser, err error) {

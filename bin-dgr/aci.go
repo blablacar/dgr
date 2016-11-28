@@ -1,6 +1,13 @@
 package main
 
 import (
+	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strconv"
+	"sync"
+
 	"github.com/appc/spec/schema"
 	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/jhoonb/archivex"
@@ -8,12 +15,6 @@ import (
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
-	"io"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"strconv"
-	"sync"
 )
 
 const pathGraphPng = "/graph.png"

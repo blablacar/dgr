@@ -4,13 +4,14 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/blablacar/dgr/bin-dgr/common"
-	"github.com/n0rad/go-erlog/logs"
-	"github.com/spf13/cobra"
 	"html/template"
 	"os"
 	"strings"
 	"sync"
+
+	"github.com/blablacar/dgr/bin-dgr/common"
+	"github.com/n0rad/go-erlog/logs"
+	"github.com/spf13/cobra"
 )
 
 type DgrCommand interface {

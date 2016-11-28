@@ -2,8 +2,9 @@ package common
 
 import (
 	"fmt"
-	"github.com/n0rad/go-erlog/logs"
 	"time"
+
+	"github.com/n0rad/go-erlog/logs"
 )
 
 func GenerateVersion(aciHome string) string {

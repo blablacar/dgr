@@ -2,16 +2,17 @@ package common
 
 import (
 	"encoding/json"
-	"github.com/appc/spec/aci"
-	"github.com/appc/spec/schema"
-	"github.com/appc/spec/schema/types"
-	"github.com/n0rad/go-erlog/data"
-	"github.com/n0rad/go-erlog/errs"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/appc/spec/aci"
+	"github.com/appc/spec/schema"
+	"github.com/appc/spec/schema/types"
+	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/errs"
 )
 
 func ExtractManifestContentFromAci(aciPath string) ([]byte, error) {

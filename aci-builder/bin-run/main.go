@@ -1,10 +1,11 @@
 package main
 
 import (
+	"os"
+
 	"github.com/n0rad/go-erlog"
 	"github.com/n0rad/go-erlog/logs"
 	_ "github.com/n0rad/go-erlog/register"
-	"os"
 )
 
 func main() {

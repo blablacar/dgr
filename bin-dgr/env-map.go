@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/n0rad/go-erlog/errs"
 	"strings"
+
+	"github.com/n0rad/go-erlog/errs"
 )
 
 type envMap struct {

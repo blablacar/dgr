@@ -2,11 +2,12 @@ package main
 
 import (
 	"bytes"
+	"io/ioutil"
+	"os"
+
 	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
-	"io/ioutil"
-	"os"
 )
 
 func (p *Pod) Graph() error {

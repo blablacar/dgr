@@ -1,15 +1,16 @@
 package main
 
 import (
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"sync"
+
 	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/ghodss/yaml"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"sync"
 )
 
 const pathPodManifestYml = "/pod-manifest.yml"

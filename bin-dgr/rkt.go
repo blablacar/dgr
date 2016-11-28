@@ -1,14 +1,15 @@
 package main
 
 import (
-	"github.com/blablacar/dgr/bin-dgr/common"
-	"github.com/blablacar/dgr/dist"
-	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"math/rand"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/blablacar/dgr/bin-dgr/common"
+	"github.com/blablacar/dgr/dist"
+	"github.com/n0rad/go-erlog/logs"
 )
 
 var aciBuilder = common.NewACFullName("blablacar.github.io/dgr/aci-builder")

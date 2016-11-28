@@ -3,11 +3,12 @@ package common
 import (
 	"bufio"
 	"fmt"
+	"strings"
+
 	"github.com/appc/spec/discovery"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
-	"strings"
 )
 
 const rktSupportedVersion Version = "1.4.0"

@@ -2,10 +2,11 @@ package common
 
 import (
 	"bytes"
-	"github.com/n0rad/go-erlog/logs"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/n0rad/go-erlog/logs"
 )
 
 func ExecCmdGetStdoutAndStderr(head string, parts ...string) (string, string, error) {

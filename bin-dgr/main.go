@@ -3,15 +3,16 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"os"
+	"os/exec"
+	"strings"
+	"sync"
+
 	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/n0rad/go-erlog"
 	"github.com/n0rad/go-erlog/logs"
 	_ "github.com/n0rad/go-erlog/register"
 	"github.com/spf13/cobra"
-	"os"
-	"os/exec"
-	"strings"
-	"sync"
 )
 
 const dgrEnvPrefix = "DGR_ENV_"

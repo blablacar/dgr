@@ -3,15 +3,16 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"io/ioutil"
+	"os"
+	"sync"
+
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
-	"io/ioutil"
-	"os"
-	"sync"
 )
 
 const pathPodManifestJson = "/pod-manifest.json"

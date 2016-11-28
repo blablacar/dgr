@@ -2,14 +2,15 @@ package common
 
 import (
 	"encoding/json"
+	"net/http"
+	"regexp"
+	"strings"
+
 	"github.com/appc/spec/discovery"
 	"github.com/juju/errors"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
-	"net/http"
-	"regexp"
-	"strings"
 )
 
 type ACFullname string

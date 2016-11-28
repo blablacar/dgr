@@ -36,5 +36,6 @@ sudo bash -c "cd ${rootfs}/dgr/usr && ln -s bin sbin && cd -"
 
 cd ${target}
 sudo tar cpfz ../bindata/aci-builder.aci rootfs manifest
-sudo chown ${SUDO_USER}:${SUDO_GROUP} ../bindata/aci-builder.aci
+sudo chown ${USER}: ../bindata/aci-builder.aci
+sudo rm -Rf rootfs/
 cd -

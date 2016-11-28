@@ -1,13 +1,14 @@
 package main
 
 import (
+	"io/ioutil"
+	"os"
+	"sync"
+
 	"github.com/blablacar/dgr/bin-dgr/common"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/logs"
 	"github.com/spf13/cobra"
-	"io/ioutil"
-	"os"
-	"sync"
 )
 
 const initManifestContent = `name: aci.example.com/aci-dummy:1
