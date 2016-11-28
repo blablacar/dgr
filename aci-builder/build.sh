@@ -13,7 +13,7 @@ ${dir}/clean.sh
 mkdir -p ${rootfs}/dgr ${rootfs}/usr/bin
 [ -f ${dist}/templater ] || (echo "build templater first" && exit 1)
 
-GOOS=linux GOARCH=amd64 godep go build --ldflags '-s -w -extldflags "-static"' -o ${rootfs}/dgr/builder/stage1/run ${dir}/bin-run
+GOOS=linux GOARCH=amd64 go build --ldflags '-s -w -extldflags "-static"' -o ${rootfs}/dgr/builder/stage1/run ${dir}/bin-run
 upx ${rootfs}/dgr/builder/stage1/run
 
 sudo tar xf ${dir}/rootfs.tar.xz -C ${rootfs}/dgr/
