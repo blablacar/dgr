@@ -16,7 +16,7 @@ curl -Ls ${url} -o /buildroot.tar.gz
 
 echo_green "Extract buildroot"
 mkdir /buildroot && cd /buildroot
-tar  --strip 1 -xzf /buildroot.tar.gz
+tar --strip 1 -xzf /buildroot.tar.gz
 
 echo_green "Building buildroot"
 cd /buildroot

@@ -3,7 +3,8 @@ builder:
   dependencies:
     - aci.awired.net/aci-arch-gcc:6.2.1-1
     - aci.awired.net/aci-arch-curl:7.51.0-1
-    - aci.awired.net/aci-arch-go:6.2.1-1
+    - aci.awired.net/aci-arch-go:1.7.3-1-1
+    - aci.awired.net/aci-arch-tar:1.29-2-1
   mountPoints:
     - {from: ../.cache, to: /cache}
     - {from: ../, to: /code}
