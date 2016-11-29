@@ -84,7 +84,7 @@ func (n ACFullname) FullyResolved() (*ACFullname, error) {
 
 /* 1 */
 func (n ACFullname) Version() string {
-	split := strings.Split(string(n), ":")
+	split := strings.SplitN(string(n), ":", 2)
 	if len(split) == 1 {
 		return ""
 	}
