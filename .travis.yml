@@ -13,7 +13,10 @@ install:
   - sudo apt-get install -qq upx
   - sudo ./scripts/travis-install-rkt.sh
   - sudo apt-get install -qq bats
+  - go get github.com/gordonklaus/ineffassign
 
 script:
+  - diff <(echo -n) <(gofmt -s -d $(find . -type f -name '*.go' -not -path "./_*" -not -path "./vendor/*"))
+  - ineffassign .
   - ./gomake clean build test quality install
   - sudo PATH=${GOPATH}/bin:$PATH ./examples/build.sh
