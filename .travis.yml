@@ -19,6 +19,8 @@ install:
 script:
   - diff <(echo -n) <(gofmt -s -d $(find . -type f -name '*.go' -not -path "./_*" -not -path "./vendor/*"))
   - ineffassign .
+  - go vet github.com/blablacar/dgr/dgr
+  - go vet github.com/blablacar/dgr/bin-templater
   - ./gomake clean build test quality install
   - sudo PATH=${GOPATH}/bin:$PATH ./examples/build.sh
 
