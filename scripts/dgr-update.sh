@@ -29,8 +29,7 @@ if [ -f "$dir/.last_dgr" ]; then
 fi
 
 if [ "$version" != "$last_dgr" ]; then
-	wget -O ${dir}/dgr.tar.gz $url
-	tar xvzf ${dir}/dgr.tar.gz --strip=1 -C ${dir}
-	rm ${dir}/dgr.tar.gz
-	echo $version > $dir/.last_dgr
+  curl --fail --silent --show-error --location "${url}" \
+  | tar --strip=1 -C ${dir}/ -xzv
+  printf "$version" >$dir/.last_dgr
 fi

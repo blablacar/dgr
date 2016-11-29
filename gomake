@@ -71,7 +71,9 @@ err_count() {
 
 gomake_update() {
     echo_green "Downloading gomake"
-    wget -q -O ${work_path}/gomake.tmp https://raw.githubusercontent.com/n0rad/gomake/master/gomake
+    curl --fail --silent --show-error --location --remote-time --compressed \
+        -o ${work_path}/gomake.tmp \
+        https://raw.githubusercontent.com/n0rad/gomake/master/gomake
     chmod +x ${work_path}/gomake.tmp
     mv ${work_path}/gomake.tmp ${work_path}/$0
 }
