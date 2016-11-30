@@ -90,14 +90,13 @@ func (aci *Aci) runTestAci(testerHash string, hashAcis []string) error {
 
 	defer aci.cleanupTest(testerHash, hashAcis)
 	if err := Home.Rkt.Run([]string{"--set-env=" + common.EnvLogLevel + "=" + logs.GetLevel().String(),
-		"--net=host",
+		"--net=default",
 		"--mds-register=false",
 		"--uuid-file-save=" + aci.target + pathTesterUuid,
 		"--volume=" + mountAcname + ",kind=host,source=" + aci.target + pathTestsResult,
 		testerHash,
 		"--exec", "/test",
 	}); err != nil {
-		// rkt+systemd cannot exit with fail status yet, so will not happen
 		return errs.WithEF(err, aci.fields, "Run of test aci failed")
 	}
 	return nil
