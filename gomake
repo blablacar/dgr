@@ -97,6 +97,12 @@ build() {
     [ -f ${GOPATH}/bin/goimports ] || go get -u golang.org/x/tools/cmd/goimports
     goimports -w ${go_files}
 
+    echo_green "Format"
+    gofmt -w -s ${go_files}
+
+    echo_green "Fix"
+    go tool fix ${go_files}
+
     if [ "$(ls -A ${work_path}/${target_name}/bindata)" ]; then
         [ -f ${GOPATH}/bin/go-bindata ] || go get -u github.com/jteeuwen/go-bindata/...
         go-bindata -nomemcopy -pkg dist -prefix dist/bindata -o ${work_path}/${target_name}/bindata.go ${work_path}/${target_name}/bindata/...
@@ -135,12 +141,6 @@ install() {
 quality() {
     start=`date +%s`
     cd ${work_path}
-
-    echo_green "Format"
-    gofmt -w -s ${go_files}
-
-    echo_green "Fix"
-    go tool fix ${go_files}
 
     if [ ${errcheck} == 1 ]; then
         echo_green "Err check"
@@ -257,8 +257,8 @@ test() {
     echo_green "Testing"
     go test -cover $(go list ${work_path}/... | grep -v vendor/)
 
-    if [ `type -t pre-build`"" == 'function' ]; then
-        test
+    if [ `type -t extra-test`"" == 'function' ]; then
+        extra-test
     fi
 
     echo_purple "Test duration : $((`date +%s`-${start}))s"
