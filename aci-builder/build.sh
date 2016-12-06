@@ -16,7 +16,8 @@ mkdir -p ${rootfs}/dgr ${rootfs}/usr/bin
 GOOS=linux GOARCH=amd64 go build --ldflags '-s -w -extldflags "-static"' -o ${rootfs}/dgr/builder/stage1/run ${dir}/bin-run
 upx ${rootfs}/dgr/builder/stage1/run
 
-if ! [[ -x ${dir}/files/dgr/usr/bin/tar ]]; then
+: ${tar:="$(realpath "${dir}/files/dgr/usr/bin/tar")"}
+if [[ ! -x "${tar}" ]] || ! "${tar}" --help | grep -q -F sort; then
   # 'core2' is very old, but without setting an option some GCC versions
   # will pick built-in defaults – which could be as "recent" as 'silvermont',
   # thus excluding CPUs without SSE4 (like some pre-2007 AMDs still in the wild).
@@ -38,31 +39,30 @@ if ! [[ -x ${dir}/files/dgr/usr/bin/tar ]]; then
 
   popd
   mkdir -p ${dir}/files/dgr/usr/bin
-  mv ${WORKDIR}/src/tar ${dir}/files/dgr/usr/bin/
+  mv ${WORKDIR}/src/tar "${tar}"
   rm -r ${WORKDIR}
 fi
 
-sudo tar -C ${rootfs}/dgr/ -xf ${dir}/rootfs.tar.xz
+sudo "${tar}" \
+  --transform "s:usr/sbin/haveged:usr/bin/haveged:" \
+  --exclude "./etc/udev" \
+  --exclude "./usr/share/locale" \
+  --exclude "./usr/libexec" \
+  --exclude "./usr/lib/systemd" \
+  --exclude "./usr/lib/udev" \
+  --exclude "./usr/sbin" \
+  -C ${rootfs}/dgr/ \
+  -xf ${dir}/rootfs.tar.xz
 sudo cp -R ${dir}/files/. ${rootfs}
 sudo chown root: ${rootfs}
 cp ${dir}/manifest.json ${target}/manifest
 sudo cp --no-preserve=ownership ${dist}/templater ${rootfs}/dgr/usr/bin/
 
-# some cleanup
-sudo rm -Rf ${rootfs}/dgr/etc/udev
-sudo rm -Rf ${rootfs}/dgr/usr/share/locale
-sudo rm -Rf ${rootfs}/dgr/usr/libexec
-sudo rm -Rf ${rootfs}/dgr/usr/lib/systemd
-sudo rm -Rf ${rootfs}/dgr/usr/lib/udev
-
-
-sudo mv ${rootfs}/dgr/usr/sbin/haveged ${rootfs}/dgr/usr/bin/haveged
-sudo rm -Rf ${rootfs}/dgr/usr/sbin/
 sudo bash -c "cd ${rootfs}/dgr/usr && ln -s bin sbin && cd -"
 
 cd ${target}
-sudo tar --sort=name --numeric-owner -cpzf ../bindata/aci-builder.aci manifest rootfs \
-|| sudo tar -cpzf ../bindata/aci-builder.aci manifest rootfs
+sudo "${tar}" --sort=name --numeric-owner \
+  -cpzf ../bindata/aci-builder.aci manifest rootfs
 sudo chown ${USER}: ../bindata/aci-builder.aci
 sudo rm -Rf rootfs/
 cd -
