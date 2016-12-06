@@ -77,7 +77,7 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 
 	content, err := common.ExtractManifestContentFromAci(aci.target + pathImageAci)
 	if err != nil {
-		logs.WithEF(err, aci.fields).Warn("Failed to write manifest.json")
+		logs.WithEF(err, aci.fields).Warn("Failed to extract manifest.json")
 	}
 
 	if err := ioutil.WriteFile(aci.target+pathManifestJson, content, 0644); err != nil {

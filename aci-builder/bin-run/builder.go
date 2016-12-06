@@ -164,6 +164,10 @@ func (b *Builder) tarAci() error {
 	if err := common.Tar(b.aciTargetPath+common.PathImageAci, common.PathManifest[1:], common.PathRootfs[1:]+"/"); err != nil {
 		return errs.WithEF(err, b.fields, "Failed to tar aci")
 	}
+	// common.ExecCmd sometimes silently fails, hence the redundant check.
+	if _, err := os.Stat(b.aciTargetPath + common.PathImageAci); os.IsNotExist(err) {
+		return errs.WithEF(err, b.fields, "Expected aci has not been created")
+	}
 	logs.WithField("path", dir).Debug("chdir")
 	return nil
 }
