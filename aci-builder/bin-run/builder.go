@@ -29,6 +29,7 @@ type Builder struct {
 	aciTargetPath string
 	upperId       string
 	pod           *stage1commontypes.Pod
+	fullManifest  *common.AciManifest // includes non-standard sections such as 'Builder'
 }
 
 func NewBuilder(podRoot string, podUUID *types.UUID) (*Builder, error) {
@@ -123,6 +124,8 @@ func (b *Builder) writeManifest() error {
 		aciManifest.NameAndVersion = *common.NewACFullName(aciManifest.NameAndVersion.Name() + ":" + common.GenerateVersion(b.aciTargetPath))
 	}
 
+	b.fullManifest = aciManifest
+
 	if err := common.WriteAciManifest(aciManifest, target, aciManifest.NameAndVersion.Name(), dgrVersion); err != nil {
 		return errs.WithEF(err, b.fields.WithField("file", target), "Failed to write manifest")
 	}
@@ -141,6 +144,16 @@ func (b *Builder) tarAci() error {
 
 	params := []string{"--sort=name", "--numeric-owner", "--exclude", rootfsAlias + PATH_TMP + "/*"}
 	params = append(params, "-C", upperPath, "--transform", "s@^"+rootfsAlias+"@rootfs@")
+	for _, expression := range b.fullManifest.Build.Transform {
+		params = append(params, "--transform", expression)
+	}
+	for _, path := range b.fullManifest.Build.Exclude {
+		if strings.HasPrefix(path, "/") {
+			params = append(params, "--exclude", rootfsAlias+path)
+		} else {
+			params = append(params, "--exclude", path)
+		}
+	}
 	params = append(params, "-cf", destination, common.PathManifest[1:], rootfsAlias)
 
 	logs.WithF(b.fields).Debug("Calling tar to collect all files")
@@ -269,6 +282,7 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 	if err != nil {
 		return args, env, errs.WithEF(err, b.fields.WithField("content", string(content)), "Failed to process manifest template")
 	}
+	b.fullManifest = aciManifest
 	for _, mount := range aciManifest.Builder.MountPoints {
 		if strings.HasPrefix(mount.From, "~/") {
 			user, err := user.Current()

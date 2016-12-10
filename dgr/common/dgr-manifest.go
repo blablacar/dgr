@@ -74,6 +74,8 @@ type BuilderDefinition struct {
 
 type BuildDefinition struct {
 	MountPoints []MountInfo `json:"mountPoints,omitempty" yaml:"mountPoints,omitempty"`
+	Exclude     []string    `json:"exclude,omitempty" yaml:"exclude,omitempty"`
+	Transform   []string    `json:"transform,omitempty" yaml:"transform,omitempty"`
 }
 
 type AciManifest struct {
