@@ -154,6 +154,12 @@ func (b *Builder) tarAci() error {
 			params = append(params, "--exclude", path)
 		}
 	}
+	if v, ok := b.fullManifest.Aci.Annotations.Get("build-date"); ok {
+		logs.WithFields(b.fields).WithField("build-date", v).Info("Using the given fixed build-date")
+		params = append(params, "--mtime", v, "--clamp-mtime")
+	} else {
+		logs.WithFields(b.fields).Info("This is no reproducible build: no build-date has been set")
+	}
 	params = append(params, "-cf", destination, common.PathManifest[1:], rootfsAlias)
 
 	logs.WithF(b.fields).Debug("Calling tar to collect all files")
