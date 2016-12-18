@@ -99,15 +99,16 @@ type AciDefinition struct {
 }
 
 type DgrApp struct {
-	Exec              types.Exec         `json:"exec,omitempty" yaml:"exec,omitempty"`
-	User              string             `json:"user,omitempty" yaml:"user,omitempty"`
-	Group             string             `json:"group,omitempty" yaml:"group,omitempty"`
-	SupplementaryGIDs []int              `json:"supplementaryGIDs,omitempty" yaml:"supplementaryGIDs,omitempty"`
-	WorkingDirectory  string             `json:"workingDirectory,omitempty" yaml:"workingDirectory,omitempty"`
-	Environment       types.Environment  `json:"environment,omitempty" yaml:"environment,omitempty"`
-	MountPoints       []types.MountPoint `json:"mountPoints,omitempty" yaml:"mountPoints,omitempty"`
-	Ports             []types.Port       `json:"ports,omitempty" yaml:"ports,omitempty"`
-	Isolators         []Isolator         `json:"isolators,omitempty" yaml:"isolators,omitempty"`
+	Exec              types.Exec           `json:"exec,omitempty" yaml:"exec,omitempty"`
+	User              string               `json:"user,omitempty" yaml:"user,omitempty"`
+	Group             string               `json:"group,omitempty" yaml:"group,omitempty"`
+	SupplementaryGIDs []int                `json:"supplementaryGIDs,omitempty" yaml:"supplementaryGIDs,omitempty"`
+	WorkingDirectory  string               `json:"workingDirectory,omitempty" yaml:"workingDirectory,omitempty"`
+	Environment       types.Environment    `json:"environment,omitempty" yaml:"environment,omitempty"`
+	EventHandlers     []types.EventHandler `json:"eventHandlers,omitempty" yaml:"eventHandlers,omitempty"`
+	MountPoints       []types.MountPoint   `json:"mountPoints,omitempty" yaml:"mountPoints,omitempty"`
+	Ports             []types.Port         `json:"ports,omitempty" yaml:"ports,omitempty"`
+	Isolators         []Isolator           `json:"isolators,omitempty" yaml:"isolators,omitempty"`
 }
 
 type LinuxCapabilitiesSetValue struct {
