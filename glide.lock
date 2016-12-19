@@ -100,6 +100,19 @@ imports:
   - errs
   - logs
   - register
+- name: github.com/onsi/gomega
+  version: a78ae492d53aad5a7a232d0d0462c14c400e3ee7
+  subpackages:
+  - format
+  - internal/assertion
+  - internal/asyncassertion
+  - internal/testingtsupport
+  - matchers
+  - matchers/support/goraph/bipartitegraph
+  - matchers/support/goraph/edge
+  - matchers/support/goraph/node
+  - matchers/support/goraph/util
+  - types
 - name: github.com/peterbourgon/mergemap
   version: e21c03b7a721e413718d2703181ead350d3c9d6f
 - name: github.com/spf13/cobra
