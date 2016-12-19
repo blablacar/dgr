@@ -238,7 +238,7 @@ release() {
     cd -
 
     git tag v${version} -a -m "Version $version"
-    git push --tags
+    git push origin v${version}
 
     sleep 5
 
