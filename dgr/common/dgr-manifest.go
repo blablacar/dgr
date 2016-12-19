@@ -93,7 +93,7 @@ type LinuxCapabilitiesSetValue struct {
 
 type Isolator struct {
 	Name  string
-	Value LinuxCapabilitiesSetValue
+	Value interface{}
 }
 
 func ProcessManifestTemplate(manifestContent string, data2 interface{}, checkNoValue bool) (*AciManifest, error) {

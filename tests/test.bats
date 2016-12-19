@@ -24,9 +24,13 @@
   run $DGR_PATH -W filled_up test
   echo -e "$output"
   [ "$status" -eq 0 ]
+
+  grep 500m filled_up/target/manifest.json
+  grep umount2 filled_up/target/manifest.json
 }
 
 @test "dgr init should create working aci" {
+  rm -Rf /tmp/aci-init
   mkdir -p /tmp/aci-init
   run $DGR_PATH -W /tmp/aci-init init
   echo -e "$output"

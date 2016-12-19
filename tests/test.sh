@@ -1,5 +1,6 @@
 #!/bin/bash
 set -x
+set -e
 
 if [ "$(id -u)" != "0" ]; then
     echo "Sorry, you are not root."
