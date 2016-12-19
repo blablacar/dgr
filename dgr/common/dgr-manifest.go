@@ -84,7 +84,16 @@ type DgrApp struct {
 	Environment       types.Environment  `json:"environment,omitempty" yaml:"environment,omitempty"`
 	MountPoints       []types.MountPoint `json:"mountPoints,omitempty" yaml:"mountPoints,omitempty"`
 	Ports             []types.Port       `json:"ports,omitempty" yaml:"ports,omitempty"`
-	Isolators         types.Isolators    `json:"isolators,omitempty" yaml:"isolators,omitempty"`
+	Isolators         []Isolator         `json:"isolators,omitempty" yaml:"isolators,omitempty"`
+}
+
+type LinuxCapabilitiesSetValue struct {
+	Set []types.LinuxCapability `json:"set"`
+}
+
+type Isolator struct {
+	Name  string
+	Value LinuxCapabilitiesSetValue
 }
 
 func ProcessManifestTemplate(manifestContent string, data2 interface{}, checkNoValue bool) (*AciManifest, error) {

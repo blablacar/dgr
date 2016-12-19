@@ -208,16 +208,7 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 	if err := ioutil.WriteFile(aci.target+pathBuilder+common.PathRootfs+"/.keep", []byte(""), 0644); err != nil {
 		return "", errs.WithEF(err, aci.fields.WithField("file", aci.target+pathBuilder+common.PathRootfs+"/.keep"), "Failed to write keep file")
 	}
-	capa, err := types.NewLinuxCapabilitiesRetainSet("all")
-	if err != nil {
-		return "", errs.WithEF(err, aci.fields, "Failed to create all capability retain Set")
-	}
-	allIsolator, err := capa.AsIsolator()
-	if err != nil {
-		return "", errs.WithEF(err, aci.fields, "Failed to prepare all retain set isolator")
-	}
-
-	aci.manifest.Aci.App.Isolators = types.Isolators([]types.Isolator{*allIsolator})
+	aci.manifest.Aci.App.Isolators = []common.Isolator{{Name: "os/linux/capabilities-retain-set", Value: common.LinuxCapabilitiesSetValue{Set: []types.LinuxCapability{"all"}}}}
 
 	if err := common.WriteAciManifest(aci.manifest, aci.target+pathBuilder+common.PathManifest, common.PrefixBuilder+aci.manifest.NameAndVersion.Name(), BuildVersion); err != nil {
 		return "", err

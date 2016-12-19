@@ -94,9 +94,11 @@ func WriteAciManifest(m *AciManifest, targetFile string, projectName string, dgr
 	im := schema.BlankImageManifest()
 	im.Annotations = m.Aci.Annotations
 
+	//dgrBuilderIdentifier, _ := types.NewACIdentifier(ManifestDrgBuilder)
 	dgrVersionIdentifier, _ := types.NewACIdentifier(ManifestDrgVersion)
 	buildDateIdentifier, _ := types.NewACIdentifier("build-date")
 	im.Annotations.Set(*dgrVersionIdentifier, dgrVersion)
+	//im.Annotations.Set(*dgrBuilderIdentifier, m.Builder.Image.String())
 	im.Annotations.Set(*buildDateIdentifier, time.Now().Format(time.RFC3339))
 	im.Dependencies, err = ToAppcDependencies(m.Aci.Dependencies)
 	if err != nil {
@@ -109,6 +111,11 @@ func WriteAciManifest(m *AciManifest, targetFile string, projectName string, dgr
 		m.Aci.App.Exec = []string{"/dgr/bin/busybox", "sh"}
 	}
 
+	isolators, err := ToAppcIsolators(m.Aci.App.Isolators)
+	if err != nil {
+		return errs.WithEF(err, fields, "Failed to prepare isolators")
+	}
+
 	im.App = &types.App{
 		Exec:              m.Aci.App.Exec,
 		EventHandlers:     []types.EventHandler{{Name: "pre-start", Exec: []string{"/dgr/bin/prestart"}}},
@@ -119,7 +126,7 @@ func WriteAciManifest(m *AciManifest, targetFile string, projectName string, dgr
 		Environment:       m.Aci.App.Environment,
 		MountPoints:       m.Aci.App.MountPoints,
 		Ports:             m.Aci.App.Ports,
-		Isolators:         m.Aci.App.Isolators,
+		Isolators:         isolators,
 	}
 	buff, err := json.MarshalIndent(im, "", "  ")
 	if err != nil {
@@ -130,6 +137,25 @@ func WriteAciManifest(m *AciManifest, targetFile string, projectName string, dgr
 		return errs.WithEF(err, fields.WithField("file", targetFile), "Failed to write manifest file")
 	}
 	return nil
+}
+
+func ToAppcIsolators(isos []Isolator) (types.Isolators, error) {
+	isolators := types.Isolators{}
+	for _, i := range isos {
+
+		content, err := json.Marshal(i)
+		if err != nil {
+			return nil, errs.WithEF(err, data.WithField("isolator", i.Name), "Failed to marshall isolator")
+		}
+
+		isolator := types.Isolator{}
+		if err := isolator.UnmarshalJSON(content); err != nil {
+			return nil, errs.WithEF(err, data.WithField("isolator", i.Name), "Failed to unmarshall isolator")
+		}
+
+		isolators = append(isolators, isolator)
+	}
+	return isolators, nil
 }
 
 func ToAppcDependencies(dependencies []ACFullname) (types.Dependencies, error) {
@@ -148,4 +174,23 @@ func ToAppcDependencies(dependencies []ACFullname) (types.Dependencies, error) {
 		appcDependencies = append(appcDependencies, t)
 	}
 	return appcDependencies, nil
+}
+
+func FromAppcIsolators(isolators types.Isolators) ([]Isolator, error) {
+	isos := []Isolator{}
+	for _, i := range isolators {
+		var res LinuxCapabilitiesSetValue
+
+		if err := json.Unmarshal([]byte(*i.ValueRaw), &res); err != nil {
+			return isos, errs.WithEF(err, data.WithField("content", string(*i.ValueRaw)), "Failed to prepare isolators")
+		}
+
+		iso := Isolator{
+			Name:  i.Name.String(),
+			Value: res,
+		}
+		i.Value()
+		isos = append(isos, iso)
+	}
+	return isos, nil
 }
