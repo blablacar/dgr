@@ -23,17 +23,21 @@ type AttributesMerger struct {
 	dir []string
 }
 
-func NewAttributesMerger(path string) (*AttributesMerger, error) {
-	in := newInputs(path)
-	// initialize input files list
-	err := in.listFiles()
+func NewAttributesMerger(rootDir string,attributesDir string) (*AttributesMerger, error) {
+	in := newInputs(rootDir + attributesDir)
+	// initialize input files list)
+	attrDir, err := os.Lstat(in.Directory)
 	if err != nil {
-		errs.WithEF(err, data.WithField("dir", path), "Cannot list files of dir")
+		errs.WithEF(err, data.WithField("dir", in.Directory), "Cannot list files of dir")
+	}
+	err = in.addFiles(attrDir,rootDir)
+	if err != nil {
+		errs.WithEF(err, data.WithField("dir", in.Directory), "Cannot list files of dir")
 	}
 
 	res := []string{}
 	for _, file := range in.Files {
-		res = append(res, in.Directory+file)
+		res = append(res,file)
 	}
 	return &AttributesMerger{dir: res}, nil
 }
@@ -54,41 +58,42 @@ func newInputs(d string) *inputs {
 	return in
 }
 
-// list input files
-func (in *inputs) listFiles() error {
-	list_l1, err := ioutil.ReadDir(in.Directory)
-	if err != nil {
+func (in *inputs) addFiles(f_info os.FileInfo,cwd string) error{
+	switch {
+	case f_info == nil:
+		return nil
+	case f_info.Mode()&os.ModeSymlink == os.ModeSymlink :
+		logs.WithField("files", f_info.Mode()).WithField("name",f_info.Name()).Trace("Checking symlink")
+		followed_file, err := os.Readlink(cwd + "/" + f_info.Name())
+		if err != nil {
 		return err
-	}
-	for _, f_l1 := range list_l1 {
-		if f_l1.Mode()&os.ModeSymlink == os.ModeSymlink {
-			followed_file, err := os.Readlink(in.Directory + "/" + f_l1.Name())
-			if err != nil {
-				return err
-			}
-			if followed_file[0] != '/' {
-				followed_file = in.Directory + "/" + followed_file
-			}
-			f_l1, err = os.Lstat(followed_file)
-			if err != nil {
-				return err
-			}
-			logs.WithField("followed_link", f_l1.Name()).Trace("Followed Link")
 		}
-		if f_l1.IsDir() {
-			list_l2, err := ioutil.ReadDir(in.Directory + "/" + f_l1.Name())
-			if err != nil {
-				return err
-			}
-			for _, f_l2 := range list_l2 {
-				in.Files = append(in.Files, f_l1.Name()+"/"+f_l2.Name())
-			}
+		if followed_file[0] != '/' {
+			followed_file = cwd + "/" + followed_file
 		} else {
-			in.Files = append(in.Files, f_l1.Name())
+			cwd = "/"
 		}
+		f_info, err = os.Lstat(followed_file)
+		if err != nil {
+		return err
+		}
+		in.addFiles(f_info,cwd + "/")
+		logs.WithField("followed_link", f_info.Name()).Trace("Followed Link")
+	case f_info.IsDir():
+		list_f_info, err := ioutil.ReadDir(cwd + "/" + f_info.Name())
+		if err != nil {
+			return err
+		}
+		for _, f_info2 := range list_f_info {
+			in.addFiles(f_info2,cwd + "/" + f_info.Name())
+		}
+	default:
+		logs.WithField("files", f_info.Mode()).WithField("name",f_info.Name()).WithField("cwd",cwd).Trace("Adding a file")
+		in.Files = append(in.Files, cwd + "/" + f_info.Name())
 	}
 	return nil
 }
+
 
 func MergeAttributesFilesForMap(omap map[string]interface{}, files []string) map[string]interface{} {
 
