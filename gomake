@@ -130,12 +130,16 @@ build() {
 }
 
 targetBinaryPath() {
-    echo ${app}-v${version}-${1}/${app}
+    if [ "${1%-*}" == "windows" ]; then
+        echo ${app}-v${version}-${1}/${app}.exe
+    else
+        echo ${app}-v${version}-${1}/${app}
+    fi
 }
 
 install() {
     echo_green "Installing"
-    cp ${work_path}/${target_name}/${app}-v${version}-$(go env GOHOSTOS)-$(go env GOHOSTARCH)/${app}* ${GOPATH}/bin/
+    cp ${work_path}/${target_name}/$(targetBinaryPath $(go env GOHOSTOS)-$(go env GOHOSTARCH)) ${GOPATH}/bin/
 }
 
 quality() {
