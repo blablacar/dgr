@@ -234,10 +234,8 @@ release() {
 
     echo_green "Compress release"
     cd ${work_path}/${target_name}
-    for i in *-* ; do
-        if [ -d "$i" ]; then
-            tar czf ${i}.tar.gz ${i}
-        fi
+    for i in $(find . -type d -name "*-v${version}-*-*") ; do
+        tar czf ${i}.tar.gz ${i}
     done
     cd -
 
@@ -248,7 +246,7 @@ release() {
 
     posturl=$(curl --data "{\"tag_name\": \"v${version}\",\"target_commitish\": \"master\",\"name\": \"v${version}\",\"body\": \"Release of version ${version}\",\"draft\": false,\"prerelease\": false}" https://api.github.com/repos/${github_repo}/releases?access_token=${token} | grep "\"upload_url\"" | sed -ne 's/.*\(http[^"]*\).*/\1/p')
 
-    for i in ${work_path}/${target_name}/*.tar.gz ; do
+    for i in $(find ${work_path}/${target_name} -type f -name "*.tar.gz") ; do
         fullpath=$(ls ${i})
         filename=${fullpath##*/}
         curl -i -X POST -H "Content-Type: application/x-gzip" --data-binary "@${fullpath}" "${posturl%\{?name,label\}}?name=${filename}&label=${filename}&access_token=${token}"
