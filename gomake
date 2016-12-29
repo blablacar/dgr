@@ -236,7 +236,7 @@ release() {
 
     echo_green "Compress release"
     cd ${work_path}/${target_name}
-    for i in $(find * -type d -name "*-v${version}-*-*") ; do
+    for i in $(find . -type d -name "*-v${version}-*-*" | sed 's|./||') ; do
         tar czf ${i}.tar.gz ${i}
     done
     cd -
