@@ -14,17 +14,17 @@ cp ${dir}/manifest.json ${target}/manifest
 : ${bats_src:="https://raw.githubusercontent.com/sstephenson/bats/master/libexec"}
 curl --fail --silent --show-error --location --remote-time --compressed --create-dirs \
     {-z,-o}"${rootfs}/dgr/usr/bin/bats" \
-    ${bats_src}/bats \
-  --next \
+    ${bats_src}/bats
+curl --fail --silent --show-error --location --remote-time --compressed --create-dirs \
     {-z,-o}"${rootfs}/dgr/usr/bin/bats-exec-suite" \
-    ${bats_src}/bats-exec-suite \
-  --next \
+    ${bats_src}/bats-exec-suite
+curl --fail --silent --show-error --location --remote-time --compressed --create-dirs \
     {-z,-o}"${rootfs}/dgr/usr/bin/bats-exec-test" \
-    ${bats_src}/bats-exec-test \
-  --next \
+    ${bats_src}/bats-exec-test
+curl --fail --silent --show-error --location --remote-time --compressed --create-dirs \
     {-z,-o}"${rootfs}/dgr/usr/bin/bats-format-tap-stream" \
-    ${bats_src}/bats-format-tap-stream \
-  --next \
+    ${bats_src}/bats-format-tap-stream
+curl --fail --silent --show-error --location --remote-time --compressed --create-dirs \
     {-z,-o}"${rootfs}/dgr/usr/bin/bats-preprocess" \
     ${bats_src}/bats-preprocess
 
