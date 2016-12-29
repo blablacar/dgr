@@ -75,7 +75,7 @@ func processArgs(overrideEnvVarName *string, target *string, templaterDir *strin
 }
 
 func Run(overrideEnvVarName string, target string, templaterDir string, continueOnError bool) {
-	attrMerger, err := merger.NewAttributesMerger(templaterDir + pathAttributes)
+	attrMerger, err := merger.NewAttributesMerger(templaterDir, pathAttributes)
 	if err != nil {
 		logs.WithE(err).Warn("Failed to prepare attributes")
 	}

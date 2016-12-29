@@ -47,8 +47,15 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
+@test "should template with a symlink as attributes in a subfolder" {
+  run ../../dist/templater -t ./target 6/ -L TRACE
+  echo -e "$output"
+  cat ./target/symlink.yml| grep "yolo"
+  [ "$status" -eq 0 ]
+}
+
 @test "should permit to push dynamic pairs to partials" {
-  run ../../dist/templater -t ./target 6/
+  run ../../dist/templater -t ./target 7/
   echo -e "$output"
   [ "$status" -eq 0 ]
   cat ./target/etc/resolv.conf | grep "nameserver 8.8.8.8"

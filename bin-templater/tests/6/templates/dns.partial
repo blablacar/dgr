@@ -1,6 +1,0 @@
-{{ define "dns_list" }}
-{{- $dd := .dns_directive -}}
-{{ range .servers -}}
-{{ $dd }} {{ . }}
-{{ end }}
-{{- end -}}
