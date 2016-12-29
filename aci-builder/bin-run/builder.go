@@ -96,7 +96,7 @@ func (b *Builder) writeManifest() error {
 		return err
 	}
 
-	attrMerger, err := merger.NewAttributesMerger(b.stage1Rootfs + PATH_DGR + PATH_BUILDER , PATH_ATTRIBUTES)
+	attrMerger, err := merger.NewAttributesMerger(b.stage1Rootfs+PATH_DGR+PATH_BUILDER, PATH_ATTRIBUTES)
 	if err != nil {
 		logs.WithE(err).Warn("Failed to prepare attributes")
 	}

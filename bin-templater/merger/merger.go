@@ -23,21 +23,21 @@ type AttributesMerger struct {
 	dir []string
 }
 
-func NewAttributesMerger(rootDir string,attributesDir string) (*AttributesMerger, error) {
+func NewAttributesMerger(rootDir string, attributesDir string) (*AttributesMerger, error) {
 	in := newInputs(rootDir + attributesDir)
 	// initialize input files list)
 	attrDir, err := os.Lstat(in.Directory)
 	if err != nil {
 		errs.WithEF(err, data.WithField("dir", in.Directory), "Cannot list files of dir")
 	}
-	err = in.addFiles(attrDir,rootDir)
+	err = in.addFiles(attrDir, rootDir)
 	if err != nil {
 		errs.WithEF(err, data.WithField("dir", in.Directory), "Cannot list files of dir")
 	}
 
 	res := []string{}
 	for _, file := range in.Files {
-		res = append(res,file)
+		res = append(res, file)
 	}
 	return &AttributesMerger{dir: res}, nil
 }
@@ -58,15 +58,15 @@ func newInputs(d string) *inputs {
 	return in
 }
 
-func (in *inputs) addFiles(f_info os.FileInfo,cwd string) error{
+func (in *inputs) addFiles(f_info os.FileInfo, cwd string) error {
 	switch {
 	case f_info == nil:
 		return nil
-	case f_info.Mode()&os.ModeSymlink == os.ModeSymlink :
-		logs.WithField("files", f_info.Mode()).WithField("name",f_info.Name()).Trace("Checking symlink")
+	case f_info.Mode()&os.ModeSymlink == os.ModeSymlink:
+		logs.WithField("files", f_info.Mode()).WithField("name", f_info.Name()).Trace("Checking symlink")
 		followed_file, err := os.Readlink(cwd + "/" + f_info.Name())
 		if err != nil {
-		return err
+			return err
 		}
 		if followed_file[0] != '/' {
 			followed_file = cwd + "/" + followed_file
@@ -75,9 +75,9 @@ func (in *inputs) addFiles(f_info os.FileInfo,cwd string) error{
 		}
 		f_info, err = os.Lstat(followed_file)
 		if err != nil {
-		return err
+			return err
 		}
-		in.addFiles(f_info,cwd + "/")
+		in.addFiles(f_info, cwd+"/")
 		logs.WithField("followed_link", f_info.Name()).Trace("Followed Link")
 	case f_info.IsDir():
 		list_f_info, err := ioutil.ReadDir(cwd + "/" + f_info.Name())
@@ -85,15 +85,14 @@ func (in *inputs) addFiles(f_info os.FileInfo,cwd string) error{
 			return err
 		}
 		for _, f_info2 := range list_f_info {
-			in.addFiles(f_info2,cwd + "/" + f_info.Name())
+			in.addFiles(f_info2, cwd+"/"+f_info.Name())
 		}
 	default:
-		logs.WithField("files", f_info.Mode()).WithField("name",f_info.Name()).WithField("cwd",cwd).Trace("Adding a file")
-		in.Files = append(in.Files, cwd + "/" + f_info.Name())
+		logs.WithField("files", f_info.Mode()).WithField("name", f_info.Name()).WithField("cwd", cwd).Trace("Adding a file")
+		in.Files = append(in.Files, cwd+"/"+f_info.Name())
 	}
 	return nil
 }
-
 
 func MergeAttributesFilesForMap(omap map[string]interface{}, files []string) map[string]interface{} {
 
