@@ -13,7 +13,7 @@ dgr allows you to build generic container images for a service and to configure 
 dgr will follow evolution of **rkt**. Since rkt will tend to support [Open Container Initiative](https://coreos.com/blog/oci-image-specification.html), dgr will support **oci** too.
 At some point, since **rkt** and **docker** will support **oci**, we will probably support building with and for both.
 
-_dgr is actively used at blablacar to build and run more than an hundred different aci and pod to [run all our platforms](http://blablatech.com/blog/why-and-how-blablacar-went-full-containers)._
+_dgr is actively used at blablacar to build and run more than 300 different aci and pod to [run all our platforms](http://blablatech.com/blog/why-and-how-blablacar-went-full-containers)._
 
 
 ## Build the ACI once, configure your app at runtime.
