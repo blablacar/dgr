@@ -38,6 +38,9 @@ dgr provides various resources to build and configure an ACI:
 
 ![demo](https://raw.githubusercontent.com/blablacar/dgr/gh-pages/aci-dummy.gif)
 
+## Installation
+
+Download the executable from the [releases page](https://github.com/blablacar/dgr/releases) and put it somewhere. We currently only build for linux 64 bit.
 
 ## Commands
 
