@@ -12,8 +12,8 @@ import (
 	"github.com/n0rad/go-erlog/logs"
 )
 
-var aciBuilder = common.NewACFullName("blablacar.github.io/dgr/aci-builder")
-var aciTester = common.NewACFullName("blablacar.github.io/dgr/aci-tester")
+var aciBuilder = common.NewACFullName("blablacar.github.io/dgr/aci-builder:1")
+var aciTester = common.NewACFullName("blablacar.github.io/dgr/aci-tester:1")
 var importMutex = sync.Mutex{}
 var builderImported = false
 var testerImported = false
