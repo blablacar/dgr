@@ -20,7 +20,7 @@ gpg --keyserver pgp.mit.edu --recv-keys 0353B12C
 gpg --export --armor 0353B12C | apt-key add -
 
 apt-get update
-apt-get install -y --force-yes cassandra cassandra-tools
+apt-get install -y --force-yes -t jessie-backports cassandra cassandra-tools
 
 chown -R cassandra: /etc/cassandra
 mkdir /data
