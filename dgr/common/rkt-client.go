@@ -155,7 +155,11 @@ func (rkt *RktClient) GetVersion() (Version, error) {
 }
 
 func (rkt *RktClient) Fetch(image string) (string, error) {
-	hash, err := ExecCmdGetOutput(rkt.globalArgs[0], rkt.argsStore([]string{"fetch"}, rkt.globalArgs, "--full", image)...)
+	globalArgs := rkt.globalArgs
+	if rkt.Version.GreaterThanOrEqualTo(rktVersionWithPullPolicy) {
+		globalArgs = append(globalArgs, "--pull-policy=new")
+	}
+	hash, err := ExecCmdGetOutput(rkt.globalArgs[0], rkt.argsStore([]string{"fetch"}, globalArgs, "--full", image)...)
 	if err != nil {
 		return "", errs.WithEF(err, rkt.fields.WithField("image", image), "Failed to fetch image")
 	}
