@@ -12,6 +12,7 @@ import (
 )
 
 const rktSupportedVersion Version = "1.4.0"
+const rktVersionWithPullPolicy = "1.24.0"
 
 type InsecuOptions []string
 
@@ -50,6 +51,8 @@ type RktConfig struct {
 }
 
 type RktClient struct {
+	Version Version
+
 	config     RktConfig
 	globalArgs []string
 	fields     data.Fields
@@ -66,13 +69,14 @@ func NewRktClient(config RktConfig) (*RktClient, error) {
 		globalArgs: config.prepareGlobalArgs(config.InsecureOptions),
 	}
 
-	v, err := rkt.Version()
+	v, err := rkt.GetVersion()
 	if err != nil {
 		return nil, err
 	}
 	if v.LessThan(rktSupportedVersion) {
 		return nil, errs.WithF(rkt.fields.WithField("current", v).WithField("required", ">="+rktSupportedVersion), "Unsupported version of rkt")
 	}
+	rkt.Version = v
 
 	logs.WithField("version", v).WithField("args", rkt.globalArgs).Debug("New rkt client")
 	return rkt, nil
@@ -129,7 +133,7 @@ func (rkt *RktClient) GetPath() (string, error) {
 	return ExecCmdGetOutput("/bin/bash", "-c", "command -v rkt")
 }
 
-func (rkt *RktClient) Version() (Version, error) {
+func (rkt *RktClient) GetVersion() (Version, error) {
 	output, err := ExecCmdGetOutput(rkt.globalArgs[0], "version")
 	if err != nil {
 		return "", errs.WithEF(err, rkt.fields, "Failed to get rkt Version")
@@ -162,6 +166,9 @@ func (rkt *RktClient) FetchInsecure(image string) (string, error) {
 	globalArgs := rkt.globalArgs
 	if !rkt.config.InsecureOptions.HasImage() {
 		globalArgs = rkt.config.prepareGlobalArgs(append(rkt.config.InsecureOptions, "image"))
+	}
+	if rkt.Version.GreaterThanOrEqualTo(rktVersionWithPullPolicy) {
+		globalArgs = append(globalArgs, "--pull-policy=new")
 	}
 	hash, err := ExecCmdGetOutput(rkt.globalArgs[0], rkt.argsStore([]string{"fetch"}, globalArgs, "--full", image)...)
 	if err != nil {
