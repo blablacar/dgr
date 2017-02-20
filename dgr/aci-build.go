@@ -39,6 +39,10 @@ func (aci *Aci) prepareRktRunArguments(command common.BuilderCommand, builderHas
 	for _, v := range aci.args.SetEnv.Strings() {
 		args = append(args, "--set-env="+v)
 	}
+
+	for _, v := range aci.manifest.Builder.Environment {
+		args = append(args, "--set-env="+v.Name+"="+v.Value)
+	}
 	args = append(args, builderHash)
 	return args
 }
