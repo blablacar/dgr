@@ -46,9 +46,10 @@ type MountInfo struct {
 }
 
 type BuilderDefinition struct {
-	Image        ACFullname   `json:"image,omitempty" yaml:"image,omitempty"`
-	Dependencies []ACFullname `json:"dependencies,omitempty" yaml:"dependencies,omitempty"`
-	MountPoints  []MountInfo  `json:"mountPoints,omitempty" yaml:"mountPoints,omitempty"`
+	Image        ACFullname        `json:"image,omitempty" yaml:"image,omitempty"`
+	Environment  types.Environment `json:"environment,omitempty" yaml:"environment,omitempty"`
+	Dependencies []ACFullname      `json:"dependencies,omitempty" yaml:"dependencies,omitempty"`
+	MountPoints  []MountInfo       `json:"mountPoints,omitempty" yaml:"mountPoints,omitempty"`
 }
 
 type BuildDefinition struct {
