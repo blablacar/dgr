@@ -166,6 +166,10 @@ Inside rkt, the builder isolate the build process inside a **systemd-nspawn** on
 - copy **prestart**, **attributes**, **files**, **templates**
 - isolate on final rootfs and run **build-late** runlevels
 
+To import dynamically environment vars to builder, you can use `dgr --set-env=TOTO=TITI`. This is usefull to import proxy settings without explicitly knowing the proxy inside the build process. 
+
+Also all `DGR_ENV_*` vars are automatically imported. 
+ex: having `export DGR_ENV_no_proxy=127.0.0.1`  on the host will end up having `no_proxy=127.0.0.1` in builder.
 
 ## Customizing
 
