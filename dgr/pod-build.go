@@ -141,54 +141,57 @@ func (p *Pod) processAci(e common.RuntimeApp) (*schema.RuntimeApp, error) {
 func (p *Pod) fillRuntimeAppFromDependencies(e *common.RuntimeApp) error {
 	fields := p.fields.WithField("aci", e.Name)
 
-	if len(e.Dependencies) >= 1 {
-		Home.Rkt.Fetch(e.Dependencies[0].String())
-		manifestStr, err := Home.Rkt.CatManifest(e.Dependencies[0].String())
+	dependency := e.InheritDependencyPolicy.GetInheritDependency(*e)
+	if dependency == nil {
+		return nil
+	}
+
+	Home.Rkt.Fetch(dependency.String())
+	manifestStr, err := Home.Rkt.CatManifest(dependency.String())
+	if err != nil {
+		return errs.WithEF(err, fields.WithField("dependency", dependency.String()), "Failed to get dependency manifest")
+	}
+	manifest := schema.ImageManifest{}
+	if err := json.Unmarshal([]byte(manifestStr), &manifest); err != nil {
+		return errs.WithEF(err, fields.WithField("content", manifestStr), "Failed to unmarshal stage1 manifest received from rkt")
+	}
+
+	if len(e.App.Exec) == 0 {
+		e.App.Exec = manifest.App.Exec
+	}
+	if e.App.User == "" {
+		e.App.User = manifest.App.User
+	}
+	if e.App.Group == "" {
+		e.App.Group = manifest.App.Group
+	}
+	if e.App.WorkingDirectory == "" {
+		e.App.WorkingDirectory = manifest.App.WorkingDirectory
+	}
+	if len(e.App.SupplementaryGIDs) == 0 {
+		e.App.SupplementaryGIDs = manifest.App.SupplementaryGIDs
+	}
+	if len(e.App.Isolators) == 0 {
+		res, err := common.FromAppcIsolators(manifest.App.Isolators)
 		if err != nil {
-			return errs.WithEF(err, fields.WithField("dependency", e.Dependencies[0].String()), "Failed to get dependency manifest")
+			return errs.WithEF(err, fields, "Failed to replicate isolators from aci to pod")
 		}
-		manifest := schema.ImageManifest{}
-		if err := json.Unmarshal([]byte(manifestStr), &manifest); err != nil {
-			return errs.WithEF(err, fields.WithField("content", manifestStr), "Failed to unmarshal stage1 manifest received from rkt")
-		}
+		e.App.Isolators = res
+	}
+	if len(e.App.Ports) == 0 {
+		e.App.Ports = manifest.App.Ports
+	}
+	if len(e.App.MountPoints) == 0 {
+		e.App.MountPoints = manifest.App.MountPoints
+	}
+	if len(e.App.Environment) == 0 {
+		e.App.Environment = manifest.App.Environment
+	}
 
-		if len(e.App.Exec) == 0 {
-			e.App.Exec = manifest.App.Exec
-		}
-		if e.App.User == "" {
-			e.App.User = manifest.App.User
-		}
-		if e.App.Group == "" {
-			e.App.Group = manifest.App.Group
-		}
-		if e.App.WorkingDirectory == "" {
-			e.App.WorkingDirectory = manifest.App.WorkingDirectory
-		}
-		if len(e.App.SupplementaryGIDs) == 0 {
-			e.App.SupplementaryGIDs = manifest.App.SupplementaryGIDs
-		}
-		if len(e.App.Isolators) == 0 {
-			res, err := common.FromAppcIsolators(manifest.App.Isolators)
-			if err != nil {
-				return errs.WithEF(err, fields, "Failed to replicate isolators from aci to pod")
-			}
-			e.App.Isolators = res
-		}
-		if len(e.App.Ports) == 0 {
-			e.App.Ports = manifest.App.Ports
-		}
-		if len(e.App.MountPoints) == 0 {
-			e.App.MountPoints = manifest.App.MountPoints
-		}
-		if len(e.App.Environment) == 0 {
-			e.App.Environment = manifest.App.Environment
-		}
-
-		anns := e.Annotations
-		e.Annotations = manifest.Annotations
-		for _, ann := range anns {
-			e.Annotations.Set(ann.Name, ann.Value)
-		}
+	anns := e.Annotations
+	e.Annotations = manifest.Annotations
+	for _, ann := range anns {
+		e.Annotations.Set(ann.Name, ann.Value)
 	}
 	return nil
 }

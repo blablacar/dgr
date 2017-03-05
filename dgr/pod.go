@@ -74,10 +74,15 @@ func readPodManifest(manifestPath string) (*common.PodManifest, error) {
 	}
 
 	for i, app := range manifest.Pod.Apps {
-		if app.Name == "" {
-			manifest.Pod.Apps[i].Name = app.Dependencies[0].TinyName()
+		if app.InheritDependencyPolicy == "" {
+			manifest.Pod.Apps[i].InheritDependencyPolicy = common.FIRST
+		}
+
+		if app.Name == "" && len(app.Dependencies) > 0 {
+			manifest.Pod.Apps[i].Name = manifest.Pod.Apps[i].InheritDependencyPolicy.GetInheritDependency(app).TinyName()
 		}
 	}
+
 	//TODO check that there is no app name conflict
 	return manifest, nil
 }

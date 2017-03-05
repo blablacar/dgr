@@ -27,12 +27,32 @@ type PodDefinition struct {
 	Ports       []types.ExposedPort `json:"ports,omitempty" yaml:"ports,omitempty"`
 }
 
+type InheritDependencyPolicy string
+
+const (
+	FIRST InheritDependencyPolicy = "first" // default
+	LAST                          = "last"  // useful when you want to overlay with a dep as last but inherit from it
+	NONE                          = "none"
+)
+
+func (i InheritDependencyPolicy) GetInheritDependency(r RuntimeApp) *ACFullname {
+	if len(r.Dependencies) > 0 {
+		if i == LAST {
+			return &r.Dependencies[len(r.Dependencies)-1]
+		} else if i == FIRST {
+			return &r.Dependencies[0]
+		}
+	}
+	return nil
+}
+
 type RuntimeApp struct {
-	Dependencies []ACFullname      `json:"dependencies,omitempty" yaml:"dependencies,omitempty"`
-	Name         string            `json:"name,omitempty" yaml:"name,omitempty"`
-	App          DgrApp            `json:"app,omitempty" yaml:"app,omitempty"`
-	Mounts       []schema.Mount    `json:"mounts,omitempty" yaml:"mounts,omitempty"`
-	Annotations  types.Annotations `json:"annotations,omitempty" yaml:"annotations,omitempty"`
+	InheritDependencyPolicy InheritDependencyPolicy `json:"inheritDependencyPolicy,omitempty" yaml:"inheritDependencyPolicy,omitempty"`
+	Dependencies            []ACFullname            `json:"dependencies,omitempty" yaml:"dependencies,omitempty"`
+	Name                    string                  `json:"name,omitempty" yaml:"name,omitempty"`
+	App                     DgrApp                  `json:"app,omitempty" yaml:"app,omitempty"`
+	Mounts                  []schema.Mount          `json:"mounts,omitempty" yaml:"mounts,omitempty"`
+	Annotations             types.Annotations       `json:"annotations,omitempty" yaml:"annotations,omitempty"`
 }
 
 type Env struct {
