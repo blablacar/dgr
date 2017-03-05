@@ -145,7 +145,22 @@ func (b *Builder) tarAci() error {
 
 	logs.WithF(b.fields).Debug("Calling tar to collect all files")
 	if err := common.ExecCmd("tar", params...); err != nil {
-		return errs.WithEF(err, b.fields, "Failed to tar aci")
+		// In case the host's tar is too old, try the builder's if it exists.
+		stage1Tar := rktcommon.Stage1RootfsPath(b.pod.Root)
+		var buildersTar string
+		for _, t := range []string{"/dgr/usr/bin/tar", "/bin/tar", "/usr/bin/tar"} {
+			buildersTar = filepath.Join(stage1Tar, t)
+			if _, err := os.Stat(buildersTar); err == nil {
+				break
+			}
+		}
+
+		if err2 := common.ExecCmd(buildersTar, params...); err2 != nil {
+			// If that failed, output the original error nevertheless.
+			logs.WithFields(b.fields).WithField("params", params).Error("Parameters to 'tar' within the builder")
+			return errs.WithEF(err, b.fields, "Failed to tar aci")
+		}
+		logs.WithF(b.fields).Debug("Had to resort to 'tar' from the builder to create the aci file")
 	}
 	// common.ExecCmd sometimes silently fails, hence the redundant check.
 	if _, err := os.Stat(destination); os.IsNotExist(err) {
