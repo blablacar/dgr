@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/appc/spec/schema"
 	"github.com/blablacar/dgr/dgr/common"
 	"github.com/jhoonb/archivex"
 	gzip "github.com/klauspost/pgzip"
@@ -193,14 +192,9 @@ func CheckLatestVersion(deps []common.ACFullname, warnText string) {
 func GetDependencyDgrVersion(acName common.ACFullname) (int, error) {
 	depFields := data.WithField("dependency", acName.String())
 
-	out, err := Home.Rkt.CatManifest(acName.String())
+	im, err := Home.Rkt.GetManifest(acName.String())
 	if err != nil {
 		return 0, errs.WithEF(err, depFields, "Dependency not found")
-	}
-
-	im := schema.ImageManifest{}
-	if err := im.UnmarshalJSON([]byte(out)); err != nil {
-		return 0, errs.WithEF(err, depFields.WithField("content", out), "Cannot read manifest cat by rkt image")
 	}
 
 	version, ok := im.Annotations.Get(common.ManifestDrgVersion)

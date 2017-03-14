@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"encoding/json"
+
 	"github.com/appc/spec/discovery"
+	"github.com/appc/spec/schema"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
@@ -179,6 +182,19 @@ func (rkt *RktClient) FetchInsecure(image string) (string, error) {
 		return "", errs.WithEF(err, rkt.fields.WithField("image", image), "Failed to fetch image")
 	}
 	return hash, err
+}
+
+func (rkt *RktClient) GetManifest(image string) (schema.ImageManifest, error) {
+	manifest := schema.ImageManifest{}
+	manifestStr, err := rkt.CatManifest(image)
+	if err != nil {
+		return manifest, errs.WithEF(err, rkt.fields.WithField("image", image), "Failed to read image manifest")
+	}
+
+	if err := json.Unmarshal([]byte(manifestStr), &manifest); err != nil {
+		return manifest, errs.WithEF(err, rkt.fields.WithField("content", manifestStr), "Failed to unmarshal manifest received from rkt")
+	}
+	return manifest, nil
 }
 
 func (rkt *RktClient) CatManifest(image string) (string, error) {

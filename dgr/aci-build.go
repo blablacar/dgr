@@ -150,14 +150,9 @@ func (aci *Aci) prepareStage1aci() (string, error) {
 	}
 
 	Home.Rkt.Fetch(aci.manifest.Builder.Image.String())
-	manifestStr, err := Home.Rkt.CatManifest(aci.manifest.Builder.Image.String())
+	manifest, err := Home.Rkt.GetManifest(aci.manifest.Builder.Image.String())
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "Failed to read stage1 image manifest")
-	}
-
-	manifest := schema.ImageManifest{}
-	if err := json.Unmarshal([]byte(manifestStr), &manifest); err != nil {
-		return "", errs.WithEF(err, aci.fields.WithField("content", manifestStr), "Failed to unmarshal stage1 manifest received from rkt")
 	}
 
 	manifest.Dependencies = types.Dependencies{}

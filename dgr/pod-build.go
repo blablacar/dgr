@@ -147,13 +147,9 @@ func (p *Pod) fillRuntimeAppFromDependencies(e *common.RuntimeApp) error {
 	}
 
 	Home.Rkt.Fetch(dependency.String())
-	manifestStr, err := Home.Rkt.CatManifest(dependency.String())
+	manifest, err := Home.Rkt.GetManifest(dependency.String())
 	if err != nil {
 		return errs.WithEF(err, fields.WithField("dependency", dependency.String()), "Failed to get dependency manifest")
-	}
-	manifest := schema.ImageManifest{}
-	if err := json.Unmarshal([]byte(manifestStr), &manifest); err != nil {
-		return errs.WithEF(err, fields.WithField("content", manifestStr), "Failed to unmarshal stage1 manifest received from rkt")
 	}
 
 	if len(e.App.Exec) == 0 {
