@@ -9,6 +9,7 @@ import (
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/dgr/dgr/common"
+	"github.com/ghodss/yaml"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 )
@@ -55,7 +56,12 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 		return errs.WithEF(err, aci.fields, "Cannot create target directory")
 	}
 
-	if err := ioutil.WriteFile(aci.target+common.PathManifestYmlTmpl, []byte(aci.manifestTmpl), 0644); err != nil {
+	manifestMarshaled, err := yaml.Marshal(aci.manifest)
+	if err != nil {
+		return errs.WithEF(err, aci.fields, "Failed to marshal dgr manifest")
+	}
+
+	if err := ioutil.WriteFile(aci.target+common.PathManifestYmlTmpl, manifestMarshaled, 0644); err != nil {
 		return errs.WithEF(err, aci.fields.WithField("file", aci.target+common.PathManifestYmlTmpl), "Failed to write manifest template")
 	}
 
@@ -117,24 +123,15 @@ func (aci *Aci) cleanupRun(builderHash string, stage1Hash string) {
 }
 
 func (aci *Aci) Build() error {
-	aci.checkDependencies()
+	if err := aci.prepareAllDependencies(); err != nil {
+		return err
+	}
 	return aci.RunBuilderCommand(common.CommandBuild)
 }
 
 func (aci *Aci) CleanAndBuild() error {
 	aci.Clean()
 	return aci.Build()
-}
-
-func (aci *Aci) checkDependencies() {
-	aci.checkWg.Add(2)
-	if !aci.args.ParallelBuild {
-		aci.checkCompatibilityVersions()
-		aci.checkLatestVersions()
-	} else {
-		go aci.checkCompatibilityVersions()
-		go aci.checkLatestVersions()
-	}
 }
 
 func (aci *Aci) prepareStage1aci() (string, error) {
@@ -149,7 +146,7 @@ func (aci *Aci) prepareStage1aci() (string, error) {
 		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+pathBuilder), "Failed to create stage1 aci path")
 	}
 
-	Home.Rkt.Fetch(aci.manifest.Builder.Image.String())
+	Home.Rkt.Fetch(aci.manifest.Builder.Image.String(), common.PullPolicyNew)
 	manifest, err := Home.Rkt.GetManifest(aci.manifest.Builder.Image.String())
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "Failed to read stage1 image manifest")

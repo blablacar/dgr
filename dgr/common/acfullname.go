@@ -90,6 +90,14 @@ func NewACFullName(s string) *ACFullname {
 	return &n
 }
 
+func NewACFullnameWithVersion(source ACFullname, version string) *ACFullname {
+	return NewACFullnameFromNameAndVersion(source.Name(), version)
+}
+
+func NewACFullnameFromNameAndVersion(name string, version string) *ACFullname {
+	return NewACFullName(name + ":" + version)
+}
+
 func (n ACFullname) FullyResolved() (*ACFullname, error) {
 	version := n.Version()
 	if version != "" {
@@ -99,7 +107,7 @@ func (n ACFullname) FullyResolved() (*ACFullname, error) {
 	if err != nil {
 		return nil, errors.Annotate(err, "Cannot fully resolve AcFullname")
 	}
-	return NewACFullName(n.Name() + ":" + version), nil
+	return NewACFullnameWithVersion(n, version), nil
 }
 
 /* 1 */

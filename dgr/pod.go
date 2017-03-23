@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"sync"
 
 	"github.com/blablacar/dgr/dgr/common"
 	"github.com/ghodss/yaml"
@@ -16,7 +15,6 @@ import (
 const pathPodManifestYml = "/pod-manifest.yml"
 
 type Pod struct {
-	checkWg  *sync.WaitGroup
 	fields   data.Fields
 	path     string
 	args     BuildArgs
@@ -24,7 +22,7 @@ type Pod struct {
 	manifest common.PodManifest
 }
 
-func NewPod(path string, args BuildArgs, checkWg *sync.WaitGroup) (*Pod, error) {
+func NewPod(path string, args BuildArgs) (*Pod, error) {
 	if (args.CatchOnError || args.CatchOnStep) && args.ParallelBuild {
 		args.ParallelBuild = false
 	}
@@ -50,7 +48,6 @@ func NewPod(path string, args BuildArgs, checkWg *sync.WaitGroup) (*Pod, error) 
 	}
 
 	pod := &Pod{
-		checkWg:  checkWg,
 		fields:   fields,
 		path:     fullPath,
 		args:     args,
@@ -108,7 +105,7 @@ func (p *Pod) toPodAci(e common.RuntimeApp) (*Aci, error) {
 		return nil, err
 	}
 
-	aci, err := NewAciWithManifest(dir, p.args, tmpl, p.checkWg)
+	aci, err := NewAciWithManifest(dir, p.args, tmpl)
 	if err != nil {
 		return nil, errs.WithEF(err, p.fields.WithField("aci-dir", dir), "Failed to prepare aci")
 	}
@@ -117,7 +114,7 @@ func (p *Pod) toPodAci(e common.RuntimeApp) (*Aci, error) {
 }
 
 func (p *Pod) toAciManifestTemplate(e common.RuntimeApp) (string, error) {
-	fullname := common.NewACFullName(p.manifest.Name.Name() + "_" + e.Name + ":" + p.manifest.Name.Version())
+	fullname := common.NewACFullnameFromNameAndVersion(p.manifest.Name.Name()+"_"+e.Name, p.manifest.Name.Version())
 	manifest := &common.AciManifest{
 		Aci: common.AciDefinition{
 			Annotations:   e.Annotations,

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/blablacar/dgr/dgr/common"
 	"github.com/n0rad/go-erlog/errs"
 )
 
@@ -17,7 +18,7 @@ func (aci *Aci) Install() ([]string, error) {
 		}
 	}
 
-	hash, err := Home.Rkt.Fetch(aci.target + pathImageAci)
+	hash, err := Home.Rkt.Fetch(aci.target+pathImageAci, common.PullPolicyNew)
 	if err != nil {
 		return hashs, errs.WithEF(err, aci.fields, "Failed to install aci")
 	}

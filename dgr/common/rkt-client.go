@@ -157,10 +157,17 @@ func (rkt *RktClient) GetVersion() (Version, error) {
 	return "", errs.WithF(rkt.fields.WithField("content", output), "Cannot found rkt version from rkt call")
 }
 
-func (rkt *RktClient) Fetch(image string) (string, error) {
+type PullPolicy string
+
+const (
+	PullPolicyNew    PullPolicy = "new"
+	PullPolicyUpdate PullPolicy = "update"
+)
+
+func (rkt *RktClient) Fetch(image string, pullPolicy PullPolicy) (string, error) {
 	globalArgs := rkt.globalArgs
 	if rkt.Version.GreaterThanOrEqualTo(rktVersionWithPullPolicy) {
-		globalArgs = append(globalArgs, "--pull-policy=new")
+		globalArgs = append(globalArgs, "--pull-policy="+string(pullPolicy))
 	}
 	hash, err := ExecCmdGetOutput(rkt.globalArgs[0], rkt.argsStore([]string{"fetch"}, globalArgs, "--full", image)...)
 	if err != nil {

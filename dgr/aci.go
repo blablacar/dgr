@@ -5,8 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strconv"
-	"sync"
 
 	"github.com/blablacar/dgr/dgr/common"
 	"github.com/jhoonb/archivex"
@@ -38,18 +36,16 @@ const prefixTest = "test/"
 const prefixBuilderStage1 = "builder-stage1/"
 
 type Aci struct {
-	checkWg         *sync.WaitGroup
 	fields          data.Fields
 	path            string
 	target          string
 	podName         *common.ACFullname
-	manifestTmpl    string
 	manifest        *common.AciManifest
 	args            BuildArgs
 	FullyResolveDep bool
 }
 
-func NewAciWithManifest(path string, args BuildArgs, manifestTmpl string, checkWg *sync.WaitGroup) (*Aci, error) {
+func NewAciWithManifest(path string, args BuildArgs, manifestTmpl string) (*Aci, error) {
 	manifest, err := common.ProcessManifestTemplate(manifestTmpl, nil, false)
 	if err != nil {
 		return nil, errs.WithEF(err, data.WithField("content", manifestTmpl), "Failed to process manifest")
@@ -79,22 +75,20 @@ func NewAciWithManifest(path string, args BuildArgs, manifestTmpl string, checkW
 		fields:          fields,
 		args:            args,
 		path:            fullPath,
-		manifestTmpl:    manifestTmpl,
 		manifest:        manifest,
 		target:          target,
 		FullyResolveDep: true,
-		checkWg:         checkWg,
 	}
 
 	return aci, nil
 }
 
-func NewAci(path string, args BuildArgs, checkWg *sync.WaitGroup) (*Aci, error) {
+func NewAci(path string, args BuildArgs) (*Aci, error) {
 	manifest, err := ioutil.ReadFile(path + common.PathAciManifest)
 	if err != nil {
 		return nil, errs.WithEF(err, data.WithField("path", path+common.PathAciManifest), "Cannot read manifest")
 	}
-	return NewAciWithManifest(path, args, string(manifest), checkWg)
+	return NewAciWithManifest(path, args, string(manifest))
 }
 
 //////////////////////////////////////////////////////////////////
@@ -144,69 +138,6 @@ func (aci *Aci) zipAci() error {
 		return errs.WithEF(err, aci.fields.WithField("path", target), "Failed to zip aci")
 	}
 	return nil
-}
-
-func (aci *Aci) checkCompatibilityVersions() {
-	defer aci.checkWg.Done()
-	for _, dep := range aci.manifest.Aci.Dependencies {
-		depFields := aci.fields.WithField("dependency", dep.String())
-
-		logs.WithF(aci.fields).WithField("dependency", dep.String()).Info("Fetching dependency")
-		Home.Rkt.Fetch(dep.String())
-		version, err := GetDependencyDgrVersion(dep)
-		if err != nil {
-			logs.WithEF(err, depFields).Error("Failed to check compatibility version of dependency")
-		} else {
-			if version < 55 {
-				logs.WithF(aci.fields).
-					WithField("dependency", dep).
-					WithField("require", ">=55").
-					Error("dependency was not build with a compatible version of dgr")
-			}
-		}
-
-	}
-}
-
-func (aci *Aci) checkLatestVersions() {
-	defer aci.checkWg.Done()
-	CheckLatestVersion(aci.manifest.Aci.Dependencies, "dependency")
-	CheckLatestVersion(aci.manifest.Builder.Dependencies, "builder dependency")
-	CheckLatestVersion(aci.manifest.Tester.Builder.Dependencies, "tester builder dependency")
-	CheckLatestVersion(aci.manifest.Tester.Aci.Dependencies, "tester dependency")
-}
-
-func CheckLatestVersion(deps []common.ACFullname, warnText string) {
-	for _, dep := range deps {
-		if dep.Version() == "" {
-			continue
-		}
-		version, _ := dep.LatestVersion()
-		if version != "" && common.Version(dep.Version()).LessThan(common.Version(version)) {
-			logs.WithField("newer", dep.Name()+":"+version).
-				WithField("current", dep.String()).
-				Warn("Newer " + warnText + " version")
-		}
-	}
-}
-
-func GetDependencyDgrVersion(acName common.ACFullname) (int, error) {
-	depFields := data.WithField("dependency", acName.String())
-
-	im, err := Home.Rkt.GetManifest(acName.String())
-	if err != nil {
-		return 0, errs.WithEF(err, depFields, "Dependency not found")
-	}
-
-	version, ok := im.Annotations.Get(common.ManifestDrgVersion)
-	var val int
-	if ok {
-		val, err = strconv.Atoi(version)
-		if err != nil {
-			return 0, errs.WithEF(err, depFields.WithField("version", version), "Failed to parse "+common.ManifestDrgVersion+" from manifest")
-		}
-	}
-	return val, nil
 }
 
 func (aci *Aci) giveBackUserRightsToTarget() {

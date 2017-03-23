@@ -139,6 +139,24 @@ func WriteAciManifest(m *AciManifest, targetFile string, projectName string, dgr
 	return nil
 }
 
+func ToAppcDependencies(dependencies []ACFullname) (types.Dependencies, error) {
+	appcDependencies := types.Dependencies{}
+	for _, dep := range dependencies {
+		id, err := types.NewACIdentifier(dep.Name())
+		if err != nil {
+			return nil, errs.WithEF(err, data.WithField("name", dep.Name()), "invalid identifer name for rkt")
+		}
+		t := types.Dependency{ImageName: *id}
+		if dep.Version() != "" {
+			t.Labels = types.Labels{}
+			t.Labels = append(t.Labels, types.Label{Name: "version", Value: dep.Version()})
+		}
+
+		appcDependencies = append(appcDependencies, t)
+	}
+	return appcDependencies, nil
+}
+
 func ToAppcIsolators(isos []Isolator) (types.Isolators, error) {
 	isolators := types.Isolators{}
 	for _, i := range isos {
@@ -156,24 +174,6 @@ func ToAppcIsolators(isos []Isolator) (types.Isolators, error) {
 		isolators = append(isolators, isolator)
 	}
 	return isolators, nil
-}
-
-func ToAppcDependencies(dependencies []ACFullname) (types.Dependencies, error) {
-	appcDependencies := types.Dependencies{}
-	for _, dep := range dependencies {
-		id, err := types.NewACIdentifier(dep.Name())
-		if err != nil {
-			return nil, errs.WithEF(err, data.WithField("name", dep.Name()), "invalid identifer name for rkt")
-		}
-		t := types.Dependency{ImageName: *id}
-		if dep.Version() != "" {
-			t.Labels = types.Labels{}
-			t.Labels = append(t.Labels, types.Label{Name: "version", Value: dep.Version()})
-		}
-
-		appcDependencies = append(appcDependencies, t)
-	}
-	return appcDependencies, nil
 }
 
 func FromAppcIsolators(isolators types.Isolators) ([]Isolator, error) {

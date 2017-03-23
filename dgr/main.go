@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"sync"
 
 	"github.com/blablacar/dgr/dgr/common"
 	"github.com/n0rad/go-erlog"
@@ -143,10 +142,10 @@ func displayVersionAndExit() {
 	os.Exit(0)
 }
 
-func NewAciOrPod(path string, args BuildArgs, checkWg *sync.WaitGroup) DgrCommand {
-	if aci, err := NewAci(path, args, checkWg); err == nil {
+func NewAciOrPod(path string, args BuildArgs) DgrCommand {
+	if aci, err := NewAci(path, args); err == nil {
 		return aci
-	} else if pod, err2 := NewPod(path, args, checkWg); err2 == nil {
+	} else if pod, err2 := NewPod(path, args); err2 == nil {
 		return pod
 	} else {
 		logs.WithE(err).WithField("path", path).WithField("err2", err2).Fatal("Cannot construct aci or pod")
