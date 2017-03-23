@@ -48,7 +48,7 @@ func (p *Pod) CleanAndBuild() error {
 
 func (p *Pod) preparePodVersion() {
 	if p.manifest.Name.Version() == "" {
-		p.manifest.Name = *common.NewACFullName(p.manifest.Name.Name() + ":" + common.GenerateVersion(p.path))
+		p.manifest.Name = *common.NewACFullnameWithVersion(p.manifest.Name, common.GenerateVersion(p.path))
 	}
 }
 
@@ -151,7 +151,7 @@ func (p *Pod) fillRuntimeAppFromDependencies(e *common.RuntimeApp) error {
 		return nil
 	}
 
-	Home.Rkt.Fetch(dependency.String())
+	Home.Rkt.Fetch(dependency.String(), common.PullPolicyNew)
 	manifest, err := Home.Rkt.GetManifest(dependency.String())
 	if err != nil {
 		return errs.WithEF(err, fields.WithField("dependency", dependency.String()), "Failed to get dependency manifest")

@@ -174,7 +174,7 @@ func (aci *Aci) buildTestAci() (string, error) {
 		return "", errs.WithEF(err, aci.fields, "Failed to marshall manifest for test aci")
 	}
 
-	testAci, err := NewAciWithManifest(aci.path, aci.args, string(content), aci.checkWg)
+	testAci, err := NewAciWithManifest(aci.path, aci.args, string(content))
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "Failed to prepare test's build aci")
 	}
@@ -185,7 +185,7 @@ func (aci *Aci) buildTestAci() (string, error) {
 	if err := testAci.CleanAndBuild(); err != nil {
 		return "", errs.WithEF(err, aci.fields, "Build of test aci failed")
 	}
-	hash, err := Home.Rkt.Fetch(aci.target + pathTestsTarget + pathImageAci)
+	hash, err := Home.Rkt.FetchInsecure(aci.target + pathTestsTarget + pathImageAci)
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "fetch of test aci failed")
 	}

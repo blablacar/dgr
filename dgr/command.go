@@ -7,7 +7,6 @@ import (
 	"html/template"
 	"os"
 	"strings"
-	"sync"
 
 	"github.com/blablacar/dgr/dgr/common"
 	"github.com/n0rad/go-erlog/logs"
@@ -35,9 +34,7 @@ var cleanCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		checkNoArgs(args)
 
-		checkWg := &sync.WaitGroup{}
-		NewAciOrPod(workPath, Args, checkWg).Clean()
-		checkWg.Wait()
+		NewAciOrPod(workPath, Args).Clean()
 	},
 }
 
@@ -48,11 +45,9 @@ var graphCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		checkNoArgs(args)
 
-		checkWg := &sync.WaitGroup{}
-		if err := NewAciOrPod(workPath, Args, checkWg).Graph(); err != nil {
+		if err := NewAciOrPod(workPath, Args).Graph(); err != nil {
 			logs.WithE(err).Fatal("Install command failed")
 		}
-		checkWg.Wait()
 	},
 }
 
@@ -143,11 +138,9 @@ func newTryCommand(userClean bool) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			checkNoArgs(args)
 
-			checkWg := &sync.WaitGroup{}
-			if err := NewAciOrPod(workPath, Args, checkWg).CleanAndTry(); err != nil {
+			if err := NewAciOrPod(workPath, Args).CleanAndTry(); err != nil {
 				logs.WithE(err).Fatal("Try command failed")
 			}
-			checkWg.Wait()
 		},
 	}
 	return cmd
@@ -161,11 +154,9 @@ func newBuildCommand(userClean bool) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			checkNoArgs(args)
 
-			checkWg := &sync.WaitGroup{}
-			if err := NewAciOrPod(workPath, Args, checkWg).CleanAndBuild(); err != nil {
+			if err := NewAciOrPod(workPath, Args).CleanAndBuild(); err != nil {
 				logs.WithE(err).Fatal("Build command failed")
 			}
-			checkWg.Wait()
 		},
 	}
 	cmd.Flags().BoolVarP(&Args.KeepBuilder, "keep-builder", "k", false, "Keep builder container after exit")
@@ -182,11 +173,9 @@ func newUpdateCommand(userClean bool) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			checkNoArgs(args)
 
-			checkWg := &sync.WaitGroup{}
-			if err := NewAciOrPod(workPath, Args, checkWg).Update(); err != nil {
+			if err := NewAciOrPod(workPath, Args).Update(); err != nil {
 				logs.WithE(err).Fatal("Update command failed")
 			}
-			checkWg.Wait()
 		},
 	}
 	cmd.Flags().BoolVarP(&Args.KeepBuilder, "keep-builder", "k", false, "Keep builder container after exit")
@@ -203,15 +192,13 @@ func newSignCommand(underClean bool) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			checkNoArgs(args)
 
-			checkWg := &sync.WaitGroup{}
-			command := NewAciOrPod(workPath, Args, checkWg)
+			command := NewAciOrPod(workPath, Args)
 			if underClean {
 				command.Clean()
 			}
 			if err := command.Sign(); err != nil {
 				logs.WithE(err).Fatal("Sign command failed")
 			}
-			checkWg.Wait()
 		},
 	}
 
@@ -226,15 +213,13 @@ func newInstallCommand(underClean bool) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			checkNoArgs(args)
 
-			checkWg := &sync.WaitGroup{}
-			command := NewAciOrPod(workPath, Args, checkWg)
+			command := NewAciOrPod(workPath, Args)
 			if underClean {
 				command.Clean()
 			}
 			if _, err := command.Install(); err != nil {
 				logs.WithE(err).Fatal("Install command failed")
 			}
-			checkWg.Wait()
 		},
 	}
 
@@ -251,15 +236,13 @@ func newPushCommand(underClean bool) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			checkNoArgs(args)
 
-			checkWg := &sync.WaitGroup{}
-			command := NewAciOrPod(workPath, Args, checkWg)
+			command := NewAciOrPod(workPath, Args)
 			if underClean {
 				command.Clean()
 			}
 			if err := command.Push(); err != nil {
 				logs.WithE(err).Fatal("Push command failed")
 			}
-			checkWg.Wait()
 		},
 	}
 	cmd.Flags().BoolVarP(&Args.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")
@@ -275,15 +258,13 @@ func newTestCommand(underClean bool) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			checkNoArgs(args)
 
-			checkWg := &sync.WaitGroup{}
-			command := NewAciOrPod(workPath, Args, checkWg)
+			command := NewAciOrPod(workPath, Args)
 			if underClean {
 				command.Clean()
 			}
 			if err := command.Test(); err != nil {
 				logs.WithE(err).Fatal("Test command failed")
 			}
-			checkWg.Wait()
 		},
 	}
 	cmd.Flags().BoolVarP(&Args.NoTestFail, "no-test-fail", "T", false, "Fail if no tests found")

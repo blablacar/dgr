@@ -3,7 +3,6 @@ package main
 import (
 	"io/ioutil"
 	"os"
-	"sync"
 
 	"github.com/blablacar/dgr/dgr/common"
 	"github.com/n0rad/go-erlog/data"
@@ -44,11 +43,9 @@ var initCmd = &cobra.Command{
 		}
 
 		defer giveBackUserRights(workPath)
-		checkWg := &sync.WaitGroup{}
-		if err := NewAciOrPod(workPath, Args, checkWg).Init(); err != nil {
+		if err := NewAciOrPod(workPath, Args).Init(); err != nil {
 			logs.WithE(err).Fatal("Init command failed")
 		}
-		checkWg.Wait()
 	},
 }
 
