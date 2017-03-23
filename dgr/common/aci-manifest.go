@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/appc/spec/aci"
@@ -96,10 +97,13 @@ func WriteAciManifest(m *AciManifest, targetFile string, projectName string, dgr
 
 	//dgrBuilderIdentifier, _ := types.NewACIdentifier(ManifestDrgBuilder)
 	dgrVersionIdentifier, _ := types.NewACIdentifier(ManifestDrgVersion)
-	buildDateIdentifier, _ := types.NewACIdentifier("build-date")
 	im.Annotations.Set(*dgrVersionIdentifier, dgrVersion)
-	//im.Annotations.Set(*dgrBuilderIdentifier, m.Builder.Image.String())
-	im.Annotations.Set(*buildDateIdentifier, time.Now().Format(time.RFC3339))
+
+	if _, ok := im.Annotations.Get("build-date"); !ok {
+		buildDateIdentifier, _ := types.NewACIdentifier("build-date")
+		im.Annotations.Set(*buildDateIdentifier, time.Now().Format(time.RFC3339))
+	}
+
 	im.Dependencies, err = ToAppcDependencies(m.Aci.Dependencies)
 	if err != nil {
 		return errs.WithEF(err, fields, "Failed to prepare dependencies for manifest")
@@ -107,9 +111,24 @@ func WriteAciManifest(m *AciManifest, targetFile string, projectName string, dgr
 	im.Name = *name
 	im.Labels = labels
 
+	for _, exclusion := range m.Build.Exclude {
+		if strings.HasPrefix("/dgr/bin", exclusion) {
+			goto collectionIsComplete
+		}
+	}
 	if len(m.Aci.App.Exec) == 0 {
 		m.Aci.App.Exec = []string{"/dgr/bin/busybox", "sh"}
 	}
+	// Set a pre-start handler, to run dgr's scripts.
+	for i := range m.Aci.App.EventHandlers {
+		if m.Aci.App.EventHandlers[i].Name == "pre-start" {
+			goto collectionIsComplete
+		}
+	}
+	m.Aci.App.EventHandlers = append(m.Aci.App.EventHandlers,
+		types.EventHandler{Name: "pre-start", Exec: []string{"/dgr/bin/prestart"}})
+
+collectionIsComplete:
 
 	isolators, err := ToAppcIsolators(m.Aci.App.Isolators)
 	if err != nil {
@@ -118,7 +137,7 @@ func WriteAciManifest(m *AciManifest, targetFile string, projectName string, dgr
 
 	im.App = &types.App{
 		Exec:              m.Aci.App.Exec,
-		EventHandlers:     []types.EventHandler{{Name: "pre-start", Exec: []string{"/dgr/bin/prestart"}}},
+		EventHandlers:     m.Aci.App.EventHandlers,
 		User:              m.Aci.App.User,
 		Group:             m.Aci.App.Group,
 		WorkingDirectory:  m.Aci.App.WorkingDirectory,

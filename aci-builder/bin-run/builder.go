@@ -29,6 +29,7 @@ type Builder struct {
 	aciTargetPath string
 	upperId       string
 	pod           *stage1commontypes.Pod
+	fullManifest  *common.AciManifest // includes non-standard sections such as 'Builder'
 }
 
 func NewBuilder(podRoot string, podUUID *types.UUID) (*Builder, error) {
@@ -123,6 +124,8 @@ func (b *Builder) writeManifest() error {
 		aciManifest.NameAndVersion = *common.NewACFullName(aciManifest.NameAndVersion.Name() + ":" + common.GenerateVersion(b.aciTargetPath))
 	}
 
+	b.fullManifest = aciManifest
+
 	if err := common.WriteAciManifest(aciManifest, target, aciManifest.NameAndVersion.Name(), dgrVersion); err != nil {
 		return errs.WithEF(err, b.fields.WithField("file", target), "Failed to write manifest")
 	}
@@ -136,39 +139,52 @@ func (b *Builder) tarAci() error {
 	}
 
 	upperPath := b.pod.Root + PATH_OVERLAY + "/" + upperId + PATH_UPPER
-	upperNamedRootfs := upperPath + "/" + manifestApp(b.pod).Name.String()
-	upperRootfs := upperPath + common.PathRootfs
+	rootfsAlias := manifestApp(b.pod).Name.String()
+	destination := b.aciTargetPath + common.PathImageAci // absolute dir, outside upperPath (think: /tmp/…)
 
-	if err := os.RemoveAll(upperNamedRootfs + PATH_TMP); err != nil {
-		logs.WithEF(err, b.fields.WithField("path", upperNamedRootfs+PATH_TMP)).Warn("Failed to clean tmp directory")
+	params := []string{"--sort=name", "--numeric-owner", "--exclude", rootfsAlias + PATH_TMP + "/*"}
+	params = append(params, "-C", upperPath, "--transform", "s@^"+rootfsAlias+"@rootfs@")
+	for _, expression := range b.fullManifest.Build.Transform {
+		params = append(params, "--transform", expression)
 	}
-
-	if err := os.Rename(upperNamedRootfs, upperRootfs); err != nil { // TODO this is dirty and can probably be renamed during tar
-		return errs.WithEF(err, b.fields.WithField("path", upperNamedRootfs), "Failed to rename rootfs")
-	}
-	defer os.Rename(upperRootfs, upperNamedRootfs)
-
-	dir, err := os.Getwd()
-	if err != nil {
-		return errs.WithEF(err, b.fields, "Failed to get current working directory")
-	}
-	defer func() {
-		if err := os.Chdir(dir); err != nil {
-			logs.WithEF(err, b.fields.WithField("path", dir)).Warn("Failed to chdir back")
+	for _, path := range b.fullManifest.Build.Exclude {
+		if strings.HasPrefix(path, "/") {
+			params = append(params, "--exclude", rootfsAlias+path)
+		} else {
+			params = append(params, "--exclude", path)
 		}
-	}()
-
-	if err := os.Chdir(upperPath); err != nil {
-		return errs.WithEF(err, b.fields.WithField("path", upperPath), "Failed to chdir to upper base path")
 	}
-	if err := common.Tar(b.aciTargetPath+common.PathImageAci, common.PathManifest[1:], common.PathRootfs[1:]+"/"); err != nil {
-		return errs.WithEF(err, b.fields, "Failed to tar aci")
+	if v, ok := b.fullManifest.Aci.Annotations.Get("build-date"); ok {
+		logs.WithFields(b.fields).WithField("build-date", v).Info("Using the given fixed build-date")
+		params = append(params, "--mtime", v, "--clamp-mtime")
+	} else {
+		logs.WithFields(b.fields).Info("This is no reproducible build: no build-date has been set")
+	}
+	params = append(params, "-cf", destination, common.PathManifest[1:], rootfsAlias)
+
+	logs.WithF(b.fields).Debug("Calling tar to collect all files")
+	if err := common.ExecCmd("tar", params...); err != nil {
+		// In case the host's tar is too old, try the builder's if it exists.
+		stage1Tar := rktcommon.Stage1RootfsPath(b.pod.Root)
+		var buildersTar string
+		for _, t := range []string{"/dgr/usr/bin/tar", "/bin/tar", "/usr/bin/tar"} {
+			buildersTar = filepath.Join(stage1Tar, t)
+			if _, err := os.Stat(buildersTar); err == nil {
+				break
+			}
+		}
+
+		if err2 := common.ExecCmd(buildersTar, params...); err2 != nil {
+			// If that failed, output the original error nevertheless.
+			logs.WithFields(b.fields).WithField("params", params).Error("Parameters to 'tar' within the builder")
+			return errs.WithEF(err, b.fields, "Failed to tar aci")
+		}
+		logs.WithF(b.fields).Debug("Had to resort to 'tar' from the builder to create the aci file")
 	}
 	// common.ExecCmd sometimes silently fails, hence the redundant check.
-	if _, err := os.Stat(b.aciTargetPath + common.PathImageAci); os.IsNotExist(err) {
+	if _, err := os.Stat(destination); os.IsNotExist(err) {
 		return errs.WithEF(err, b.fields, "Expected aci has not been created")
 	}
-	logs.WithField("path", dir).Debug("chdir")
 	return nil
 }
 
@@ -272,6 +288,7 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 	if err != nil {
 		return args, env, errs.WithEF(err, b.fields.WithField("content", string(content)), "Failed to process manifest template")
 	}
+	b.fullManifest = aciManifest
 	for _, mount := range aciManifest.Builder.MountPoints {
 		if strings.HasPrefix(mount.From, "~/") {
 			user, err := user.Current()
