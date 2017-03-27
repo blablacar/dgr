@@ -295,7 +295,7 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 		if strings.HasPrefix(mount.From, "~/") {
 			user, err := user.Current()
 			if err != nil {
-				return args, env, errs.WithEF(err, b.fields, "Cannot found current user")
+				return args, env, errs.WithEF(err, b.fields, "Cannot find current user")
 			}
 			mount.From = user.HomeDir + mount.From[1:]
 		}

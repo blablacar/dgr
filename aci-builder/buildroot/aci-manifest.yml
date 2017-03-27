@@ -1,0 +1,6 @@
+name: blablacar.github.io/dgr/aci-buildroot
+builder:
+  dependencies:
+      - blablacar.github.io/dgr/aci-buildroot:2017.02-1
+  mountPoints:
+    - { from: ./dgr-cache, to: /dgr-cache }
