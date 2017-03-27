@@ -27,7 +27,7 @@ func (aci *Aci) prepareRktRunArguments(command common.BuilderCommand, builderHas
 	args = append(args, "--set-env="+common.EnvCatchOnError+"="+strconv.FormatBool(aci.args.CatchOnError))
 	args = append(args, "--set-env="+common.EnvCatchOnStep+"="+strconv.FormatBool(aci.args.CatchOnStep))
 	args = append(args, "--net=host")
-	args = append(args, "--insecure-options=image")
+	args = append(args, "--insecure-options=image,ondisk")
 	args = append(args, "--uuid-file-save="+aci.target+pathBuilderUuid)
 	args = append(args, "--interactive")
 	if stage1Hash != "" {
