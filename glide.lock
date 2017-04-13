@@ -1,16 +1,21 @@
-hash: 6babc48c9dd2bb9b6dcf5b66dc2c47ab567ec56ad62915884928912ebdb1280d
-updated: 2016-11-28T14:13:15.168656271+01:00
+hash: cfab2b347f7412e2dbf433b4fb3f18f3e40d3e543f9f9d7cfd7005512596f866
+updated: 2017-04-13T23:15:56.557206127+02:00
 imports:
 - name: github.com/appc/spec
-  version: d7de4875ad542ca48f4ff1f1f0a487764a825fbd
+  version: ba99d6b8ccbbed2942e53eb5395fddae113cdf8e
   subpackages:
+  - ace
   - aci
+  - actool
   - discovery
+  - pkg/acirenderer
   - pkg/device
   - pkg/tarheader
   - schema
   - schema/common
+  - schema/lastditch
   - schema/types
+  - schema/types/resource
 - name: github.com/aws/aws-sdk-go
   version: 13a12060f716145019378a10e2806c174356b857
   subpackages:
@@ -51,37 +56,22 @@ imports:
   - semver
 - name: github.com/coreos/ioprogress
   version: 4637e494fd9b23c5565ee193e89f91fdc1639bc0
-- name: github.com/coreos/rkt
-  version: 1e6e9cd4e669c47e21b269a0c4a01f740172619b
-  subpackages:
-  - common
-  - pkg/fileutil
-  - pkg/group
-  - pkg/passwd
-  - pkg/sys
-  - pkg/user
-  - rkt/config
-  - stage1/common/types
 - name: github.com/ghodss/yaml
-  version: c3eb24aeea63668ebdac08d2e252f20df8b6b1ae
+  version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-ini/ini
   version: 12f418cc7edc5a618a51407b7ac1f1f512139df3
-- name: github.com/gogo/protobuf
-  version: 4168943e65a2802828518e95310aeeed6d84c4e5
-  subpackages:
-  - proto
 - name: github.com/hashicorp/errwrap
   version: 7554cd9344cec97297fa6649b055a8c98c2a1e55
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jhoonb/archivex
-  version: 333107c714224dd425951d488a51a03a42592fd8
+  version: be4efa7ec0c38ab76d56037014c90d48d6b13037
 - name: github.com/jmespath/go-jmespath
   version: 0b12d6b521d83fc7f755e7cfc1b1fbdd35a01a74
 - name: github.com/juju/errors
-  version: 1b5e39b83d1835fa480e0c2ddefb040ee82d58b3
+  version: 6f54ff6318409d31ff16261533ce2c8381a4fd5d
 - name: github.com/klauspost/compress
-  version: e3b7981a12dd3cab49afa1d3a50e715846f23732
+  version: e80ca55b53e5e6f53deed5c7842e7b7da95e1dc7
   subpackages:
   - flate
 - name: github.com/klauspost/cpuid
@@ -89,38 +79,44 @@ imports:
 - name: github.com/klauspost/crc32
   version: 19b0b332c9e4516a6370a0456e6182c3b5036720
 - name: github.com/klauspost/pgzip
+  version: 0bf5dcad4ada2814c3c00f996a982270bb81a506
 - name: github.com/leekchan/gtf
   version: 882e96b937c8506c67b5adf98ff1f84cd7b7b93a
+- name: github.com/mattn/go-colorable
+  version: ded68f7a9561c023e790de24279db7ebf473ea80
+- name: github.com/mattn/go-isatty
+  version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
 - name: github.com/mgutz/ansi
-  version: c286dcecd19ff979eeb73ea444e479b903f2cfcb
+  version: 9520e82c474b0a04dd04f8a40959027271bab992
 - name: github.com/n0rad/go-erlog
-  version: d2278035863763980c7e312c6b813293f2ba4892
+  version: 4b041df7334d6008f8ceaa9e6ed03d43aa9c1356
   subpackages:
   - data
   - errs
   - logs
   - register
-- name: github.com/onsi/gomega
-  version: a78ae492d53aad5a7a232d0d0462c14c400e3ee7
-  subpackages:
-  - format
-  - internal/assertion
-  - internal/asyncassertion
-  - internal/testingtsupport
-  - matchers
-  - matchers/support/goraph/bipartitegraph
-  - matchers/support/goraph/edge
-  - matchers/support/goraph/node
-  - matchers/support/goraph/util
-  - types
 - name: github.com/peterbourgon/mergemap
   version: e21c03b7a721e413718d2703181ead350d3c9d6f
+- name: github.com/rkt/rkt
+  version: d2d35e0db1e9ff0140365514d70d2c3a37b25f37
+  subpackages:
+  - common
+  - pkg/fileutil
+  - pkg/fs
+  - pkg/group
+  - pkg/log
+  - pkg/mountinfo
+  - pkg/passwd
+  - pkg/sys
+  - pkg/user
+  - rkt/config
+  - stage1/common/types
 - name: github.com/spf13/cobra
   version: 385fc87e4343efec233811d3d933509e8975d11a
 - name: github.com/spf13/pflag
   version: 67cbc198fd11dab704b214c1e629a97af392c085
 - name: github.com/syndtr/gocapability
-  version: 8e4cdcb3c22b40d5e330ade0b68cb2e2a3cf6f98
+  version: e7cb7fa329f456b3855136a2642b197bad7366ba
   subpackages:
   - capability
 - name: go4.org
@@ -128,36 +124,30 @@ imports:
   subpackages:
   - errorutil
 - name: golang.org/x/crypto
-  version: a7ead6ddf06233883deca151dffaef2effbf498f
+  version: cbc3d0884eac986df6e78a039b8792e869bff863
   subpackages:
-  - cast5
-  - openpgp
-  - openpgp/armor
-  - openpgp/elgamal
-  - openpgp/errors
-  - openpgp/packet
-  - openpgp/s2k
   - ssh/terminal
 - name: golang.org/x/net
   version: ccfcd82c7124abd517842acbacc3b8c1e390c73d
   subpackages:
   - html
   - html/atom
+- name: golang.org/x/sys
+  version: b44883b474ffefa37335017174e397412b633a4f
+  subpackages:
+  - unix
 - name: gopkg.in/inf.v0
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
 - name: gopkg.in/yaml.v2
-  version: 7ad95dd0798a40da1ccdff6dff35fd177b5edf40
-- name: k8s.io/kubernetes
-  version: fd8fac83034df346529c6e11aabceea2db48d663
-  subpackages:
-  - pkg/api/resource
+  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 testImports:
 - name: github.com/onsi/gomega
-  version: a78ae492d53aad5a7a232d0d0462c14c400e3ee7
+  version: 334b8f472b3af5d541c5642701c1e29e2126f486
   subpackages:
   - format
   - internal/assertion
   - internal/asyncassertion
+  - internal/oraclematcher
   - internal/testingtsupport
   - matchers
   - matchers/support/goraph/bipartitegraph

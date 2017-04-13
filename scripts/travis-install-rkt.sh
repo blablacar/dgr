@@ -4,7 +4,7 @@ set -e
 
 version="v1.25.0"
 filename="rkt-${version}.tar.gz"
-url="https://github.com/coreos/rkt/releases/download/${version}/${filename}"
+url="https://github.com/rkt/rkt/releases/download/${version}/${filename}"
 
 $(rkt version | grep "${version}") || {
     mkdir -p "/tmp/rkt"

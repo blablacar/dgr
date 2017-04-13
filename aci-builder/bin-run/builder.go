@@ -13,12 +13,12 @@ import (
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/dgr/bin-templater/merger"
 	"github.com/blablacar/dgr/dgr/common"
-	rktcommon "github.com/coreos/rkt/common"
-	"github.com/coreos/rkt/pkg/sys"
-	stage1commontypes "github.com/coreos/rkt/stage1/common/types"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
+	rktcommon "github.com/rkt/rkt/common"
+	"github.com/rkt/rkt/pkg/sys"
+	stage1commontypes "github.com/rkt/rkt/stage1/common/types"
 )
 
 type Builder struct {
@@ -32,7 +32,7 @@ type Builder struct {
 }
 
 func NewBuilder(podRoot string, podUUID *types.UUID) (*Builder, error) {
-	pod, err := stage1commontypes.LoadPod(podRoot, podUUID)
+	pod, err := stage1commontypes.LoadPod(podRoot, podUUID, nil)
 	if err != nil {
 		logs.WithError(err).Fatal("Failed to load pod")
 	}

@@ -15,12 +15,12 @@ import (
 func Marshal(o interface{}) ([]byte, error) {
 	j, err := json.Marshal(o)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling into JSON: ", err)
+		return nil, fmt.Errorf("error marshaling into JSON: %v", err)
 	}
 
 	y, err := JSONToYAML(j)
 	if err != nil {
-		return nil, fmt.Errorf("error converting JSON to YAML: ", err)
+		return nil, fmt.Errorf("error converting JSON to YAML: %v", err)
 	}
 
 	return y, nil
@@ -48,7 +48,7 @@ func JSONToYAML(j []byte) ([]byte, error) {
 	var jsonObj interface{}
 	// We are using yaml.Unmarshal here (instead of json.Unmarshal) because the
 	// Go JSON library doesn't try to pick the right number type (int, float,
-	// etc.) when unmarshling to interface{}, it just picks float64
+	// etc.) when unmarshalling to interface{}, it just picks float64
 	// universally. go-yaml does go through the effort of picking the right
 	// number type, so we can preserve number type throughout this process.
 	err := yaml.Unmarshal(j, &jsonObj)
@@ -165,9 +165,11 @@ func convertToJSONableObject(yamlObj interface{}, jsonTarget *reflect.Value) (in
 					reflect.TypeOf(k), k, v)
 			}
 
-			// If jsonTarget is a struct (which it really should be), find the
-			// field it's going to map to. If it's not a struct, just pass nil
-			// - JSON conversion will error for us if it's a real issue.
+			// jsonTarget should be a struct or a map. If it's a struct, find
+			// the field it's going to map to and pass its reflect.Value. If
+			// it's a map, find the element type of the map and pass the
+			// reflect.Value created from that type. If it's neither, just pass
+			// nil - JSON conversion will error for us if it's a real issue.
 			if jsonTarget != nil {
 				t := *jsonTarget
 				if t.Kind() == reflect.Struct {
@@ -196,6 +198,15 @@ func convertToJSONableObject(yamlObj interface{}, jsonTarget *reflect.Value) (in
 						}
 						continue
 					}
+				} else if t.Kind() == reflect.Map {
+					// Create a zero value of the map's element type to use as
+					// the JSON target.
+					jtv := reflect.Zero(t.Type().Elem())
+					strMap[keyString], err = convertToJSONableObject(v, &jtv)
+					if err != nil {
+						return nil, err
+					}
+					continue
 				}
 			}
 			strMap[keyString], err = convertToJSONableObject(v, nil)

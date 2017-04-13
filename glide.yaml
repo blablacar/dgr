@@ -1,15 +1,23 @@
 package: github.com/blablacar/dgr
+flatten: true
 import:
 - package: github.com/appc/spec
-  version: ^0.8.9
+  version: v0.8.10
   subpackages:
+  - ace
   - aci
+  - actool
   - discovery
+  - pkg/acirenderer
+  - pkg/device
+  - pkg/tarheader
   - schema
+  - schema/common
+  - schema/lastditch
   - schema/types
 - package: github.com/coreos/ioprogress
-- package: github.com/coreos/rkt
-  version: ^1.20.0
+- package: github.com/rkt/rkt
+  version: d2d35e0db1e9ff0140365514d70d2c3a37b25f37
   subpackages:
   - common
   - pkg/sys
@@ -34,6 +42,11 @@ import:
   - html
   - html/atom
 - package: gopkg.in/yaml.v2
+- package: go4.org
+  subpackages:
+  - errorutil
+- package: github.com/mattn/go-colorable
+  version: ^0.0.7
 testImport:
 - package: github.com/onsi/gomega
   version: ^1.0.0

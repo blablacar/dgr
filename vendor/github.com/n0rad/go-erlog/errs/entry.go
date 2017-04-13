@@ -110,6 +110,10 @@ func (e *EntryError) WithMessage(msg string) *EntryError {
 }
 
 func (e *EntryError) Error() string {
+	if e == nil {
+		return ""
+	}
+
 	var buffer bytes.Buffer
 	buffer.WriteString(e.Message)
 	if e.Fields != nil {

@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/blablacar/dgr/dgr/common"
-	"github.com/coreos/rkt/rkt/config"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
+	"github.com/rkt/rkt/rkt/config"
 )
 
 func (aci *Aci) Push() error {
