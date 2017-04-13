@@ -548,7 +548,7 @@ acbuild is a command line tools to build ACIs. It is more flexible than Dockerfi
 
 
 # Requirement
-- [rkt](https://github.com/coreos/rkt) in your `$PATH` or configured in dgr global conf
+- [rkt](https://github.com/rkt/rkt) in your `$PATH` or configured in dgr global conf
 - being root is required to call rkt
 - linux >= 3.18 with overlay filesystem
 

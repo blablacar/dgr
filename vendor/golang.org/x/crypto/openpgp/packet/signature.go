@@ -5,16 +5,20 @@
 package packet
 
 import (
+	"bytes"
 	"crypto"
 	"crypto/dsa"
-	"crypto/rsa"
+	"crypto/ecdsa"
+	"encoding/asn1"
 	"encoding/binary"
-	"golang.org/x/crypto/openpgp/errors"
-	"golang.org/x/crypto/openpgp/s2k"
 	"hash"
 	"io"
+	"math/big"
 	"strconv"
 	"time"
+
+	"golang.org/x/crypto/openpgp/errors"
+	"golang.org/x/crypto/openpgp/s2k"
 )
 
 const (
@@ -62,6 +66,15 @@ type Signature struct {
 	// See RFC 4880, section 5.2.3.23 for details.
 	RevocationReason     *uint8
 	RevocationReasonText string
+
+	// MDC is set if this signature has a feature packet that indicates
+	// support for MDC subpackets.
+	MDC bool
+
+	// EmbeddedSignature, if non-nil, is a signature of the parent key, by
+	// this key. This prevents an attacker from claiming another's signing
+	// subkey as their own.
+	EmbeddedSignature *Signature
 
 	outSubpackets []outputSubpacket
 }
@@ -190,6 +203,8 @@ const (
 	primaryUserIdSubpacket       signatureSubpacketType = 25
 	keyFlagsSubpacket            signatureSubpacketType = 27
 	reasonForRevocationSubpacket signatureSubpacketType = 29
+	featuresSubpacket            signatureSubpacketType = 30
+	embeddedSignatureSubpacket   signatureSubpacketType = 32
 )
 
 // parseSignatureSubpacket parses a single subpacket. len(subpacket) is >= 1.
@@ -343,7 +358,30 @@ func parseSignatureSubpacket(sig *Signature, subpacket []byte, isHashed bool) (r
 		sig.RevocationReason = new(uint8)
 		*sig.RevocationReason = subpacket[0]
 		sig.RevocationReasonText = string(subpacket[1:])
-
+	case featuresSubpacket:
+		// Features subpacket, section 5.2.3.24 specifies a very general
+		// mechanism for OpenPGP implementations to signal support for new
+		// features. In practice, the subpacket is used exclusively to
+		// indicate support for MDC-protected encryption.
+		sig.MDC = len(subpacket) >= 1 && subpacket[0]&1 == 1
+	case embeddedSignatureSubpacket:
+		// Only usage is in signatures that cross-certify
+		// signing subkeys. section 5.2.3.26 describes the
+		// format, with its usage described in section 11.1
+		if sig.EmbeddedSignature != nil {
+			err = errors.StructuralError("Cannot have multiple embedded signatures")
+			return
+		}
+		sig.EmbeddedSignature = new(Signature)
+		// Embedded signatures are required to be v4 signatures see
+		// section 12.1. However, we only parse v4 signatures in this
+		// file anyway.
+		if err := sig.EmbeddedSignature.parse(bytes.NewBuffer(subpacket)); err != nil {
+			return nil, err
+		}
+		if sigType := sig.EmbeddedSignature.SigType; sigType != SigTypePrimaryKeyBinding {
+			return nil, errors.StructuralError("cross-signature has unexpected type " + strconv.Itoa(int(sigType)))
+		}
 	default:
 		if isCritical {
 			err = errors.UnsupportedError("unknown critical signature subpacket type " + strconv.Itoa(int(packetType)))
@@ -479,7 +517,8 @@ func (sig *Signature) Sign(h hash.Hash, priv *PrivateKey, config *Config) (err e
 
 	switch priv.PubKeyAlgo {
 	case PubKeyAlgoRSA, PubKeyAlgoRSASignOnly:
-		sig.RSASignature.bytes, err = rsa.SignPKCS1v15(config.Random(), priv.PrivateKey.(*rsa.PrivateKey), sig.Hash, digest)
+		// supports both *rsa.PrivateKey and crypto.Signer
+		sig.RSASignature.bytes, err = priv.PrivateKey.(crypto.Signer).Sign(config.Random(), digest, sig.Hash)
 		sig.RSASignature.bitLength = uint16(8 * len(sig.RSASignature.bytes))
 	case PubKeyAlgoDSA:
 		dsaPriv := priv.PrivateKey.(*dsa.PrivateKey)
@@ -496,11 +535,40 @@ func (sig *Signature) Sign(h hash.Hash, priv *PrivateKey, config *Config) (err e
 			sig.DSASigS.bytes = s.Bytes()
 			sig.DSASigS.bitLength = uint16(8 * len(sig.DSASigS.bytes))
 		}
+	case PubKeyAlgoECDSA:
+		var r, s *big.Int
+		if pk, ok := priv.PrivateKey.(*ecdsa.PrivateKey); ok {
+			// direct support, avoid asn1 wrapping/unwrapping
+			r, s, err = ecdsa.Sign(config.Random(), pk, digest)
+		} else {
+			var b []byte
+			b, err = priv.PrivateKey.(crypto.Signer).Sign(config.Random(), digest, nil)
+			if err == nil {
+				r, s, err = unwrapECDSASig(b)
+			}
+		}
+		if err == nil {
+			sig.ECDSASigR = fromBig(r)
+			sig.ECDSASigS = fromBig(s)
+		}
 	default:
 		err = errors.UnsupportedError("public key algorithm: " + strconv.Itoa(int(sig.PubKeyAlgo)))
 	}
 
 	return
+}
+
+// unwrapECDSASig parses the two integer components of an ASN.1-encoded ECDSA
+// signature.
+func unwrapECDSASig(b []byte) (r, s *big.Int, err error) {
+	var ecsdaSig struct {
+		R, S *big.Int
+	}
+	_, err = asn1.Unmarshal(b, &ecsdaSig)
+	if err != nil {
+		return
+	}
+	return ecsdaSig.R, ecsdaSig.S, nil
 }
 
 // SignUserId computes a signature from priv, asserting that pub is a valid
@@ -510,7 +578,7 @@ func (sig *Signature) Sign(h hash.Hash, priv *PrivateKey, config *Config) (err e
 func (sig *Signature) SignUserId(id string, pub *PublicKey, priv *PrivateKey, config *Config) error {
 	h, err := userIdSignatureHash(id, pub, sig.Hash)
 	if err != nil {
-		return nil
+		return err
 	}
 	return sig.Sign(h, priv, config)
 }

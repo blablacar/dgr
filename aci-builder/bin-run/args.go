@@ -7,8 +7,8 @@ import (
 
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/dgr/dgr/common"
-	rktcommon "github.com/coreos/rkt/common"
 	"github.com/n0rad/go-erlog/logs"
+	rktcommon "github.com/rkt/rkt/common"
 )
 
 var cliDebugFlag bool
@@ -22,7 +22,7 @@ func init() {
 	flag.BoolVar(&cliDebugFlag, "debug", false, "Run in debug mode")
 
 	// The following flags need to be supported by stage1 according to
-	// https://github.com/coreos/rkt/blob/master/Documentation/devel/stage1-implementors-guide.md
+	// https://github.com/rkt/rkt/blob/master/Documentation/devel/stage1-implementors-guide.md
 	// TODO: either implement functionality or give not implemented warnings
 	flag.Var(&discardNetlist, "net", "Setup networking")
 	flag.BoolVar(&discardBool, "interactive", true, "The pod is interactive")
