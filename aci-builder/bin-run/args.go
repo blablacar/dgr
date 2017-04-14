@@ -47,7 +47,7 @@ func parseFlags() *stage1commontypes.RuntimePod {
 		"resolv": {"host", "stage0", "none", "default"},
 		"hosts":  {"host", "stage0", "default"},
 	}, map[string]string{
-		"resolv": "default",
+		"resolv": "host",
 		"hosts":  "default",
 	})
 	flag.Var(dnsConfMode, "dns-conf-mode", "DNS config file modes")
