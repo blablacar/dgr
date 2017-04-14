@@ -31,8 +31,8 @@ type Builder struct {
 	pod           *stage1commontypes.Pod
 }
 
-func NewBuilder(podRoot string, podUUID *types.UUID) (*Builder, error) {
-	pod, err := stage1commontypes.LoadPod(podRoot, podUUID, nil)
+func NewBuilder(podRoot string, podUUID *types.UUID, rp *stage1commontypes.RuntimePod) (*Builder, error) {
+	pod, err := stage1commontypes.LoadPod(podRoot, podUUID, rp)
 	if err != nil {
 		logs.WithError(err).Fatal("Failed to load pod")
 	}
@@ -276,7 +276,7 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 		if strings.HasPrefix(mount.From, "~/") {
 			user, err := user.Current()
 			if err != nil {
-				return args, env, errs.WithEF(err, b.fields, "Cannot found current user")
+				return args, env, errs.WithEF(err, b.fields, "Cannot find current user")
 			}
 			mount.From = user.HomeDir + mount.From[1:]
 		}

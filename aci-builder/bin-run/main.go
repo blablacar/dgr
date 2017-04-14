@@ -11,14 +11,14 @@ import (
 func main() {
 	logs.GetDefaultLog().(*erlog.ErlogLogger).Appenders[0].(*erlog.ErlogWriterAppender).Out = os.Stdout
 
-	uuid := ProcessArgsAndReturnPodUUID()
+	uuid, rp := ProcessArgsAndReturnPodUUID()
 
 	dir, err := os.Getwd()
 	if err != nil {
 		logs.WithE(err).Fatal("Failed to get current working directory")
 	}
 
-	b, err := NewBuilder(dir, uuid)
+	b, err := NewBuilder(dir, uuid, rp)
 	if err != nil {
 		logs.WithE(err).Fatal("Failed to load Builder")
 	}

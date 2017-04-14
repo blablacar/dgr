@@ -4,7 +4,7 @@ set -e
 isLevelEnabled "debug" && set -x
 
 keyringFile=debian-archive-keyring_2014.3_all.deb
-cdebootstrapFile=cdebootstrap-static_0.7.7_amd64.deb
+cdebootstrapFile=cdebootstrap-static_0.7.7+b1_amd64.deb
 gpgvFile=gpgv_1.4.18-7+deb8u3_amd64.deb
 
 mkdir /tmp/debootstrap
