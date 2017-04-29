@@ -95,7 +95,7 @@ func Execute() {
 	rootCmd.PersistentFlags().BoolVar(&Args.NoStore, "no-store", false, "Tell rkt to not use store")
 	rootCmd.PersistentFlags().BoolVarP(&Args.ParallelBuild, "parallel", "P", false, "Run build in parallel for pod")
 
-	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, graphCmd, tryCmd, signCmd, aciVersion, configCmd)
+	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, graphCmd, tryCmd, signCmd, aciVersion, configCmd, updateCmd)
 
 	readEnvironment()
 	rootCmd.Execute()

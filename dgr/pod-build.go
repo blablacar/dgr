@@ -36,6 +36,11 @@ func (p *Pod) Build() error {
 	return nil
 }
 
+func (p *Pod) Update() error {
+	logs.Error("Not implemented yet")
+	return nil
+}
+
 func (p *Pod) CleanAndBuild() error {
 	p.Clean()
 	return p.Build()
