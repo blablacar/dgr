@@ -16,6 +16,7 @@ import (
 
 type DgrCommand interface {
 	Build() error
+	Update() error
 	CleanAndBuild() error
 	CleanAndTry() error
 	Clean()
@@ -124,6 +125,7 @@ var pushCmd = newPushCommand(false)
 var testCmd = newTestCommand(false)
 var tryCmd = newTryCommand(false)
 var signCmd = newSignCommand(false)
+var updateCmd = newUpdateCommand(false)
 
 ///////////////////////////////////////////////////////////////
 
@@ -161,6 +163,27 @@ func newBuildCommand(userClean bool) *cobra.Command {
 
 			checkWg := &sync.WaitGroup{}
 			if err := NewAciOrPod(workPath, Args, checkWg).CleanAndBuild(); err != nil {
+				logs.WithE(err).Fatal("Build command failed")
+			}
+			checkWg.Wait()
+		},
+	}
+	cmd.Flags().BoolVarP(&Args.KeepBuilder, "keep-builder", "k", false, "Keep builder container after exit")
+	cmd.Flags().BoolVarP(&Args.CatchOnError, "catch-on-error", "c", false, "Catch a shell on build* runlevel fail") // TODO This is builder dependent and should be pushed by builder ? or find a way to become generic
+	cmd.Flags().BoolVarP(&Args.CatchOnStep, "catch-on-step", "C", false, "Catch a shell after each build* runlevel")
+	return cmd
+}
+
+func newUpdateCommand(userClean bool) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update",
+		Short: "update attributes in aci [Experimental]",
+		Long:  `update attributes in aci [Experimental]`,
+		Run: func(cmd *cobra.Command, args []string) {
+			checkNoArgs(args)
+
+			checkWg := &sync.WaitGroup{}
+			if err := NewAciOrPod(workPath, Args, checkWg).Update(); err != nil {
 				logs.WithE(err).Fatal("Build command failed")
 			}
 			checkWg.Wait()
@@ -275,4 +298,5 @@ func init() {
 	cleanCmd.AddCommand(newBuildCommand(true))
 	cleanCmd.AddCommand(newTryCommand(true))
 	cleanCmd.AddCommand(newSignCommand(true))
+	cleanCmd.AddCommand(newUpdateCommand(true))
 }
