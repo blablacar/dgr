@@ -1,19 +1,23 @@
 package main
 
 import (
-	"strings"
-
 	"os"
+	"strings"
 
 	"github.com/blablacar/dgr/dgr/common"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 )
 
-const inAciTemplatePath = "rootfs/dgr/templates/"
-const inAciAttributesPath = "rootfs/dgr/attributes/"
 const pathTemplates = "/templates"
 const pathAttributes = "/attributes"
+const pathPrestartEarly = "/runlevels/prestart-early"
+const pathPrestartLate = "/runlevels/prestart-late"
+const pathRootfsDgr = "rootfs/dgr"
+const inAciTemplatePath = pathRootfsDgr + pathTemplates
+const inAciAttributesPath = pathRootfsDgr + pathAttributes
+const inAciPrestartEarlyPath = pathRootfsDgr + pathPrestartEarly
+const inAciPrestartLatePath = pathRootfsDgr + pathPrestartLate
 
 func (aci *Aci) Update() error {
 	aci.EnsureBuilt()
@@ -30,24 +34,25 @@ func (aci *Aci) RunUpdate() error {
 	}
 	file.Close()
 
-	aciName := string(aci.manifest.NameAndVersion.ShortName())
-	if _, err := os.Stat(aci.path + pathAttributes); err == nil {
-		common.ExecCmd("tar", "--delete", inAciAttributesPath+aciName, "-f", aci.target+pathImageAci)
-		common.ExecCmd("tar", "--owner=0", "--group=0", "-rf",
-			aci.target+pathImageAci,
-			"--transform",
-			"s,"+strings.TrimPrefix(aci.path, "/")+pathAttributes+","+inAciAttributesPath+aciName+",",
-			aci.path+pathAttributes)
-		common.ExecCmd("tar", "-tvf", aci.target+pathImageAci, inAciAttributesPath)
-	}
-	if _, err := os.Stat(aci.path + pathTemplates); err == nil {
-		common.ExecCmd("tar", "--delete", inAciTemplatePath, "-f", aci.target+pathImageAci)
-		common.ExecCmd("tar", "--owner=0", "--group=0", "-rf",
-			aci.target+pathImageAci,
-			"--transform",
-			"s,"+strings.TrimPrefix(aci.path, "/")+pathTemplates+","+inAciTemplatePath+",",
-			aci.path+pathTemplates)
-		common.ExecCmd("tar", "-tvf", aci.target+pathImageAci, inAciTemplatePath)
-	}
+	aciName := string(aci.manifest.NameAndVersion.TinyNameId())
+	logs.WithField("lol", aciName).Debug("Updating")
+	aci.updateFileInTar(pathAttributes, inAciAttributesPath+"/"+aciName)
+	aci.updateFileInTar(pathTemplates, inAciTemplatePath)
+	aci.updateFileInTar(pathPrestartEarly, inAciPrestartEarlyPath)
+	aci.updateFileInTar(pathPrestartLate, inAciPrestartLatePath)
+
 	return nil
+}
+
+func (aci *Aci) updateFileInTar(localPath string, inAciPath string) {
+	aciPath := aci.path + localPath
+	if _, err := os.Stat(aciPath); err == nil {
+		common.ExecCmd("tar", "--delete", inAciPath, "-f", aci.target+pathImageAci)
+		common.ExecCmd("tar", "--owner=0", "--group=0", "-rf",
+			aci.target+pathImageAci,
+			"--transform",
+			"s,"+strings.TrimPrefix(aciPath, "/")+","+inAciPath+",",
+			aciPath)
+		common.ExecCmd("tar", "-tvf", aci.target+pathImageAci, inAciPath)
+	}
 }
