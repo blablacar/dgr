@@ -177,14 +177,14 @@ func newBuildCommand(userClean bool) *cobra.Command {
 func newUpdateCommand(userClean bool) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update",
-		Short: "update attributes in aci [Experimental]",
-		Long:  `update attributes in aci [Experimental]`,
+		Short: "update attributes/templates in aci [Experimental]",
+		Long:  `update attributes/templates in aci [Experimental]`,
 		Run: func(cmd *cobra.Command, args []string) {
 			checkNoArgs(args)
 
 			checkWg := &sync.WaitGroup{}
 			if err := NewAciOrPod(workPath, Args, checkWg).Update(); err != nil {
-				logs.WithE(err).Fatal("Build command failed")
+				logs.WithE(err).Fatal("Update command failed")
 			}
 			checkWg.Wait()
 		},

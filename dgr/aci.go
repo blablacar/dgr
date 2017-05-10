@@ -31,6 +31,7 @@ const pathBuilder = "/builder"
 const pathBuilderUuid = "/builder.uuid"
 const pathTesterUuid = "/tester.uuid"
 const pathVersion = "/version"
+const pathUpdated = "/updated"
 
 const suffixAsc = ".asc"
 const prefixTest = "test/"

@@ -6,8 +6,14 @@ import (
 	"os"
 
 	"github.com/blablacar/dgr/dgr/common"
+	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 )
+
+const inAciTemplatePath = "rootfs/dgr/templates/"
+const inAciAttributesPath = "rootfs/dgr/attributes/"
+const pathTemplates = "/templates"
+const pathAttributes = "/attributes"
 
 func (aci *Aci) Update() error {
 	aci.EnsureBuilt()
@@ -15,18 +21,33 @@ func (aci *Aci) Update() error {
 }
 
 func (aci *Aci) RunUpdate() error {
-	logs.WithField("target", aci.target).Info("Experimental features. Prefer a clean rebuild before push.")
-	if _, err := os.Stat(aci.path + "/attributes"); err == nil {
-		common.ExecCmd("tar", "--delete", "rootfs/dgr/attributes/"+string(aci.manifest.NameAndVersion.ShortName()), "-f", aci.target+"/image.aci")
-		common.ExecCmd("tar", "--owner=0", "--group=0", "-rf", aci.target+"/image.aci", "--transform", "s,"+strings.TrimPrefix(aci.path, "/")+"/attributes,rootfs/dgr/attributes/"+string(aci.manifest.NameAndVersion.ShortName())+",", aci.path+"/attributes")
-		common.ExecCmd("tar", "-tvf", aci.target+"/image.aci", "rootfs/dgr/attributes/")
-	}
-	if _, err := os.Stat(aci.path + "/templates"); err == nil {
-		common.ExecCmd("tar", "--delete", "rootfs/dgr/templates/", "-f", aci.target+"/image.aci")
-		common.ExecCmd("tar", "--owner=0", "--group=0", "-rf", aci.target+"/image.aci", "--transform", "s,"+strings.TrimPrefix(aci.path, "/")+"/templates,rootfs/dgr/templates/,", aci.path+"/templates")
-		common.ExecCmd("tar", "-tvf", aci.target+"/image.aci", "rootfs/dgr/templates/")
-	}
-	logs.Info("Update Done. Prefer a clean rebuild before push.")
+	logs.WithF(aci.fields).Debug("Updating")
 
+	updatedFile := aci.target + pathUpdated
+	file, err := os.OpenFile(updatedFile, os.O_RDONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return errs.WithEF(err, aci.fields.WithField("path", updatedFile), "failed to create update file")
+	}
+	file.Close()
+
+	aciName := string(aci.manifest.NameAndVersion.ShortName())
+	if _, err := os.Stat(aci.path + pathAttributes); err == nil {
+		common.ExecCmd("tar", "--delete", inAciAttributesPath+aciName, "-f", aci.target+pathImageAci)
+		common.ExecCmd("tar", "--owner=0", "--group=0", "-rf",
+			aci.target+pathImageAci,
+			"--transform",
+			"s,"+strings.TrimPrefix(aci.path, "/")+pathAttributes+","+inAciAttributesPath+aciName+",",
+			aci.path+pathAttributes)
+		common.ExecCmd("tar", "-tvf", aci.target+pathImageAci, inAciAttributesPath)
+	}
+	if _, err := os.Stat(aci.path + pathTemplates); err == nil {
+		common.ExecCmd("tar", "--delete", inAciTemplatePath, "-f", aci.target+pathImageAci)
+		common.ExecCmd("tar", "--owner=0", "--group=0", "-rf",
+			aci.target+pathImageAci,
+			"--transform",
+			"s,"+strings.TrimPrefix(aci.path, "/")+pathTemplates+","+inAciTemplatePath+",",
+			aci.path+pathTemplates)
+		common.ExecCmd("tar", "-tvf", aci.target+pathImageAci, inAciTemplatePath)
+	}
 	return nil
 }

@@ -224,6 +224,13 @@ func (aci *Aci) prepareBuildAci() (string, error) {
 	return hash, nil
 }
 
+func (aci *Aci) isUpdated() bool {
+	if _, err := os.Stat(aci.target + pathUpdated); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
 func (aci *Aci) EnsureBuilt() error {
 	if _, err := os.Stat(aci.target + pathImageAci); os.IsNotExist(err) {
 		if err := aci.CleanAndBuild(); err != nil {
