@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/blablacar/dgr/dgr/common"
+	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 )
@@ -34,24 +35,56 @@ func (aci *Aci) RunUpdate() error {
 	}
 	file.Close()
 
-	aciName := string(aci.manifest.NameAndVersion.TinyNameId())
-	aci.updateDirInTar(pathAttributes, inAciAttributesPath+"/"+aciName)
-	aci.updateDirInTar(pathTemplates, inAciTemplatePath)
-	aci.updateDirInTar(pathPrestartEarly, inAciPrestartEarlyPath)
-	aci.updateDirInTar(pathPrestartLate, inAciPrestartLatePath)
+	aciName := string(aci.manifest.NameAndVersion.TinyName())
+	if err := aci.updateDirInTar(pathAttributes, inAciAttributesPath+"/"+aciName); err != nil {
+		return err
+	}
+	if err := aci.updateDirInTar(pathTemplates, inAciTemplatePath); err != nil {
+		return err
+	}
+	if err := aci.updateDirInTar(pathPrestartEarly, inAciPrestartEarlyPath); err != nil {
+		return err
+	}
+	if err := aci.updateDirInTar(pathPrestartLate, inAciPrestartLatePath); err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func (aci *Aci) updateDirInTar(localPath string, inAciPath string) {
+func (aci *Aci) updateDirInTar(localPath string, inAciPath string) error {
 	aciPath := aci.path + localPath
 	if _, err := os.Stat(aciPath); err == nil {
-		common.ExecCmd("tar", "--delete", inAciPath, "-f", aci.target+pathImageAci)
-		common.ExecCmd("tar", "--owner=0", "--group=0", "-rf",
+
+		if err := updateExec(inAciPath, "--delete", inAciPath, "-f", aci.target+pathImageAci); err != nil {
+			return errs.WithE(err, "Failed to delete path in aci")
+		}
+
+		if err := updateExec(inAciPath, "--owner=0", "--group=0", "-rf",
 			aci.target+pathImageAci,
 			"--transform",
 			"s,"+strings.TrimPrefix(aciPath, "/")+","+inAciPath+",",
-			aciPath)
-		common.ExecCmd("tar", "-tvf", aci.target+pathImageAci, inAciPath)
+			aciPath); err != nil {
+			return errs.WithE(err, "Failed to transform path in aci")
+		}
+
+		if err := updateExec(inAciPath, "-tvf", aci.target+pathImageAci, inAciPath); err != nil {
+			return errs.WithE(err, "Failed to add path to aci")
+		}
 	}
+	return nil
+}
+
+func updateExec(inAciPath string, args ...string) error {
+	out, stderr, err := common.ExecCmdGetStdoutAndStderr("tar", args...)
+	if err != nil {
+		return errs.WithEF(err, data.
+			WithField("path", inAciPath).
+			WithField("stdout", out).
+			WithField("stderr", stderr), "Tar update failed")
+	}
+	if logs.IsDebugEnabled() {
+		println(out)
+	}
+	return nil
 }
