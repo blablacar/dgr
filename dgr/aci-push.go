@@ -4,8 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"time"
-
 	"github.com/blablacar/dgr/dgr/common"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
@@ -14,10 +12,10 @@ import (
 
 func (aci *Aci) Push() error {
 	defer aci.giveBackUserRightsToTarget()
+	logs.WithF(aci.fields).Info("Pushing")
 
 	if aci.isUpdated() {
 		logs.WithFields(aci.fields).Warn("You cannot push an updated aci, rebuilding")
-		time.Sleep(500)
 		if err := aci.CleanAndBuild(); err != nil {
 			return err
 		}

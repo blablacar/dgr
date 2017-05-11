@@ -177,8 +177,8 @@ func newBuildCommand(userClean bool) *cobra.Command {
 func newUpdateCommand(userClean bool) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update",
-		Short: "update attributes/templates in aci [Experimental]",
-		Long:  `update attributes/templates in aci [Experimental]`,
+		Short: "update attributes/templates/prestart in aci",
+		Long:  `update attributes/templates/prestart in aci`,
 		Run: func(cmd *cobra.Command, args []string) {
 			checkNoArgs(args)
 
