@@ -203,7 +203,6 @@ func (b *Builder) runBuild() error {
 func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []string, error) {
 	var args []string
 	env := os.Environ()
-
 	args = append(args, b.stage1Rootfs+"/dgr/usr/lib/ld-linux-x86-64.so.2")
 	args = append(args, b.stage1Rootfs+"/dgr/usr/bin/systemd-nspawn")
 	if context := os.Getenv(rktcommon.EnvSELinuxContext); context != "" {
@@ -258,6 +257,7 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 	args = append(args, "--directory="+b.stage1Rootfs)
 	args = append(args, "--bind="+b.aciHomePath+"/:/dgr/aci-home")
 	args = append(args, "--bind="+b.aciTargetPath+"/:/dgr/aci-target")
+	args = append(args, "--bind=/etc/resolv.conf:/etc/resolv.conf")
 
 	//
 	content, err := ioutil.ReadFile(b.aciTargetPath + common.PathManifestYmlTmpl)
