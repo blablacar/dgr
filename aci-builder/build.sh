@@ -6,8 +6,7 @@ dist=${dir}/../dist
 target=${dist}/aci-builder
 rootfs=${target}/rootfs
 echo -e "\033[0;32mBuilding aci-builder\033[0m\n"
-#rootfs_hash=ba295a1988f04ae77bd49842440716f35609a111
-rootfs_hash=5204b5590603df8d3cc0964277c48e97939474fa
+rootfs_hash=8a7922a708d1c284abdf49f62721af8f2b3d07f3
 ${dir}/clean.sh
 
 mkdir -p ${rootfs}/dgr ${rootfs}/usr/bin
