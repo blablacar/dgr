@@ -47,3 +47,10 @@
   echo "$output" | grep "Failed test"
   [ "$status" -eq 1 ]
 }
+
+@test "should see when a test suceed" {
+  run $DGR_PATH -W with_successful_test test
+  echo -e "$output"
+  echo "$output" | grep "succeed"
+  [ "$status" -eq 0 ]
+}
