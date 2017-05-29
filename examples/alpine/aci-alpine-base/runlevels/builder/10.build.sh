@@ -4,7 +4,7 @@ set -e
 isLevelEnabled "debug" && set -x
 
 mirror=http://nl.alpinelinux.org/alpine/
-version=2.6.8-r2
+version=2.7.1-r1
 
 wget ${mirror}/latest-stable/main/x86_64/apk-tools-static-${version}.apk
 tar -xzf apk-tools-static-*.apk
