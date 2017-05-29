@@ -134,6 +134,12 @@ func (aci *Aci) buildTestAci() (string, error) {
 	fullname := common.NewACFullName(name)
 	resultMountName, _ := types.NewACName(mountAcname)
 
+	isolators := aci.manifest.Tester.Aci.App.Isolators
+
+	if len(isolators) == 0 {
+		isolators = aci.manifest.Aci.App.Isolators
+	}
+
 	aciManifest := &common.AciManifest{
 		Builder: aci.manifest.Tester.Builder,
 		Aci: common.AciDefinition{
@@ -146,7 +152,7 @@ func (aci *Aci) buildTestAci() (string, error) {
 				SupplementaryGIDs: aci.manifest.Aci.App.SupplementaryGIDs,
 				Environment:       aci.manifest.Aci.App.Environment,
 				Ports:             aci.manifest.Aci.App.Ports,
-				Isolators:         aci.manifest.Aci.App.Isolators,
+				Isolators:         isolators,
 			},
 			Dependencies:  append(aci.manifest.Tester.Aci.Dependencies, *common.NewACFullName(name[len(prefixTest):])),
 			Annotations:   aci.manifest.Aci.Annotations,
