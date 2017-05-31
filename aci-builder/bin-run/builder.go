@@ -257,7 +257,7 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 	args = append(args, "--directory="+b.stage1Rootfs)
 	args = append(args, "--bind="+b.aciHomePath+"/:/dgr/aci-home")
 	args = append(args, "--bind="+b.aciTargetPath+"/:/dgr/aci-target")
-	args = append(args, "--bind=/etc/resolv.conf:/etc/resolv.conf")
+	args = append(args, "--bind-ro=/etc/resolv.conf:/etc/resolv.conf")
 
 	//
 	content, err := ioutil.ReadFile(b.aciTargetPath + common.PathManifestYmlTmpl)
