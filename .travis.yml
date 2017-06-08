@@ -14,7 +14,18 @@ install:
   - sudo apt-get install -qq upx systemd
   - sudo ./scripts/travis-install-rkt.sh
   - sudo apt-get install -qq bats
+  - go get github.com/golang/lint/golint
+  - go get github.com/gordonklaus/ineffassign
 
 script:
+  - diff <(echo -n) <(gofmt -s -d $(find . -type f -name '*.go' -not -path "./_*" -not -path "./vendor/*"))
+  - ineffassign .
+  - go vet github.com/blablacar/dgr/dgr
+  - go vet github.com/blablacar/dgr/bin-templater
   - ./gomake clean build test quality install
   - sudo PATH=${GOPATH}/bin:$PATH ./examples/build.sh
+
+after_script:
+  - golint aci-builder
+  - golint bin-templater
+  - golint dgr
