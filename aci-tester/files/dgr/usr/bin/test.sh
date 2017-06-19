@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/dgr/bin/busybox sh
 . /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
