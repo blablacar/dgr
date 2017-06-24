@@ -1,0 +1,3 @@
+{{ range $appIndex, $appValue := (keys .services| sortAlpha) }}
+169.254.255.{{add1 $appIndex}} {{$appValue}}
+{{end}}

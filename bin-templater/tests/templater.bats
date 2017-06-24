@@ -60,3 +60,10 @@ setup() {
   [ "$status" -eq 0 ]
   cat ./target/etc/resolv.conf | grep "nameserver 8.8.8.8"
 }
+
+@test "should permit to use sprig func" {
+  run ../../dist/templater -t ./target 8/
+  echo -e "$output"
+  [ "$status" -eq 0 ]
+  cat ./target/etc/hosts | grep "169.254.255.2"
+}
