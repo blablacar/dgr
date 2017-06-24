@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"strings"
 )
 
 // The Permissions type holds fine-grained permissions that are
@@ -45,12 +44,6 @@ type ServerConfig struct {
 	// authenticating.
 	NoClientAuth bool
 
-	// MaxAuthTries specifies the maximum number of authentication attempts
-	// permitted per connection. If set to a negative number, the number of
-	// attempts are unlimited. If set to zero, the number of attempts are limited
-	// to 6.
-	MaxAuthTries int
-
 	// PasswordCallback, if non-nil, is called when a user
 	// attempts to authenticate using a password.
 	PasswordCallback func(conn ConnMetadata, password []byte) (*Permissions, error)
@@ -72,13 +65,6 @@ type ServerConfig struct {
 	// AuthLogCallback, if non-nil, is called to log all authentication
 	// attempts.
 	AuthLogCallback func(conn ConnMetadata, method string, err error)
-
-	// ServerVersion is the version identification string to announce in
-	// the public handshake.
-	// If empty, a reasonable default is used.
-	// Note that RFC 4253 section 4.2 requires that this string start with
-	// "SSH-2.0-".
-	ServerVersion string
 }
 
 // AddHostKey adds a private key as a host key. If an existing host
@@ -147,10 +133,6 @@ type ServerConn struct {
 // Request and NewChannel channels must be serviced, or the connection
 // will hang.
 func NewServerConn(c net.Conn, config *ServerConfig) (*ServerConn, <-chan NewChannel, <-chan *Request, error) {
-	if config.MaxAuthTries == 0 {
-		config.MaxAuthTries = 6
-	}
-
 	fullConf := *config
 	fullConf.SetDefaults()
 	s := &connection{
@@ -181,16 +163,8 @@ func (s *connection) serverHandshake(config *ServerConfig) (*Permissions, error)
 		return nil, errors.New("ssh: server has no host keys")
 	}
 
-	if !config.NoClientAuth && config.PasswordCallback == nil && config.PublicKeyCallback == nil && config.KeyboardInteractiveCallback == nil {
-		return nil, errors.New("ssh: no authentication methods configured but NoClientAuth is also false")
-	}
-
-	if config.ServerVersion != "" {
-		s.serverVersion = []byte(config.ServerVersion)
-	} else {
-		s.serverVersion = []byte(packageVersion)
-	}
 	var err error
+	s.serverVersion = []byte(packageVersion)
 	s.clientVersion, err = exchangeVersions(s.sshConn.conn, s.serverVersion)
 	if err != nil {
 		return nil, err
@@ -199,12 +173,15 @@ func (s *connection) serverHandshake(config *ServerConfig) (*Permissions, error)
 	tr := newTransport(s.sshConn.conn, config.Rand, false /* not client */)
 	s.transport = newServerTransport(tr, s.clientVersion, s.serverVersion, config)
 
-	if err := s.transport.waitSession(); err != nil {
+	if err := s.transport.requestKeyChange(); err != nil {
 		return nil, err
 	}
 
-	// We just did the key change, so the session ID is established.
-	s.sessionID = s.transport.getSessionID()
+	if packet, err := s.transport.readPacket(); err != nil {
+		return nil, err
+	} else if packet[0] != msgNewKeys {
+		return nil, unexpectedMessageError(msgNewKeys, packet[0])
+	}
 
 	var packet []byte
 	if packet, err = s.transport.readPacket(); err != nil {
@@ -235,14 +212,14 @@ func (s *connection) serverHandshake(config *ServerConfig) (*Permissions, error)
 
 func isAcceptableAlgo(algo string) bool {
 	switch algo {
-	case KeyAlgoRSA, KeyAlgoDSA, KeyAlgoECDSA256, KeyAlgoECDSA384, KeyAlgoECDSA521, KeyAlgoED25519,
+	case KeyAlgoRSA, KeyAlgoDSA, KeyAlgoECDSA256, KeyAlgoECDSA384, KeyAlgoECDSA521,
 		CertAlgoRSAv01, CertAlgoDSAv01, CertAlgoECDSA256v01, CertAlgoECDSA384v01, CertAlgoECDSA521v01:
 		return true
 	}
 	return false
 }
 
-func checkSourceAddress(addr net.Addr, sourceAddrs string) error {
+func checkSourceAddress(addr net.Addr, sourceAddr string) error {
 	if addr == nil {
 		return errors.New("ssh: no address known for client, but source-address match required")
 	}
@@ -252,20 +229,18 @@ func checkSourceAddress(addr net.Addr, sourceAddrs string) error {
 		return fmt.Errorf("ssh: remote address %v is not an TCP address when checking source-address match", addr)
 	}
 
-	for _, sourceAddr := range strings.Split(sourceAddrs, ",") {
-		if allowedIP := net.ParseIP(sourceAddr); allowedIP != nil {
-			if allowedIP.Equal(tcpAddr.IP) {
-				return nil
-			}
-		} else {
-			_, ipNet, err := net.ParseCIDR(sourceAddr)
-			if err != nil {
-				return fmt.Errorf("ssh: error parsing source-address restriction %q: %v", sourceAddr, err)
-			}
+	if allowedIP := net.ParseIP(sourceAddr); allowedIP != nil {
+		if bytes.Equal(allowedIP, tcpAddr.IP) {
+			return nil
+		}
+	} else {
+		_, ipNet, err := net.ParseCIDR(sourceAddr)
+		if err != nil {
+			return fmt.Errorf("ssh: error parsing source-address restriction %q: %v", sourceAddr, err)
+		}
 
-			if ipNet.Contains(tcpAddr.IP) {
-				return nil
-			}
+		if ipNet.Contains(tcpAddr.IP) {
+			return nil
 		}
 	}
 
@@ -273,27 +248,12 @@ func checkSourceAddress(addr net.Addr, sourceAddrs string) error {
 }
 
 func (s *connection) serverAuthenticate(config *ServerConfig) (*Permissions, error) {
-	sessionID := s.transport.getSessionID()
+	var err error
 	var cache pubKeyCache
 	var perms *Permissions
 
-	authFailures := 0
-
 userAuthLoop:
 	for {
-		if authFailures >= config.MaxAuthTries && config.MaxAuthTries > 0 {
-			discMsg := &disconnectMsg{
-				Reason:  2,
-				Message: "too many authentication failures",
-			}
-
-			if err := s.transport.writePacket(Marshal(discMsg)); err != nil {
-				return nil, err
-			}
-
-			return nil, discMsg
-		}
-
 		var userAuthReq userAuthRequestMsg
 		if packet, err := s.transport.readPacket(); err != nil {
 			return nil, err
@@ -312,12 +272,8 @@ userAuthLoop:
 		switch userAuthReq.Method {
 		case "none":
 			if config.NoClientAuth {
+				s.user = ""
 				authErr = nil
-			}
-
-			// allow initial attempt of 'none' without penalty
-			if authFailures == 0 {
-				authFailures--
 			}
 		case "password":
 			if config.PasswordCallback == nil {
@@ -390,7 +346,6 @@ userAuthLoop:
 			if isQuery {
 				// The client can query if the given public key
 				// would be okay.
-
 				if len(payload) > 0 {
 					return nil, parseError(msgUserAuthRequest)
 				}
@@ -419,7 +374,7 @@ userAuthLoop:
 				if !isAcceptableAlgo(sig.Format) {
 					break
 				}
-				signedData := buildDataSignedForAuth(sessionID, userAuthReq, algoBytes, pubKeyData)
+				signedData := buildDataSignedForAuth(s.transport.getSessionID(), userAuthReq, algoBytes, pubKeyData)
 
 				if err := pubKey.Verify(signedData, sig); err != nil {
 					return nil, err
@@ -440,8 +395,6 @@ userAuthLoop:
 			break userAuthLoop
 		}
 
-		authFailures++
-
 		var failureMsg userAuthFailureMsg
 		if config.PasswordCallback != nil {
 			failureMsg.Methods = append(failureMsg.Methods, "password")
@@ -457,12 +410,12 @@ userAuthLoop:
 			return nil, errors.New("ssh: no authentication methods configured but NoClientAuth is also false")
 		}
 
-		if err := s.transport.writePacket(Marshal(&failureMsg)); err != nil {
+		if err = s.transport.writePacket(Marshal(&failureMsg)); err != nil {
 			return nil, err
 		}
 	}
 
-	if err := s.transport.writePacket([]byte{msgUserAuthSuccess}); err != nil {
+	if err = s.transport.writePacket([]byte{msgUserAuthSuccess}); err != nil {
 		return nil, err
 	}
 	return perms, nil

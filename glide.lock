@@ -1,6 +1,8 @@
-hash: cfab2b347f7412e2dbf433b4fb3f18f3e40d3e543f9f9d7cfd7005512596f866
-updated: 2017-04-13T23:15:56.557206127+02:00
+hash: f6849bd1d145d81e3befe82fb2eb93d61e26825946e41eda7c44c88c7ff86c16
+updated: 2017-06-24T18:43:23.501640194+02:00
 imports:
+- name: github.com/aokoli/goutils
+  version: 3391d3790d23d03408670993e957e8f408993c34
 - name: github.com/appc/spec
   version: ba99d6b8ccbbed2942e53eb5395fddae113cdf8e
   subpackages:
@@ -62,6 +64,10 @@ imports:
   version: 12f418cc7edc5a618a51407b7ac1f1f512139df3
 - name: github.com/hashicorp/errwrap
   version: 7554cd9344cec97297fa6649b055a8c98c2a1e55
+- name: github.com/huandu/xstrings
+  version: 3959339b333561bf62a38b424fd41517c2c90f40
+- name: github.com/imdario/mergo
+  version: 3e95a51e0639b4cf372f2ccf74c86749d747fbdc
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jhoonb/archivex
@@ -82,8 +88,12 @@ imports:
   version: 0bf5dcad4ada2814c3c00f996a982270bb81a506
 - name: github.com/leekchan/gtf
   version: 882e96b937c8506c67b5adf98ff1f84cd7b7b93a
+- name: github.com/Masterminds/semver
+  version: 59c29afe1a994eacb71c833025ca7acf874bb1da
+- name: github.com/Masterminds/sprig
+  version: 9526be0327b26ad31aa70296a7b10704883976d5
 - name: github.com/mattn/go-colorable
-  version: ded68f7a9561c023e790de24279db7ebf473ea80
+  version: 941b50ebc6efddf4c41c8e4537a5f68a4e686b24
 - name: github.com/mattn/go-isatty
   version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
 - name: github.com/mgutz/ansi
@@ -111,6 +121,8 @@ imports:
   - pkg/user
   - rkt/config
   - stage1/common/types
+- name: github.com/satori/go.uuid
+  version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/spf13/cobra
   version: 385fc87e4343efec233811d3d933509e8975d11a
 - name: github.com/spf13/pflag
@@ -124,8 +136,10 @@ imports:
   subpackages:
   - errorutil
 - name: golang.org/x/crypto
-  version: cbc3d0884eac986df6e78a039b8792e869bff863
+  version: a7ead6ddf06233883deca151dffaef2effbf498f
   subpackages:
+  - pbkdf2
+  - scrypt
   - ssh/terminal
 - name: golang.org/x/net
   version: ccfcd82c7124abd517842acbacc3b8c1e390c73d

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"path"
 	"reflect"
 	"sort"
@@ -14,6 +13,7 @@ import (
 	txttmpl "text/template"
 	"time"
 
+	"github.com/Masterminds/sprig"
 	"github.com/leekchan/gtf"
 	"gopkg.in/yaml.v2"
 )
@@ -39,7 +39,11 @@ func NewTemplating(partials *txttmpl.Template, filePath, content string) (*Templ
 		partials = txttmpl.New(t.name)
 	}
 
-	tmpl, err := partials.New(t.name).Funcs(t.functions).Funcs(map[string]interface{}(gtf.GtfFuncMap)).Parse(t.content)
+	tmpl, err := partials.New(t.name).
+		Funcs(map[string]interface{}(gtf.GtfFuncMap)).
+		Funcs(sprig.GenericFuncMap()).
+		Funcs(t.functions).
+		Parse(t.content)
 	t.template = tmpl
 	return &t, err
 }
@@ -330,7 +334,6 @@ func init() {
 	TemplateFunctions["json"] = UnmarshalJsonObject
 	TemplateFunctions["jsonArray"] = UnmarshalJsonArray
 	TemplateFunctions["dir"] = path.Dir
-	TemplateFunctions["getenv"] = os.Getenv
 	TemplateFunctions["join"] = strings.Join
 	TemplateFunctions["datetime"] = time.Now
 	TemplateFunctions["toUpper"] = strings.ToUpper

@@ -47,6 +47,8 @@ import:
   - errorutil
 - package: github.com/mattn/go-colorable
   version: ^0.0.7
+- package: github.com/Masterminds/sprig
+  version: ^2.12.0
 testImport:
 - package: github.com/onsi/gomega
   version: ^1.0.0

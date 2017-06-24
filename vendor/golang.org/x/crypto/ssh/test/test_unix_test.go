@@ -41,12 +41,11 @@ PermitRootLogin no
 StrictModes no
 RSAAuthentication yes
 PubkeyAuthentication yes
-AuthorizedKeysFile	{{.Dir}}/authorized_keys
+AuthorizedKeysFile	{{.Dir}}/id_user.pub
 TrustedUserCAKeys {{.Dir}}/id_ecdsa.pub
 IgnoreRhosts yes
 RhostsRSAAuthentication no
 HostbasedAuthentication no
-PubkeyAcceptedKeyTypes=*
 `
 
 var configTmpl = template.Must(template.New("").Parse(sshd_config))
@@ -250,12 +249,6 @@ func newServer(t *testing.T) *server {
 		writeFile(filepath.Join(dir, filename+".pub"), ssh.MarshalAuthorizedKey(testPublicKeys[k]))
 	}
 
-	var authkeys bytes.Buffer
-	for k, _ := range testdata.PEMBytes {
-		authkeys.Write(ssh.MarshalAuthorizedKey(testPublicKeys[k]))
-	}
-	writeFile(filepath.Join(dir, "authorized_keys"), authkeys.Bytes())
-
 	return &server{
 		t:          t,
 		configfile: f.Name(),
@@ -265,14 +258,4 @@ func newServer(t *testing.T) *server {
 			}
 		},
 	}
-}
-
-func newTempSocket(t *testing.T) (string, func()) {
-	dir, err := ioutil.TempDir("", "socket")
-	if err != nil {
-		t.Fatal(err)
-	}
-	deferFunc := func() { os.RemoveAll(dir) }
-	addr := filepath.Join(dir, "sock")
-	return addr, deferFunc
 }
