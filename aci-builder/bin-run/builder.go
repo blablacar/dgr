@@ -17,6 +17,7 @@ import (
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	rktcommon "github.com/rkt/rkt/common"
+	"github.com/rkt/rkt/pkg/fileutil"
 	"github.com/rkt/rkt/pkg/sys"
 	stage1commontypes "github.com/rkt/rkt/stage1/common/types"
 )
@@ -257,7 +258,8 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 	args = append(args, "--directory="+b.stage1Rootfs)
 	args = append(args, "--bind="+b.aciHomePath+"/:/dgr/aci-home")
 	args = append(args, "--bind="+b.aciTargetPath+"/:/dgr/aci-target")
-	args = append(args, "--bind-ro=/etc/resolv.conf:/etc/resolv.conf")
+	fileutil.CopyRegularFile("/etc/resolv.conf", b.aciTargetPath+"/resolv.conf")
+	args = append(args, "--bind="+b.aciTargetPath+"/resolv.conf:/etc/resolv.conf")
 
 	//
 	content, err := ioutil.ReadFile(b.aciTargetPath + common.PathManifestYmlTmpl)
