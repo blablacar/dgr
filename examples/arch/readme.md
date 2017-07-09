@@ -1,1 +1,1 @@
-# You can find lots of archlinux examples [here](https://github.com/awired/rkt-images/tree/master/aci/archlinux)
+# You can find lots of archlinux examples [here](https://github.com/n0rad/rkt-images/tree/master/aci/arch)
