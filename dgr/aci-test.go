@@ -90,6 +90,7 @@ func (aci *Aci) runTestAci(testerHash string, hashAcis []string) error {
 
 	defer aci.cleanupTest(testerHash, hashAcis)
 	if err := Home.Rkt.Run([]string{"--set-env=" + common.EnvLogLevel + "=" + logs.GetLevel().String(),
+		"--set-env=TESTER=TRUE",
 		"--net=default",
 		"--mds-register=false",
 		"--uuid-file-save=" + aci.target + pathTesterUuid,
