@@ -1,0 +1,9 @@
+---
+name: example.com/aci-test
+aci:
+  app:
+    environment:
+      - name: "TEST_VAR"
+        value: "false"
+      - name: "TEST_VAR_APP"
+        value: "true"

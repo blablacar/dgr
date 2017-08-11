@@ -1,5 +1,4 @@
 package: github.com/blablacar/dgr
-flatten: true
 import:
 - package: github.com/appc/spec
   version: v0.8.10
@@ -27,7 +26,7 @@ import:
 - package: github.com/jhoonb/archivex
 - package: github.com/juju/errors
 - package: github.com/klauspost/pgzip
-  version: ^1.0.1
+  version: 0bf5dcad4ada2814c3c00f996a982270bb81a506
 - package: github.com/leekchan/gtf
 - package: github.com/n0rad/go-erlog
   subpackages:
@@ -49,6 +48,7 @@ import:
   version: ^0.0.7
 - package: github.com/Masterminds/sprig
   version: ^2.12.0
+- package: github.com/ahl5esoft/golang-underscore
 testImport:
 - package: github.com/onsi/gomega
   version: ^1.0.0

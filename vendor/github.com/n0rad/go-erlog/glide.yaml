@@ -1,0 +1,8 @@
+package: github.com/n0rad/go-erlog
+import:
+- package: github.com/mgutz/ansi
+- package: golang.org/x/crypto
+  subpackages:
+  - ssh/terminal
+testImport:
+- package: github.com/onsi/gomega
