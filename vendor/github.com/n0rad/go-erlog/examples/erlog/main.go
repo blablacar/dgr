@@ -1,21 +1,21 @@
 package main
 
-import "github.com/n0rad/go-erlog/log"
+import "github.com/n0rad/go-erlog/logs"
 import _ "github.com/n0rad/go-erlog"
 
 func main() {
-	log.SetLevel(log.TRACE)
+	logs.SetLevel(logs.TRACE)
 
-	log.Trace("I'm trace")
-	log.Debug("I'm debug")
-	log.Info("I'm info")
-	log.Warn("I'm warn")
-	log.Error("I'm error")
+	logs.Trace("I'm trace")
+	logs.Debug("I'm debug")
+	logs.Info("I'm info")
+	logs.Warn("I'm warn")
+	logs.Error("I'm error")
 
 	func() {
 		defer func() { recover() }()
-		func() { log.Panic("I'm panic") }()
+		func() { logs.Panic("I'm panic") }()
 	}()
 
-	log.Fatal("I'm fatal")
+	logs.Fatal("I'm fatal")
 }

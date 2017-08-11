@@ -1,6 +1,8 @@
-hash: f6849bd1d145d81e3befe82fb2eb93d61e26825946e41eda7c44c88c7ff86c16
-updated: 2017-06-24T18:43:23.501640194+02:00
+hash: 9341120ccec4b7409494293ac897ab0499bb726bfcf55b7817fe5bfa113556de
+updated: 2017-08-11T19:31:29.939130815+02:00
 imports:
+- name: github.com/ahl5esoft/golang-underscore
+  version: 4c4738d8de61796a6f759d2813f4ec3ae97baf89
 - name: github.com/aokoli/goutils
   version: 3391d3790d23d03408670993e957e8f408993c34
 - name: github.com/appc/spec
@@ -87,7 +89,7 @@ imports:
 - name: github.com/klauspost/pgzip
   version: 0bf5dcad4ada2814c3c00f996a982270bb81a506
 - name: github.com/leekchan/gtf
-  version: 882e96b937c8506c67b5adf98ff1f84cd7b7b93a
+  version: 08ecefa87abe981ef2268ddd67008e67aa36f416
 - name: github.com/Masterminds/semver
   version: 59c29afe1a994eacb71c833025ca7acf874bb1da
 - name: github.com/Masterminds/sprig
@@ -99,7 +101,7 @@ imports:
 - name: github.com/mgutz/ansi
   version: 9520e82c474b0a04dd04f8a40959027271bab992
 - name: github.com/n0rad/go-erlog
-  version: 4b041df7334d6008f8ceaa9e6ed03d43aa9c1356
+  version: 96f8382e6913e873f4068f2146ebecf398a8aa47
   subpackages:
   - data
   - errs
@@ -146,6 +148,7 @@ imports:
   subpackages:
   - html
   - html/atom
+  - html/charset
 - name: golang.org/x/sys
   version: b44883b474ffefa37335017174e397412b633a4f
   subpackages:
@@ -153,7 +156,7 @@ imports:
 - name: gopkg.in/inf.v0
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
 - name: gopkg.in/yaml.v2
-  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
+  version: 25c4ec802a7d637f88d584ab26798e94ad14c13b
 testImports:
 - name: github.com/onsi/gomega
   version: 334b8f472b3af5d541c5642701c1e29e2126f486
@@ -169,3 +172,18 @@ testImports:
   - matchers/support/goraph/node
   - matchers/support/goraph/util
   - types
+- name: golang.org/x/text
+  version: b19bf474d317b857955b12035d2c5acb57ce8b01
+  subpackages:
+  - encoding
+  - encoding/charmap
+  - encoding/internal
+  - encoding/internal/identifier
+  - encoding/japanese
+  - encoding/korean
+  - encoding/simplifiedchinese
+  - encoding/traditionalchinese
+  - encoding/unicode
+  - internal/utf8internal
+  - runes
+  - transform

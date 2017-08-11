@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	underscore "github.com/ahl5esoft/golang-underscore"
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/dgr/dgr/common"
 	"github.com/n0rad/go-erlog/errs"
@@ -141,6 +142,12 @@ func (aci *Aci) buildTestAci() (string, error) {
 		isolators = aci.manifest.Aci.App.Isolators
 	}
 
+	var environment []types.EnvironmentVariable
+	aci.manifest.Tester.Aci.App.Environment = append(aci.manifest.Tester.Aci.App.Environment, aci.manifest.Aci.App.Environment...)
+	if len(aci.manifest.Tester.Aci.App.Environment) != 0 {
+		environment = underscore.UniqBy(aci.manifest.Tester.Aci.App.Environment, "Name").([]types.EnvironmentVariable)
+	}
+
 	aciManifest := &common.AciManifest{
 		Builder: aci.manifest.Tester.Builder,
 		Aci: common.AciDefinition{
@@ -151,7 +158,7 @@ func (aci *Aci) buildTestAci() (string, error) {
 				User:              aci.manifest.Aci.App.User,
 				Group:             aci.manifest.Aci.App.Group,
 				SupplementaryGIDs: aci.manifest.Aci.App.SupplementaryGIDs,
-				Environment:       aci.manifest.Aci.App.Environment,
+				Environment:       environment,
 				Ports:             aci.manifest.Aci.App.Ports,
 				Isolators:         isolators,
 			},

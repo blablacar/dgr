@@ -54,3 +54,22 @@
   echo "$output" | grep "succeed"
   [ "$status" -eq 0 ]
 }
+@test "tester should work when there is no env var set" {
+  run $DGR_PATH -W no_env_test test
+  echo -e "$output"
+  echo "$output" | grep "ok 1 Check value of TEST_VAR"
+  [ "$status" -eq 0 ]
+}
+@test "tester should work when there is only apps env var set" {
+  run $DGR_PATH -W app_only_env_test test
+  echo -e "$output"
+  echo "$output" | grep "ok 1 Check value of TEST_VAR"
+  [ "$status" -eq 0 ]
+}
+
+@test "tester should work when there is 2 conflicting env var for the tester" {
+  run $DGR_PATH -W double_env_test test
+  echo -e "$output"
+  echo "$output" | grep "ok 1 Check value of TEST_VAR"
+  [ "$status" -eq 0 ]
+}
