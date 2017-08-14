@@ -66,7 +66,7 @@ func (t *TemplateFile) loadTemplateConfig(src string) error {
 	return nil
 }
 
-func (f *TemplateFile) runTemplate(dst string, attributes map[string]interface{}, failOnNoValue bool) error {
+func (f *TemplateFile) RunTemplate(dst string, attributes map[string]interface{}, failOnNoValue bool) error {
 	if logs.IsTraceEnabled() {
 		logs.WithF(f.fields).WithField("attributes", attributes).WithField("failOnNoValue", failOnNoValue).Trace("templating with attributes")
 	}
