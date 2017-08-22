@@ -1,4 +1,4 @@
-name: blablacar.github.io/dgr/aci-libc:1
+name: blablacar.github.io/dgr/aci-libc
 aci:
   dependencies:
-    - blablacar.github.io/dgr/aci-base:1
+    - blablacar.github.io/dgr/aci-base
