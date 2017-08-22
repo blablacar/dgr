@@ -24,5 +24,12 @@ func TestCompareVersion(t *testing.T) {
 	assertVersion(t, "1.1.1", "1.1.2", -1)
 	assertVersion(t, "1.1.2", "1.2", -1)
 	assertVersion(t, "1", "1", 0)
-
+	assertVersion(t, "2.21", "2.21-1", -1)
+	assertVersion(t, "2.21-1", "2.21", 1)
+	assertVersion(t, "2.21-1", "2.21-1", 0)
+	assertVersion(t, "2.21-2", "2.21-1", 1)
+	assertVersion(t, "2.21-2-1", "2.21-2-2", -1)
+	assertVersion(t, "2.21-2-2", "2.21-2-2", 0)
+	assertVersion(t, "2.21-2-2", "2.21-2-1", 1)
+	assertVersion(t, "2.21-2a", "2.21-2b", -1)
 }

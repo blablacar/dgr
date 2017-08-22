@@ -39,17 +39,37 @@ func (n ACFullname) LatestVersion() (string, error) {
 		return "", errors.Annotate(err, "Latest discovery fail")
 	}
 
-	r, _ := regexp.Compile(`^\d+(.\d+){0,2}(-[\.\-\dA-Za-z]+){0,1}$`) // TODO this is nexus specific
-
 	if len(endpoints) == 0 {
 		return "", errs.WithF(data.WithField("aci", string(n)), "Discovery does not give an endpoint to check latest version")
 	}
 
 	url := getRedirectForLatest(endpoints[0].ACI)
-	logs.WithField("url", url).Debug("latest verion url")
+	logs.WithField("url", url).Debug("Latest version url")
 
+	if version, err := checkForAcserver(url); err == nil {
+		return version, nil
+	}
+	if version, err := checkForNexus(url); err == nil {
+		return version, nil
+	}
+	return "", errors.New("No latest version found")
+}
+
+var acserverPathRegex = regexp.MustCompile(`(\d+(?:.\d+){0,2}(-[.\-\dA-Za-z]+){0,1})-linux-amd64\.aci$`)
+
+func checkForAcserver(url string) (string, error) {
+	res := acserverPathRegex.FindStringSubmatch(url)
+	if len(res) > 0 {
+		return res[1], nil
+	}
+	return "", errors.New("No latest version found")
+}
+
+var nexusPathRegex = regexp.MustCompile(`^\d+(.\d+){0,2}(-[.\-\dA-Za-z]+){0,1}$`)
+
+func checkForNexus(url string) (string, error) {
 	for _, part := range strings.Split(url, "/") {
-		if r.Match([]byte(part)) {
+		if nexusPathRegex.Match([]byte(part)) {
 			return part, nil
 		}
 	}
