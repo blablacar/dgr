@@ -17,4 +17,6 @@ install:
 
 script:
   - ./gomake clean build test quality install
+  - mkdir -p ~/.config/dgr
+  - 'echo -e "rkt:\n pullPolicy: new" > ~/.config/dgr/config.yml'
   - sudo PATH=${GOPATH}/bin:$PATH ./examples/build.sh

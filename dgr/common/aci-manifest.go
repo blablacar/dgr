@@ -157,6 +157,15 @@ func ToAppcDependencies(dependencies []ACFullname) (types.Dependencies, error) {
 	return appcDependencies, nil
 }
 
+func FromAppcDependencies(dependencies types.Dependencies) []ACFullname {
+	deps := []ACFullname{}
+	for _, dep := range dependencies {
+		v, _ := dep.Labels.Get("version")
+		deps = append(deps, *NewACFullnameFromNameAndVersion(string(dep.ImageName), v))
+	}
+	return deps
+}
+
 func ToAppcIsolators(isos []Isolator) (types.Isolators, error) {
 	isolators := types.Isolators{}
 	for _, i := range isos {

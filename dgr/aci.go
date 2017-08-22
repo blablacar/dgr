@@ -25,7 +25,6 @@ const pathManifestJson = "/manifest.json"
 
 const pathStage1 = "/stage1"
 
-const pathBuilder = "/builder"
 const pathBuilderUuid = "/builder.uuid"
 const pathTesterUuid = "/tester.uuid"
 const pathVersion = "/version"
@@ -41,6 +40,7 @@ type Aci struct {
 	target          string
 	podName         *common.ACFullname
 	manifest        *common.AciManifest
+	manifestTmpl    string
 	args            BuildArgs
 	FullyResolveDep bool
 }
@@ -76,6 +76,7 @@ func NewAciWithManifest(path string, args BuildArgs, manifestTmpl string) (*Aci,
 		args:            args,
 		path:            fullPath,
 		manifest:        manifest,
+		manifestTmpl:    manifestTmpl,
 		target:          target,
 		FullyResolveDep: true,
 	}

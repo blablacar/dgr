@@ -74,11 +74,8 @@ func NewHome(path string) HomeStruct {
 		}
 	}
 
-	if Args.NoStore {
-		config.Rkt.NoStore = true
-	}
-	if Args.StoreOnly {
-		config.Rkt.StoreOnly = true
+	if Args.PullPolicy != "" {
+		config.Rkt.PullPolicy = common.PullPolicy(Args.PullPolicy)
 	}
 	if config.Signs == nil {
 		config.Signs = &[]Sign{{Disabled: true}}

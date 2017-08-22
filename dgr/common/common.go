@@ -5,6 +5,7 @@ import (
 	"github.com/n0rad/go-erlog/errs"
 )
 
+const PathBuilder = "/builder"
 const PathImageAci = "/image.aci"
 const PathManifest = "/manifest"
 const PathRootfs = "/rootfs"

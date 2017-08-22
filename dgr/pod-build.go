@@ -211,7 +211,7 @@ func (p *Pod) buildAci(e common.RuntimeApp) (*Aci, error) {
 
 	// TODO attributes should be builder dependent only
 	if empty, err := common.IsDirEmpty(p.path + "/attributes"); !empty && err == nil {
-		path := aci.target + pathBuilder + common.PathRootfs + "/dgr/pod/attributes"
+		path := aci.target + common.PathBuilder + common.PathRootfs + "/dgr/pod/attributes"
 		if err := os.MkdirAll(path, 0777); err != nil {
 			return nil, errs.WithEF(err, aci.fields.WithField("path", path), "Failed to create pod attributes directory in builder")
 		}

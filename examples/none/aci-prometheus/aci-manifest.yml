@@ -1,7 +1,7 @@
 name: blablacar.github.io/dgr/aci-prometheus:0.16.1-1nerve2
 aci:
   dependencies:
-    - blablacar.github.io/dgr/aci-libc
+    - blablacar.github.io/dgr/aci-libc:1
   app:
     exec: [/prometheus/prometheus, -config.file, /etc/prometheus/prometheus.yml]
     mountPoints:

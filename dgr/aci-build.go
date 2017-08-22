@@ -9,7 +9,6 @@ import (
 	"github.com/appc/spec/schema"
 	"github.com/appc/spec/schema/types"
 	"github.com/blablacar/dgr/dgr/common"
-	"github.com/ghodss/yaml"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 )
@@ -56,12 +55,7 @@ func (aci *Aci) RunBuilderCommand(command common.BuilderCommand) error {
 		return errs.WithEF(err, aci.fields, "Cannot create target directory")
 	}
 
-	manifestMarshaled, err := yaml.Marshal(aci.manifest)
-	if err != nil {
-		return errs.WithEF(err, aci.fields, "Failed to marshal dgr manifest")
-	}
-
-	if err := ioutil.WriteFile(aci.target+common.PathManifestYmlTmpl, manifestMarshaled, 0644); err != nil {
+	if err := ioutil.WriteFile(aci.target+common.PathManifestYmlTmpl, []byte(aci.manifestTmpl), 0644); err != nil {
 		return errs.WithEF(err, aci.fields.WithField("file", aci.target+common.PathManifestYmlTmpl), "Failed to write manifest template")
 	}
 
@@ -143,7 +137,7 @@ func (aci *Aci) prepareStage1aci() (string, error) {
 	logs.WithFields(aci.fields).Debug("Preparing stage1")
 
 	if err := os.MkdirAll(aci.target+pathStage1+common.PathRootfs, 0777); err != nil {
-		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+pathBuilder), "Failed to create stage1 aci path")
+		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+common.PathBuilder), "Failed to create stage1 aci path")
 	}
 
 	Home.Rkt.Fetch(aci.manifest.Builder.Image.String(), common.PullPolicyNew)
@@ -197,24 +191,24 @@ func (aci *Aci) prepareStage1aci() (string, error) {
 func (aci *Aci) prepareBuildAci() (string, error) {
 	logs.WithFields(aci.fields).Debug("Preparing builder")
 
-	if err := os.MkdirAll(aci.target+pathBuilder+common.PathRootfs, 0777); err != nil {
-		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+pathBuilder), "Failed to create builder aci path")
+	if err := os.MkdirAll(aci.target+common.PathBuilder+common.PathRootfs, 0777); err != nil {
+		return "", errs.WithEF(err, aci.fields.WithField("path", aci.target+common.PathBuilder), "Failed to create builder aci path")
 	}
 
-	if err := ioutil.WriteFile(aci.target+pathBuilder+common.PathRootfs+"/.keep", []byte(""), 0644); err != nil {
-		return "", errs.WithEF(err, aci.fields.WithField("file", aci.target+pathBuilder+common.PathRootfs+"/.keep"), "Failed to write keep file")
+	if err := ioutil.WriteFile(aci.target+common.PathBuilder+common.PathRootfs+"/.keep", []byte(""), 0644); err != nil {
+		return "", errs.WithEF(err, aci.fields.WithField("file", aci.target+common.PathBuilder+common.PathRootfs+"/.keep"), "Failed to write keep file")
 	}
 	aci.manifest.Aci.App.Isolators = []common.Isolator{{Name: "os/linux/capabilities-retain-set", Value: common.LinuxCapabilitiesSetValue{Set: []types.LinuxCapability{"all"}}}}
 
-	if err := common.WriteAciManifest(aci.manifest, aci.target+pathBuilder+common.PathManifest, common.PrefixBuilder+aci.manifest.NameAndVersion.Name(), BuildVersion); err != nil {
+	if err := common.WriteAciManifest(aci.manifest, aci.target+common.PathBuilder+common.PathManifest, common.PrefixBuilder+aci.manifest.NameAndVersion.Name(), BuildVersion); err != nil {
 		return "", err
 	}
-	if err := aci.tarAci(aci.target + pathBuilder); err != nil {
+	if err := aci.tarAci(aci.target + common.PathBuilder); err != nil {
 		return "", err
 	}
 
-	logs.WithF(aci.fields.WithField("path", aci.target+pathBuilder+pathImageAci)).Info("Importing build to rkt")
-	hash, err := Home.Rkt.FetchInsecure(aci.target + pathBuilder + pathImageAci)
+	logs.WithF(aci.fields.WithField("path", aci.target+common.PathBuilder+pathImageAci)).Info("Importing build to rkt")
+	hash, err := Home.Rkt.FetchInsecure(aci.target + common.PathBuilder + pathImageAci)
 	if err != nil {
 		return "", errs.WithEF(err, aci.fields, "fetch of builder aci failed")
 	}

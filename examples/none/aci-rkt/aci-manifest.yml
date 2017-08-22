@@ -1,4 +1,4 @@
 name: blablacar.github.io/dgr/aci-rkt:1.3.0
 aci:
   dependencies:
-    - blablacar.github.io/dgr/aci-libc
+    - blablacar.github.io/dgr/aci-libc:1

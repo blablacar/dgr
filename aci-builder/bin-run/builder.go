@@ -124,9 +124,29 @@ func (b *Builder) writeManifest() error {
 		aciManifest.NameAndVersion = *common.NewACFullnameWithVersion(aciManifest.NameAndVersion, common.GenerateVersion(b.aciTargetPath))
 	}
 
+	if err := b.fillDependenciesFromBuilder(aciManifest); err != nil {
+		return err
+	}
+
 	if err := common.WriteAciManifest(aciManifest, target, aciManifest.NameAndVersion.Name(), dgrVersion); err != nil {
 		return errs.WithEF(err, b.fields.WithField("file", target), "Failed to write manifest")
 	}
+	return nil
+}
+
+func (b *Builder) fillDependenciesFromBuilder(manifest *common.AciManifest) error {
+	manifestPath := b.aciTargetPath + common.PathBuilder + common.PathManifest
+	source, err := ioutil.ReadFile(manifestPath)
+	if err != nil {
+		return errs.WithEF(err, b.fields.WithField("path", manifestPath), "Failed to read builder manifest")
+	}
+
+	im := &schema.ImageManifest{}
+	if err = im.UnmarshalJSON(source); err != nil {
+		return errs.WithEF(err, b.fields.WithField("content", string(source)), "Cannot unmarshall json content")
+	}
+
+	(*manifest).Aci.Dependencies = common.FromAppcDependencies(im.Dependencies)
 	return nil
 }
 

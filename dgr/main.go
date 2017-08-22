@@ -24,8 +24,6 @@ var Args = BuildArgs{}
 var workPath string
 
 type BuildArgs struct {
-	NoStore       bool
-	StoreOnly     bool
 	Force         bool
 	Test          bool
 	NoTestFail    bool
@@ -33,6 +31,7 @@ type BuildArgs struct {
 	CatchOnError  bool
 	CatchOnStep   bool
 	ParallelBuild bool
+	PullPolicy    string
 	SetEnv        envMap
 }
 
@@ -80,9 +79,12 @@ func Execute() {
 			if targetRootPath != "" {
 				Home.Config.TargetWorkDir = targetRootPath
 			}
+
+			if Args.PullPolicy != "" && !common.PullPolicy(Args.PullPolicy).IsValid() {
+				logs.WithField("pull-policy", Args.PullPolicy).Fatal("Invalid pull-policy")
+			}
 		},
 	}
-	//rootCmd.PersistentFlags().BoolVarP(&Args.Clean, "clean", "c", false, "Clean before doing anything")
 	rootCmd.PersistentFlags().StringVarP(&targetRootPath, "targets-root-path", "p", "", "Set targets root path")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "loglevel", "L", "info", "Set log level")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "Set log level")
@@ -90,8 +92,7 @@ func Execute() {
 	rootCmd.PersistentFlags().StringVarP(&workPath, "work-path", "W", ".", "Set the work path")
 	rootCmd.PersistentFlags().BoolVarP(&version, "version", "V", false, "Display dgr version")
 	rootCmd.PersistentFlags().Var(&Args.SetEnv, "set-env", "Env passed to builder scripts")
-	rootCmd.PersistentFlags().BoolVar(&Args.StoreOnly, "store-only", false, "Tell rkt to use the store only")
-	rootCmd.PersistentFlags().BoolVar(&Args.NoStore, "no-store", false, "Tell rkt to not use store")
+	rootCmd.PersistentFlags().StringVar(&Args.PullPolicy, "pull-policy", "", "force rkt fetch Policy")
 	rootCmd.PersistentFlags().BoolVarP(&Args.ParallelBuild, "parallel", "P", false, "Run build in parallel for pod")
 
 	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, graphCmd, tryCmd, signCmd, aciVersion, configCmd, updateCmd)

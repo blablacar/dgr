@@ -48,6 +48,7 @@ type RktConfig struct {
 	LocalConfig        string        `yaml:"localConfig"`
 	SystemConfig       string        `yaml:"systemConfig"`
 	UserConfig         string        `yaml:"userConfig"`
+	PullPolicy         PullPolicy    `yaml:"pullPolicy"`
 	TrustKeysFromHttps bool          `yaml:"trustKeysFromHttps"`
 	NoStore            bool          `yaml:"noStore"`
 	StoreOnly          bool          `yaml:"storeOnly"`
@@ -160,12 +161,27 @@ func (rkt *RktClient) GetVersion() (Version, error) {
 type PullPolicy string
 
 const (
+	PullPolicyNone   PullPolicy = "none"
 	PullPolicyNew    PullPolicy = "new"
 	PullPolicyUpdate PullPolicy = "update"
 )
 
+func (p PullPolicy) IsValid() bool {
+	switch p {
+	case PullPolicyNew, PullPolicyNone, PullPolicyUpdate:
+	default:
+		return false
+	}
+	return true
+}
+
 func (rkt *RktClient) Fetch(image string, pullPolicy PullPolicy) (string, error) {
 	globalArgs := rkt.globalArgs
+
+	if rkt.config.PullPolicy != "" {
+		pullPolicy = rkt.config.PullPolicy
+	}
+
 	if rkt.Version.GreaterThanOrEqualTo(rktVersionWithPullPolicy) {
 		globalArgs = append(globalArgs, "--pull-policy="+string(pullPolicy))
 	}
