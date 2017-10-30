@@ -4,6 +4,8 @@ import (
 	"os"
 	"strings"
 
+	"io/ioutil"
+
 	"github.com/blablacar/dgr/dgr/common"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
@@ -14,7 +16,11 @@ const pathTemplates = "/templates"
 const pathAttributes = "/attributes"
 const pathPrestartEarly = "/runlevels/prestart-early"
 const pathPrestartLate = "/runlevels/prestart-late"
-const rootfsDgr = "rootfs/dgr"
+const pathFiles = "/files"
+const pathDgr = "/dgr"
+
+const rootfs = "rootfs"
+const rootfsDgr = rootfs + pathDgr
 const inAciTemplatePath = rootfsDgr + pathTemplates
 const inAciAttributesPath = rootfsDgr + pathAttributes
 const inAciPrestartEarlyPath = rootfsDgr + pathPrestartEarly
@@ -35,51 +41,83 @@ func (aci *Aci) RunUpdate() error {
 	}
 	file.Close()
 
-	aciName := string(aci.manifest.NameAndVersion.TinyName())
-	if err := aci.updateDirInTar(pathAttributes, inAciAttributesPath+"/"+aciName); err != nil {
+	if err := aci.deleteInTar(); err != nil {
 		return err
 	}
-	if err := aci.updateDirInTar(pathTemplates, inAciTemplatePath); err != nil {
+	if err := aci.addDirToTar(pathAttributes, inAciAttributesPath+"/"+aci.manifest.NameAndVersion.TinyName()); err != nil {
 		return err
 	}
-	if err := aci.updateDirInTar(pathPrestartEarly, inAciPrestartEarlyPath); err != nil {
+	if err := aci.addDirToTar(pathTemplates, inAciTemplatePath); err != nil {
 		return err
 	}
-	if err := aci.updateDirInTar(pathPrestartLate, inAciPrestartLatePath); err != nil {
+	if err := aci.addDirToTar(pathPrestartEarly, inAciPrestartEarlyPath); err != nil {
+		return err
+	}
+	if err := aci.addDirToTar(pathPrestartLate, inAciPrestartLatePath); err != nil {
+		return err
+	}
+	if err := aci.addDirToTar(pathFiles, rootfs); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (aci *Aci) updateDirInTar(localPath string, inAciPath string) error {
+func (aci *Aci) deleteInTar() error {
+	var files []string
+	if err := getFileList(aci.path+pathFiles, rootfs, &files); err != nil {
+		return err
+	}
+
+	args := []string{"--delete", "--ignore-failed-read", "-f", aci.target + pathImageAci,
+		inAciAttributesPath + "/" + aci.manifest.NameAndVersion.TinyName(),
+		inAciTemplatePath,
+		inAciPrestartEarlyPath,
+		inAciPrestartLatePath,
+	}
+	args = append(args, files...)
+	updateExec(args...) // err is ignored because it may already not exists
+	return nil
+}
+
+func getFileList(dir string, relativePath string, res *[]string) error {
+	files, err := ioutil.ReadDir(dir)
+	logs.WithField("dir", dir).Debug("Reading directory")
+	if err != nil {
+		return errs.WithEF(err, data.WithField("dir", dir), "Cannot read directory")
+	}
+
+	for _, f := range files {
+		if f.IsDir() {
+			if err := getFileList(dir+"/"+f.Name(), relativePath+"/"+f.Name(), res); err != nil {
+				return err
+			}
+		} else {
+			*res = append(*res, relativePath+"/"+f.Name())
+		}
+	}
+
+	return nil
+}
+
+func (aci *Aci) addDirToTar(localPath string, inAciPath string) error {
 	aciPath := aci.path + localPath
 	if _, err := os.Stat(aciPath); err == nil {
-
-		if err := updateExec(inAciPath, "--delete", inAciPath, "-f", aci.target+pathImageAci); err != nil {
-			return errs.WithE(err, "Failed to delete path in aci")
-		}
-
-		if err := updateExec(inAciPath, "--owner=0", "--group=0", "-rf",
+		if err := updateExec("--owner=0", "--group=0", "-rf",
 			aci.target+pathImageAci,
 			"--transform",
 			"s,"+strings.TrimPrefix(aciPath, "/")+","+inAciPath+",",
 			aciPath); err != nil {
-			return errs.WithE(err, "Failed to transform path in aci")
-		}
-
-		if err := updateExec(inAciPath, "-tvf", aci.target+pathImageAci, inAciPath); err != nil {
 			return errs.WithE(err, "Failed to add path to aci")
 		}
 	}
 	return nil
 }
 
-func updateExec(inAciPath string, args ...string) error {
+func updateExec(args ...string) error {
 	out, stderr, err := common.ExecCmdGetStdoutAndStderr("tar", args...)
 	if err != nil {
 		return errs.WithEF(err, data.
-			WithField("path", inAciPath).
 			WithField("stdout", out).
 			WithField("stderr", stderr), "Tar update failed")
 	}
