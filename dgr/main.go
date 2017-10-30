@@ -95,7 +95,22 @@ func Execute() {
 	rootCmd.PersistentFlags().StringVar(&Args.PullPolicy, "pull-policy", "", "force rkt fetch Policy")
 	rootCmd.PersistentFlags().BoolVarP(&Args.ParallelBuild, "parallel", "P", false, "Run build in parallel for pod")
 
-	rootCmd.AddCommand(buildCmd, cleanCmd, pushCmd, installCmd, testCmd, versionCmd, initCmd, graphCmd, tryCmd, signCmd, aciVersion, configCmd, updateCmd)
+	rootCmd.AddCommand(
+		buildCmd,
+		cleanCmd,
+		pushCmd,
+		installCmd,
+		testCmd,
+		versionCmd,
+		initCmd,
+		graphCmd,
+		tryCmd,
+		signCmd,
+		aciVersion,
+		configCmd,
+		updateCmd,
+		cpCmd,
+	)
 
 	readEnvironment()
 	rootCmd.Execute()

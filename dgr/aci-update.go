@@ -6,7 +6,6 @@ import (
 
 	"io/ioutil"
 
-	"github.com/blablacar/dgr/dgr/common"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
@@ -76,7 +75,7 @@ func (aci *Aci) deleteInTar() error {
 		inAciPrestartLatePath,
 	}
 	args = append(args, files...)
-	updateExec(args...) // err is ignored because it may already not exists
+	tarExec(args...) // err is ignored because it may already not exists
 	return nil
 }
 
@@ -103,26 +102,13 @@ func getFileList(dir string, relativePath string, res *[]string) error {
 func (aci *Aci) addDirToTar(localPath string, inAciPath string) error {
 	aciPath := aci.path + localPath
 	if _, err := os.Stat(aciPath); err == nil {
-		if err := updateExec("--owner=0", "--group=0", "-rf",
+		if err := tarExec("--owner=0", "--group=0", "-rf",
 			aci.target+pathImageAci,
 			"--transform",
 			"s,"+strings.TrimPrefix(aciPath, "/")+","+inAciPath+",",
 			aciPath); err != nil {
 			return errs.WithE(err, "Failed to add path to aci")
 		}
-	}
-	return nil
-}
-
-func updateExec(args ...string) error {
-	out, stderr, err := common.ExecCmdGetStdoutAndStderr("tar", args...)
-	if err != nil {
-		return errs.WithEF(err, data.
-			WithField("stdout", out).
-			WithField("stderr", stderr), "Tar update failed")
-	}
-	if logs.IsDebugEnabled() {
-		println(out)
 	}
 	return nil
 }

@@ -25,6 +25,7 @@ type DgrCommand interface {
 	Graph() error
 	Sign() error
 	Init() error
+	Cp([]string) error
 }
 
 var cleanCmd = &cobra.Command{
@@ -102,6 +103,18 @@ var configCmd = &cobra.Command{
 		}
 		w.Flush()
 		fmt.Println(b.String())
+	},
+}
+
+var cpCmd = &cobra.Command{
+	Use:   "cp",
+	Short: "cp file",
+	Long:  `cp file or directory from aci to host`,
+	Run: func(cmd *cobra.Command, args []string) {
+		command := NewAciOrPod(workPath, Args)
+		if err := command.Cp(args); err != nil {
+			logs.WithE(err).Fatal("Cp command failed")
+		}
 	},
 }
 
