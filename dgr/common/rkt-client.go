@@ -161,14 +161,14 @@ func (rkt *RktClient) GetVersion() (Version, error) {
 type PullPolicy string
 
 const (
-	PullPolicyNone   PullPolicy = "none"
+	PullPolicyNever  PullPolicy = "never"
 	PullPolicyNew    PullPolicy = "new"
 	PullPolicyUpdate PullPolicy = "update"
 )
 
 func (p PullPolicy) IsValid() bool {
 	switch p {
-	case PullPolicyNew, PullPolicyNone, PullPolicyUpdate:
+	case PullPolicyNew, PullPolicyNever, PullPolicyUpdate:
 	default:
 		return false
 	}
