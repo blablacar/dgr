@@ -64,8 +64,13 @@ func (aci *Aci) RunUpdate() error {
 
 func (aci *Aci) deleteInTar() error {
 	var files []string
-	if err := getFileList(aci.path+pathFiles, rootfs, &files); err != nil {
-		return err
+	if fi, err := os.Stat(aci.path + pathFiles); err == nil {
+		if !fi.Mode().IsDir() {
+			return errs.WithF(data.WithField("path", aci.path+pathFiles), "files is not a directory")
+		}
+		if err := getFileList(aci.path+pathFiles, rootfs, &files); err != nil {
+			return err
+		}
 	}
 
 	args := []string{"--delete", "--ignore-failed-read", "-f", aci.target + pathImageAci,
