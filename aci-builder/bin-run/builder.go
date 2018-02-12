@@ -101,7 +101,10 @@ func (b *Builder) writeManifest() error {
 	if err != nil {
 		logs.WithE(err).Warn("Failed to prepare attributes")
 	}
-	attributes := attrMerger.Merge()
+	attributes, err := attrMerger.Merge()
+	if err != nil {
+		return errs.WithE(err, "Failed to merge attributes")
+	}
 	logs.WithFields(b.fields).WithField("attributes", attributes).Debug("Merged attributes for manifest templating")
 
 	content, err := ioutil.ReadFile(b.aciTargetPath + common.PathManifestYmlTmpl)

@@ -9,6 +9,7 @@ import (
 	"github.com/blablacar/dgr/bin-templater/merger"
 	"github.com/blablacar/dgr/bin-templater/template"
 	"github.com/n0rad/go-erlog"
+	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/logs"
 	_ "github.com/n0rad/go-erlog/register"
 	"github.com/peterbourgon/mergemap"
@@ -79,7 +80,10 @@ func Run(overrideEnvVarName string, target string, templaterDir string, continue
 	if err != nil {
 		logs.WithE(err).Warn("Failed to prepare attributes")
 	}
-	attributes := attrMerger.Merge()
+	attributes, err := attrMerger.Merge()
+	if err != nil {
+		logs.WithEF(err, data.WithField("dir", templaterDir+pathTemplates)).Fatal("Failed to merge attributes")
+	}
 	attributes = overrideWithJsonIfNeeded(overrideEnvVarName, attributes)
 	tt, err := merger.ProcessAttributesTemplating(attributes, attributes)
 	attributes = tt.(map[string]interface{})

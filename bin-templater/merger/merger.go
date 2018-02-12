@@ -42,7 +42,7 @@ func NewAttributesMerger(rootDir string, attributesDir string) (*AttributesMerge
 	return &AttributesMerger{dir: res}, nil
 }
 
-func (a AttributesMerger) Merge() map[string]interface{} {
+func (a AttributesMerger) Merge() (map[string]interface{}, error) {
 	return MergeAttributesFiles(a.dir)
 }
 
@@ -94,7 +94,7 @@ func (in *inputs) addFiles(f_info os.FileInfo, cwd string) error {
 	return nil
 }
 
-func MergeAttributesFilesForMap(omap map[string]interface{}, files []string) map[string]interface{} {
+func MergeAttributesFilesForMap(omap map[string]interface{}, files []string) (map[string]interface{}, error) {
 
 	newMap := make(map[string]interface{})
 	newMap["default"] = omap
@@ -102,32 +102,32 @@ func MergeAttributesFilesForMap(omap map[string]interface{}, files []string) map
 	// loop over attributes files
 	// merge override files to default files
 	for _, file := range files {
-		var data interface{}
+		var contentData interface{}
 		yml, err := ioutil.ReadFile(file)
 		if err != nil {
-			panic(err)
+			return newMap, errs.WithEF(err, data.WithField("file", file), "Failed to read file")
 		}
-		// yaml to data
-		err = yaml.Unmarshal(yml, &data)
+		// yaml to contentData
+		err = yaml.Unmarshal(yml, &contentData)
 		if err != nil {
-			panic(err)
+			return newMap, errs.WithEF(err, data.WithField("file", file), "Failed to unmarshal file")
 		}
-		data, err = transform(data)
+		contentData, err = transform(contentData)
 		if err != nil {
-			panic(err)
+			return newMap, errs.WithEF(err, data.WithField("file", file), "Failed to transform file to json")
 		}
-		// data to map
-		if data == nil {
+		// contentData to map
+		if contentData == nil {
 			continue
 		}
-		json := data.(map[string]interface{})
+		json := contentData.(map[string]interface{})
 		omap = mergemap.Merge(newMap, json)
 	}
 	data := ProcessOverride(newMap)
-	return data
+	return data, nil
 }
 
-func MergeAttributesFiles(files []string) map[string]interface{} {
+func MergeAttributesFiles(files []string) (map[string]interface{}, error) {
 	omap := make(map[string]interface{})
 	return MergeAttributesFilesForMap(omap, files)
 }
@@ -149,17 +149,20 @@ func ProcessOverride(omap map[string]interface{}) map[string]interface{} {
 	return omap
 }
 
-func Merge(envName string, files []string) []byte {
+func Merge(envName string, files []string) ([]byte, error) {
 	// inputDir string,
 	// "out map" to store merged yamls
-	omap := MergeAttributesFiles(files)
+	omap, err := MergeAttributesFiles(files)
+	if err != nil {
+		return []byte{}, err
+	}
 
 	envjson := os.Getenv(envName)
 	if envjson != "" {
 		var envattr map[string]interface{}
 		err := json.Unmarshal([]byte(envjson), &envattr)
 		if err != nil {
-			panic(err)
+			return []byte{}, errs.WithEF(err, data.WithField("envName", envName), "Failed to unmarshal env var")
 		}
 		mergemap.Merge(omap, envattr)
 	}
@@ -167,10 +170,10 @@ func Merge(envName string, files []string) []byte {
 	// map to json
 	out, err := json.Marshal(omap)
 	if err != nil {
-		panic(err)
+		return []byte{}, errs.WithEF(err, data.WithField("envName", envName), "Failed to marshal as json merged map")
 	}
 
-	return out
+	return out, nil
 }
 
 func ProcessAttributesTemplating(in interface{}, attributes interface{}) (_ interface{}, err error) {
