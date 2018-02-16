@@ -277,7 +277,19 @@ func (b *Builder) prepareNspawnArgsAndEnv(commandPath string) ([]string, []strin
 		args = append(args, "--setenv=ACI_VERSION="+version)
 	}
 	args = append(args, "--setenv=ACI_NAME="+manifestApp(b.pod).Name.String())
-	args = append(args, "--setenv=ACI_EXEC="+"'"+strings.Join(manifestApp(b.pod).App.Exec, "' '")+"'")
+
+	cmd := ""
+	for i, execElement := range manifestApp(b.pod).App.Exec {
+		if i > 0 {
+			cmd += " "
+		}
+		cmd += "'"
+		cmd += strings.Replace(strings.Replace(execElement, "\"", "\\\"", -1), "'", "\\'", -1)
+		cmd += "'"
+	}
+	logs.WithF(data.WithField("ACI_EXEC", cmd)).Debug("Exec command prepared")
+
+	args = append(args, "--setenv=ACI_EXEC="+cmd)
 	args = append(args, "--setenv=ROOTFS="+PATH_OPT+PATH_STAGE2+"/"+manifestApp(b.pod).Name.String()+common.PathRootfs)
 
 	args = append(args, "--capability=all")
