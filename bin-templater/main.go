@@ -86,10 +86,10 @@ func Run(overrideEnvVarName string, target string, templaterDir string, continue
 	}
 	attributes = overrideWithJsonIfNeeded(overrideEnvVarName, attributes)
 	tt, err := merger.ProcessAttributesTemplating(attributes, attributes)
-	attributes = tt.(map[string]interface{})
 	if err != nil {
-		logs.WithField("dir", templaterDir+pathTemplates).Fatal("Failed to template attributes")
+		logs.WithEF(err, data.WithField("dir", templaterDir+pathTemplates)).Fatal("Failed to template attributes")
 	}
+	attributes = tt.(map[string]interface{})
 	logs.WithField("content", attributes).Debug("Final attributes resolution")
 
 	info, _ := os.Stat(templaterDir + pathTemplates)
