@@ -91,7 +91,7 @@ fi
 # build runlevel
 if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ] || [ -d ${ROOTFS}/dgr/runlevels/inherit-build-early ]; then
 
-    LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn \
+    LD_LIBRARY_PATH=/dgr/usr/lib LD_PRELOAD=/dgr/usr/lib/libsystemd-shared-232.so /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn \
         --register=no -q --directory=${ROOTFS} --capability=all \
         --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build.sh || onError "Build"
 fi
@@ -127,7 +127,7 @@ fi
 
 # build-late runlevel
 if [ -d ${ACI_HOME}/runlevels/build ] || [ -d ${ACI_HOME}/runlevels/build-late ] || [ -d ${ROOTFS}/dgr/runlevels/inherit-build-late ]; then
-    LD_LIBRARY_PATH=/dgr/usr/lib /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn \
+    LD_LIBRARY_PATH=/dgr/usr/lib LD_PRELOAD=/dgr/usr/lib/libsystemd-shared-232.so /dgr/usr/lib/ld-linux-x86-64.so.2 /dgr/usr/bin/systemd-nspawn \
         --register=no -q --directory=${ROOTFS} --capability=all \
         --bind=/dgr/builder:/dgr/builder dgr/builder/stage2/step-build-late.sh || onError "Build-late"
 fi
