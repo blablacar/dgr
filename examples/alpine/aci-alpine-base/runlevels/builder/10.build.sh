@@ -3,8 +3,8 @@ set -e
 . /dgr/bin/functions.sh
 isLevelEnabled "debug" && set -x
 
-mirror=http://nl.alpinelinux.org/alpine/
-version=2.9.1-r2
+mirror=http://nl.alpinelinux.org/alpine
+version=2.10.4-r2
 
 wget ${mirror}/latest-stable/main/x86_64/apk-tools-static-${version}.apk
 tar -xzf apk-tools-static-*.apk

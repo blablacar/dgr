@@ -4,7 +4,7 @@ set -e
 isLevelEnabled "debug" && set -x
 
 ###############################################################################
-gentoo_mirror="http://gentoo.mirrors.ovh.net/gentoo-distfiles/"
+gentoo_mirror="http://gentoo.mirrors.ovh.net/gentoo-distfiles"
 ###############################################################################
 
 stage4=$(curl --silent ${gentoo_mirror}/releases/amd64/autobuilds/latest-stage4-amd64-minimal.txt | grep -v "^#" | egrep "stage4-amd64-minimal" | cut -d' ' -f 1 )
@@ -36,4 +36,4 @@ done
 
 echo_green "Extracting stage4"
 #TODO builder is missing libacl-devel, libattr-devel, and libselinux-devel for tar to support xattrs
-tar xjpf ${stage4tarball} -C "${ROOTFS}" --xattrs
+tar xJpf ${stage4tarball} -C "${ROOTFS}" --xattrs

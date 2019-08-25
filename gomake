@@ -157,7 +157,7 @@ quality() {
     fi
 
     echo_green "Lint"
-    command -v golint > /dev/null || go get -u github.com/golang/lint/golint
+    command -v golint > /dev/null || go get -u golang.org/x/lint/golint
     for i in ${go_files}; do
         golint ${i} | grep -v 'should have comment ' || true
     done

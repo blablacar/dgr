@@ -2,7 +2,7 @@
 set -x
 set -e
 
-version="v1.28.0"
+version="v1.30.0"
 filename="rkt-${version}.tar.gz"
 url="https://github.com/rkt/rkt/releases/download/${version}/${filename}"
 
