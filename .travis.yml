@@ -4,19 +4,22 @@ sudo: required
 dist: trusty
 
 go:
- - 1.8
+ - "1.12.9"
 
 install:
   - sudo rm -rf /var/lib/apt/lists/*
-  - sudo add-apt-repository ppa:duggan/bats --yes
   - sudo add-apt-repository ppa:pitti/systemd --yes
   - sudo apt-get update -qq
   - sudo apt-get install -qq upx systemd
   - sudo ./scripts/travis-install-rkt.sh
-  - sudo apt-get install -qq bats
+  - npm -g install bats
 
 script:
-  - ./gomake clean build test quality install
+  - ./gomake clean
+  - ./gomake build
+  - ./gomake test
+  - ./gomake quality
+  - ./gomake install
   - mkdir -p ~/.config/dgr
   - 'echo -e "rkt:\n pullPolicy: new" > ~/.config/dgr/config.yml'
   - sudo PATH=${GOPATH}/bin:$PATH ./examples/build.sh

@@ -7,7 +7,7 @@ cat > /etc/apt/sources.list.d/cassandra.list<<EOF
 deb http://ftp.fr.debian.org/debian/ jessie main non-free contrib # needed for java8
 deb http://www.apache.org/dist/cassandra/debian 30x main
 deb-src http://www.apache.org/dist/cassandra/debian 30x main
-deb http://ftp.debian.org/debian jessie-backports main
+deb [check-valid-until=no] http://archive.debian.org/debian jessie-backports main
 EOF
 
 gpg --keyserver pool.sks-keyservers.net --recv-keys F758CE318D77295D || \
@@ -22,8 +22,12 @@ gpg --keyserver pool.sks-keyservers.net --recv-keys 0353B12C || \
 gpg --keyserver pgp.mit.edu --recv-keys 0353B12C
 gpg --export --armor 0353B12C | apt-key add -
 
-apt-get update
-apt-get install -y --force-yes -t jessie-backports cassandra cassandra-tools
+# For Cassandra
+apt-key adv --keyserver pool.sks-keyservers.net --recv-key A278B781FE4B2BDA
+
+# Jessie is too old, so we add `-o Acquire::Check-Valid-Until=false` (for now)
+apt-get -o Acquire::Check-Valid-Until=false update
+apt-get -o Acquire::Check-Valid-Until=false install -y --force-yes -t jessie-backports cassandra cassandra-tools
 
 chown -R cassandra: /etc/cassandra
 mkdir /data

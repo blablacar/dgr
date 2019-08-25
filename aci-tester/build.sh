@@ -11,7 +11,9 @@ mkdir -p ${rootfs}/dgr/usr/bin ${rootfs}/dgr/usr/lib
 cp -R ${dir}/files/. ${rootfs}/
 cp ${dir}/manifest.json ${target}/manifest
 
-: ${bats_src:="https://raw.githubusercontent.com/sstephenson/bats/master/libexec"}
+BATS_VERSION="v1.1.0"
+
+: ${bats_src:="https://raw.githubusercontent.com/bats-core/bats-core/${BATS_VERSION}/libexec/bats-core"}
 curl --fail --silent --show-error --location --remote-time --compressed --create-dirs \
     {-z,-o}"${rootfs}/dgr/usr/bin/bats" \
     ${bats_src}/bats
